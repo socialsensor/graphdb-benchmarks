@@ -3,7 +3,13 @@
   <groupId>eu.socialsensor</groupId>
   <artifactId>graphdb-benchmarks</artifactId>
   <version>0.0.1-SNAPSHOT</version>
-
+  <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+                <distribution>repo</distribution>
+                  </license>
+  </licenses>
   <dependencies>
 <!--   	<dependency> -->
 <!--   		<groupId>com.tinkerpop.blueprints</groupId> -->
@@ -172,4 +178,17 @@
   		<version>0.4.1</version>
   	</dependency>
   </dependencies>
+  <build>
+    <sourceDirectory>src</sourceDirectory>
+    <plugins>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.1</version>
+        <configuration>
+          <source>1.7</source>
+          <target>1.7</target>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>
