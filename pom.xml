@@ -3,6 +3,13 @@
   <groupId>eu.socialsensor</groupId>
   <artifactId>graphdb-benchmarks</artifactId>
   <version>0.0.1-SNAPSHOT</version>
+  <developers>
+        <developer>
+            <id>sarovios</id>
+            <name>Sotiris Beis</name>
+            <email>sotbeis@iti.gr</email>
+        </developer>
+    </developers>
   <licenses>
         <license>
             <name>The Apache Software License, Version 2.0</name>
@@ -191,4 +198,11 @@
       </plugin>
     </plugins>
   </build>
+  <name>graphdb-benchmarks</name>
+  <url>https://github.com/socialsensor/graphdb-benchmarks</url>
+  <description>Performance benchmark between popular graph databases.</description>
+  <organization>
+  	<name>SocialSensor</name>
+  	<url>http://www.socialsensor.eu/</url>
+  </organization>
 </project>
