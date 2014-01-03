@@ -92,7 +92,7 @@ public class MassiveInsertionBenchmark {
 		orientMassiveInsertion.shutdown();
 		//wait for some time before try to delete files
 		try {
-			Thread.sleep(60000);
+			Thread.sleep(6000);
 		} 
 		catch (InterruptedException e) {
 			e.printStackTrace();
@@ -111,7 +111,7 @@ public class MassiveInsertionBenchmark {
 		titanMassiveInsertion.shutdown();
 //		wait for some time before try to delete files
 		try {
-			Thread.sleep(60000);
+			Thread.sleep(6000);
 		} 
 		catch (InterruptedException e) {
 			e.printStackTrace();
@@ -130,7 +130,7 @@ public class MassiveInsertionBenchmark {
 		neo4jMassiveInsertion.shutdown();
 //		wait for some time before try to delete files
 		try {
-			Thread.sleep(60000);
+			Thread.sleep(6000);
 		} 
 		catch (InterruptedException e) {
 			e.printStackTrace();
