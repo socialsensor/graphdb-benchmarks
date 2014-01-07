@@ -87,10 +87,10 @@ public class Utils {
 		}
 	}
 	
-	public void writeTimes(List<Long> insertionTimes, String outputPath) {
+	public void writeTimes(List<Double> insertionTimes, String outputPath) {
 		try {
 			BufferedWriter out = new BufferedWriter(new FileWriter(outputPath));
-			for(Long insertionTime : insertionTimes) {
+			for(Double insertionTime : insertionTimes) {
 				out.write(String.valueOf(insertionTime));
 				out.write("\n");
 			}
