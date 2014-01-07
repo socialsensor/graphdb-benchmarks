@@ -33,7 +33,6 @@ public class OrientMassiveInsertion {
 	    OGlobalConfiguration.TX_USE_LOG.setValue(false);
 	    OGlobalConfiguration.ENVIRONMENT_CONCURRENT.setValue(false);
 	    orientGraph = new OrientGraphNoTx("plocal:"+orientDBDir);
-//	    orientGraph.createKeyIndex("nodeId", Vertex.class);
 	    orientGraph.createIndex("nodeId", OrientVertex.class);
 	    vetrices = orientGraph.getIndex("nodeId", OrientVertex.class);
 	}
@@ -56,10 +55,6 @@ public class OrientMassiveInsertion {
 			int lineCounter = 1;
 			OrientVertex srcVertex, dstVertex;
 			Iterable<OrientVertex> cache;
-			int nodeCounter = 0;
-			int nodes = 1;
-			int edges = 1;
-			int testCounter = 1;
 			while((line = reader.readLine()) != null) {
 				if(lineCounter > 4) {
 					String[] parts = line.split("\t");
@@ -69,12 +64,8 @@ public class OrientMassiveInsertion {
 						srcVertex = cache.iterator().next();
 					}
 					else {
-						srcVertex = orientGraph.addVertex(nodes, "nodeId", parts[0] );
-						srcVertex.setProperty("test", Integer.toString(testCounter));
+						srcVertex = orientGraph.addVertex(null, "nodeId", parts[0] );
 						vetrices.put("nodeId", parts[0], srcVertex);
-						nodes++;
-						nodeCounter++;
-						testCounter++;
 					}
 
 					cache = vetrices.get("nodeId", parts[1]);
@@ -82,22 +73,15 @@ public class OrientMassiveInsertion {
 						dstVertex = cache.iterator().next();
 					}
 					else {
-						dstVertex = orientGraph.addVertex(nodes, "nodeId", parts[1] );
-						dstVertex.setProperty("test", Integer.toString(testCounter));
+						dstVertex = orientGraph.addVertex(null, "nodeId", parts[1] );
 						vetrices.put("nodeId", parts[1], dstVertex);
-						nodes++;
-						nodeCounter++;
-						testCounter++;
 					}
 					
 					if(parts[0].equals(parts[1])) {
 						dstVertex = srcVertex;
 					}
 					
-					orientGraph.addEdge(edges, srcVertex, dstVertex, "similar");
-					edges++;
-					
-					System.out.println(nodeCounter);
+					orientGraph.addEdge(null, srcVertex, dstVertex, "similar");
 				}
 				lineCounter++;
 			}			
