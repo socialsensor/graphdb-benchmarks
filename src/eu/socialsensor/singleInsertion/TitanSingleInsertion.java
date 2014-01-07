@@ -33,20 +33,6 @@ public class TitanSingleInsertion {
 		long duration = System.currentTimeMillis() - start;
 		System.out.println("TIME=======> "+duration);
 		test.shutdown();
-		
-//		int count = 0;
-//		for(Vertex v : graph.getVertices()) {
-//			System.out.println(v.getProperty("nodeId"));
-//			count++;
-//		}
-//		System.out.println(count);
-//		
-//		count = 0;
-//		for(Edge e : graph.getEdges()) {
-//			count++;
-//		}
-//		System.out.println(count);
-//		graph.shutdown();
 	}
 	
 	public void startup(String titanDBDir) {
@@ -70,9 +56,9 @@ public class TitanSingleInsertion {
 		}
 	}
 	
-	public List<Long> createGraph(String datasetDir) {
+	public List<Double> createGraph(String datasetDir) {
 		System.out.println("Incrementally creating the Titan database . . . .");
-		List<Long> insertionTimes = new ArrayList<Long>();
+		List<Double> insertionTimes = new ArrayList<Double>();
 		try {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(datasetDir)));
 			String line;
@@ -100,7 +86,7 @@ public class TitanSingleInsertion {
 					
 					if(nodesCounter == 1000) {
 						duration = System.currentTimeMillis() - start;
-						insertionTimes.add(duration);
+						insertionTimes.add((double) duration);
 						nodesCounter = 0;
 						start = System.currentTimeMillis();
 						
@@ -126,7 +112,7 @@ public class TitanSingleInsertion {
 					
 					if(nodesCounter == 1000) {
 						duration = System.currentTimeMillis() - start;
-						insertionTimes.add(duration);
+						insertionTimes.add((double) duration);
 						nodesCounter = 0;
 						start = System.currentTimeMillis();
 						
@@ -140,7 +126,7 @@ public class TitanSingleInsertion {
 				lineCounter++;
 			}
 			duration = System.currentTimeMillis() - start;
-			insertionTimes.add(duration);
+			insertionTimes.add((double) duration);
 			blocksCounter++;
 			System.out.println("Nodes: "+nodesCounter);
 			System.out.println("Time: "+duration);

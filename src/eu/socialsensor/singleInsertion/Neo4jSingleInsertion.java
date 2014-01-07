@@ -46,9 +46,9 @@ public class Neo4jSingleInsertion {
 		}
 	}
 	
-	public List<Long> createGraph(String datasetDir) {
+	public List<Double> createGraph(String datasetDir) {
 		System.out.println("Incrementally creating the Neo4j database . . . .");
-		List<Long> insertionTimes = new ArrayList<Long>();
+		List<Double> insertionTimes = new ArrayList<Double>();
 		try {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(datasetDir)));
 			String line;
@@ -77,7 +77,7 @@ public class Neo4jSingleInsertion {
 					
 					if(nodesCounter == 1000) {
 						duration = System.currentTimeMillis() - start;
-						insertionTimes.add(duration);
+						insertionTimes.add((double) duration);
 						nodesCounter = 0;
 						start = System.currentTimeMillis();
 						
@@ -106,7 +106,7 @@ public class Neo4jSingleInsertion {
 					
 					if(nodesCounter == 1000) {
 						duration = System.currentTimeMillis() - start;
-						insertionTimes.add(duration);
+						insertionTimes.add((double) duration);
 						nodesCounter = 0;
 						start = System.currentTimeMillis();
 						
@@ -120,7 +120,7 @@ public class Neo4jSingleInsertion {
 			}
 			if(nodesCounter == 1000) {
 				duration = System.currentTimeMillis() - start;
-				insertionTimes.add(duration);
+				insertionTimes.add((double) duration);
 				nodesCounter = 0;
 				start = System.currentTimeMillis();
 				
