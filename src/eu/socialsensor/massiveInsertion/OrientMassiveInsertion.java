@@ -32,7 +32,7 @@ public class OrientMassiveInsertion {
 		OGlobalConfiguration.STORAGE_KEEP_OPEN.setValue(false);
 	    OGlobalConfiguration.TX_USE_LOG.setValue(false);
 	    OGlobalConfiguration.ENVIRONMENT_CONCURRENT.setValue(false);
-	    orientGraph = new OrientGraphNoTx("local:"+orientDBDir);
+	    orientGraph = new OrientGraphNoTx("plocal:"+orientDBDir);
 //	    orientGraph.createKeyIndex("nodeId", Vertex.class);
 	    orientGraph.createIndex("nodeId", OrientVertex.class);
 	    vetrices = orientGraph.getIndex("nodeId", OrientVertex.class);
