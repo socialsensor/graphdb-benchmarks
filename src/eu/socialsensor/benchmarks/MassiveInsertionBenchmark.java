@@ -29,31 +29,37 @@ public class MassiveInsertionBenchmark {
 		double[] neo4jTimes = new double[6];
 		
 		//Scenario 1
+		System.out.println("##################### Running scenario 1 #####################");
 		orientTimes[0] = orientMassiveInsertionBenchmark();
 		titanTimes[0] = titanMassiveInsertionBenchmark();
 		neo4jTimes[0] = neo4jMassiveInsertionBenchmark();
 		
 		//Scenario 2
+		System.out.println("##################### Running scenario 2 #####################");
 		orientTimes[1] = orientMassiveInsertionBenchmark();
 		neo4jTimes[1] = neo4jMassiveInsertionBenchmark();
 		titanTimes[1] = titanMassiveInsertionBenchmark();
 		
 		//Scenario 3
+		System.out.println("##################### Running scenario 3 #####################");
 		neo4jTimes[2] = neo4jMassiveInsertionBenchmark();
 		orientTimes[2] = orientMassiveInsertionBenchmark();
 		titanTimes[2] = titanMassiveInsertionBenchmark();
 		
 		//Scenario 4
+		System.out.println("##################### Running scenario 4 #####################");
 		neo4jTimes[3] = neo4jMassiveInsertionBenchmark();
 		titanTimes[3] = titanMassiveInsertionBenchmark();
 		orientTimes[3] = orientMassiveInsertionBenchmark();
 		
 		//Scenario 5
+		System.out.println("##################### Running scenario 5 #####################");
 		titanTimes[4] = titanMassiveInsertionBenchmark();
 		neo4jTimes[4] = neo4jMassiveInsertionBenchmark();
 		orientTimes[4] = orientMassiveInsertionBenchmark();
 		
 		//Scenario 6
+		System.out.println("##################### Running scenario 6 #####################");
 		titanTimes[5] = titanMassiveInsertionBenchmark();
 		orientTimes[5] = orientMassiveInsertionBenchmark();
 		neo4jTimes[5] = neo4jMassiveInsertionBenchmark();
@@ -73,11 +79,11 @@ public class MassiveInsertionBenchmark {
 		System.out.println("###########################################################");
 		System.out.println("############ Massive Insertion Benchmark Finished ############");
 		System.out.println("######################### RESULTS #########################");
-		System.out.println("Orient mean execution time: "+meanOrientTime+" nanoseconds");
+		System.out.println("Orient mean execution time: "+meanOrientTime+" milliseconds");
 		System.out.println("Orient std execution time: "+stdOrientTime);
-		System.out.println("Titan mean execution time: "+meanTitanTime+" nanoseconds");
+		System.out.println("Titan mean execution time: "+meanTitanTime+" milliseconds");
 		System.out.println("Titan std execution time: "+stdTitanTime);
-		System.out.println("Neo4j mean execution time: "+meanNeo4jTime+" nanoseconds");
+		System.out.println("Neo4j mean execution time: "+meanNeo4jTime+" milliseconds");
 		System.out.println("Neo4j std execution time: "+stdNeo4jTime);
 		System.out.println("###########################################################");
 		
