@@ -2,9 +2,11 @@ package eu.socialsensor.main;
 
 import eu.socialsensor.benchmarks.FindNeighboursOfAllNodesBenchmark;
 import eu.socialsensor.benchmarks.MassiveInsertionBenchmark;
+import eu.socialsensor.benchmarks.SingleInsertionBenchmark;
 
 public class GraphDatabaseBenchmark {
 		
+	private final static String enronDataset = "data/enronEdges.txt";
 	private final static String flickrDataset = "data/flickrEdges.txt";
 	private final static String amazonDataset = "data/amazonEdges.txt";
 	private final static String youtubeDataset = "data/youtubeEdges.txt";
@@ -19,11 +21,11 @@ public class GraphDatabaseBenchmark {
 //		MassiveInsertionBenchmark massiveInsertionBenchmark = new MassiveInsertionBenchmark(flickrDataset);
 //		massiveInsertionBenchmark.startMassiveBenchmark();		
 		
-//		SingleInsertionBenchmark singleInsertionBenchmark = new SingleInsertionBenchmark(flickrDataset);
-//		singleInsertionBenchmark.startBenchmark();
+		SingleInsertionBenchmark singleInsertionBenchmark = new SingleInsertionBenchmark("data/test.txt");
+		singleInsertionBenchmark.startBenchmark();
 		
-		FindNeighboursOfAllNodesBenchmark findNeighboursOfAllNodesBenchmark = new FindNeighboursOfAllNodesBenchmark();
-		findNeighboursOfAllNodesBenchmark.startBenchmark();
+//		FindNeighboursOfAllNodesBenchmark findNeighboursOfAllNodesBenchmark = new FindNeighboursOfAllNodesBenchmark();
+//		findNeighboursOfAllNodesBenchmark.startBenchmark();
 		
 //		FindNodesOfAllEdgesBenchmark findNodesOfAllEdgesBenchmark = new FindNodesOfAllEdgesBenchmark();
 //		findNodesOfAllEdgesBenchmark.startBenchmark();
