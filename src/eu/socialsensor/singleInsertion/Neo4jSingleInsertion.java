@@ -82,9 +82,9 @@ public class Neo4jSingleInsertion {
 						start = System.currentTimeMillis();
 						
 						blocksCounter++;
-						System.out.println("Nodes: "+nodes);
-						System.out.println("Time: "+duration);
-						System.out.println("blocks: "+blocksCounter);
+//						System.out.println("Nodes: "+nodes);
+//						System.out.println("Time: "+duration);
+//						System.out.println("blocks: "+blocksCounter);
 					}
 					
 					Node dstNode = nodeIndex.get("nodeId", parts[1]).getSingle();
@@ -111,9 +111,9 @@ public class Neo4jSingleInsertion {
 						start = System.currentTimeMillis();
 						
 						blocksCounter++;
-						System.out.println("Nodes: "+nodes);
-						System.out.println("Time: "+duration);
-						System.out.println("blocks: "+blocksCounter);
+//						System.out.println("Nodes: "+nodes);
+//						System.out.println("Time: "+duration);
+//						System.out.println("blocks: "+blocksCounter);
 					}
 				}
 				lineCounter++;
@@ -125,9 +125,9 @@ public class Neo4jSingleInsertion {
 				start = System.currentTimeMillis();
 				
 				blocksCounter++;
-				System.out.println("Nodes: "+nodes);
-				System.out.println("Time: "+duration);
-				System.out.println("blocks: "+blocksCounter);
+//				System.out.println("Nodes: "+nodes);
+//				System.out.println("Time: "+duration);
+//				System.out.println("blocks: "+blocksCounter);
 			}
 			
 			reader.close();

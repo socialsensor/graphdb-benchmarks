@@ -31,6 +31,7 @@ public class OrientSingleInsertion {
 	public void shutdown() {
 		System.out.println("The Orient database is now shuting down . . . .");
 		if(orientGraph != null) {
+			orientGraph.drop();
 			orientGraph.shutdown();
 			orientGraph = null;
 			vetrices = null;
@@ -74,9 +75,9 @@ public class OrientSingleInsertion {
 						start = System.currentTimeMillis();
 						
 						blocksCounter++;
-						System.out.println("Nodes: "+nodes);
-						System.out.println("Time: "+duration);
-						System.out.println("blocks: "+blocksCounter);
+//						System.out.println("Nodes: "+nodes);
+//						System.out.println("Time: "+duration);
+//						System.out.println("blocks: "+blocksCounter);
 					}
 					
 					cache = vetrices.get("nodeId", parts[1]);
@@ -101,9 +102,9 @@ public class OrientSingleInsertion {
 						start = System.currentTimeMillis();
 						
 						blocksCounter++;
-						System.out.println("Nodes: "+nodes);
-						System.out.println("Time: "+duration);
-						System.out.println("blocks: "+blocksCounter);
+//						System.out.println("Nodes: "+nodes);
+//						System.out.println("Time: "+duration);
+//						System.out.println("blocks: "+blocksCounter);
 					}
 				}
 				lineCounter++;
@@ -112,9 +113,9 @@ public class OrientSingleInsertion {
 			duration = System.currentTimeMillis() - start;
 			insertionTimes.add((double) duration);
 			blocksCounter++;
-			System.out.println("Nodes: "+nodes);
-			System.out.println("Time: "+duration);
-			System.out.println("blocks: "+blocksCounter);
+//			System.out.println("Nodes: "+nodes);
+//			System.out.println("Time: "+duration);
+//			System.out.println("blocks: "+blocksCounter);
 			
 			reader.close();
 		}

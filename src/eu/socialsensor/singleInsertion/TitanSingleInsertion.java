@@ -91,9 +91,9 @@ public class TitanSingleInsertion {
 						start = System.currentTimeMillis();
 						
 						blocksCounter++;
-						System.out.println("Nodes: "+nodes);
-						System.out.println("Time: "+duration);
-						System.out.println("blocks: "+blocksCounter);
+//						System.out.println("Nodes: "+nodes);
+//						System.out.println("Time: "+duration);
+//						System.out.println("blocks: "+blocksCounter);
 					}
 					
 					if(titanGraph.query().has("nodeId", Compare.EQUAL, parts[1]).vertices().iterator().hasNext()) {
@@ -117,9 +117,9 @@ public class TitanSingleInsertion {
 						start = System.currentTimeMillis();
 						
 						blocksCounter++;
-						System.out.println("Nodes: "+nodes);
-						System.out.println("Time: "+duration);
-						System.out.println("blocks: "+blocksCounter);
+//						System.out.println("Nodes: "+nodes);
+//						System.out.println("Time: "+duration);
+//						System.out.println("blocks: "+blocksCounter);
 					}
 	
 				}
@@ -128,9 +128,9 @@ public class TitanSingleInsertion {
 			duration = System.currentTimeMillis() - start;
 			insertionTimes.add((double) duration);
 			blocksCounter++;
-			System.out.println("Nodes: "+nodesCounter);
-			System.out.println("Time: "+duration);
-			System.out.println("blocks: "+blocksCounter);
+//			System.out.println("Nodes: "+nodesCounter);
+//			System.out.println("Time: "+duration);
+//			System.out.println("blocks: "+blocksCounter);
 			
 			reader.close();
 		}
