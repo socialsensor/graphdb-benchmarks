@@ -3,6 +3,13 @@
   <groupId>eu.socialsensor</groupId>
   <artifactId>graphdb-benchmarks</artifactId>
   <version>0.0.1-SNAPSHOT</version>
+  <name>graphdb-benchmarks</name>
+  <url>https://github.com/socialsensor/graphdb-benchmarks</url>
+  <description>Performance benchmark between popular graph databases.</description>
+  <organization>
+  	<name>SocialSensor</name>
+  	<url>http://www.socialsensor.eu/</url>
+  </organization>
   <developers>
         <developer>
             <id>sarovios</id>
@@ -17,17 +24,36 @@
                 <distribution>repo</distribution>
                   </license>
   </licenses>
+  <!-- required to include Tinkerpop SNAPSHOT dependencies -->
+  <repositories>
+        <repository>
+            <id>sonatype-nexus-snapshots</id>
+            <name>Sonatype Nexus Snapshots</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+  <properties>
+<!--         <osgi.import> -->
+<!--             com.tinkerpop.blueprints;resolution:=optional, -->
+<!--             com.tinkerpop.gremlin.groovy.jsr223;resolution:=optional, -->
+<!--             com.tinkerpop.gremlin.java;resolution:=optional, -->
+<!--             * -->
+<!--         </osgi.import> -->
+<!--         <osgi.export>com.orientechnologies.orient.graph.*</osgi.export> -->
+        <blueprints.version>2.5.0-SNAPSHOT</blueprints.version>
+    </properties>
   <dependencies>
-<!--   	<dependency> -->
-<!--   		<groupId>com.tinkerpop.blueprints</groupId> -->
-<!--   		<artifactId>blueprints-core</artifactId> -->
-<!--   		<version>2.5.0-SNAPSHOT</version> -->
-<!--   	</dependency> -->
-<!--   	<dependency> -->
-<!--   		<groupId>com.tinkerpop.blueprints</groupId> -->
-<!--   		<artifactId>blueprints-orient-graph</artifactId> -->
-<!--   		<version>2.5.0-SNAPSHOT</version> -->
-<!--   	</dependency> -->
+<dependency>
+  		<groupId>com.tinkerpop.blueprints</groupId>
+  		<artifactId>blueprints-orient-graph</artifactId>
+  		<version>${blueprints.version}</version>
+  	</dependency>
   	<dependency>
   		<groupId>colt</groupId>
   		<artifactId>colt</artifactId>
@@ -63,17 +89,17 @@
   		<artifactId>geronimo-jta_1.1_spec</artifactId>
   		<version>1.1.1</version>
   	</dependency>
-<!--   	<dependency> -->
-<!--   		<groupId>com.tinkerpop.gremlin</groupId> -->
-<!--   		<artifactId>gremlin-groovy</artifactId> -->
-<!--   		<version>2.5.0-SNAPSHOT</version> -->
-<!--   	</dependency> -->
-<!--   	<dependency> -->
-<!--   		<groupId>com.tinkerpop.gremlin</groupId> -->
-<!--   		<artifactId>gremlin-java</artifactId> -->
-<!--   		<version>2.5.0-SNAPSHOT</version> -->
-<!--   	</dependency> -->
-  	<dependency>
+<dependency>
+  		<groupId>com.tinkerpop.gremlin</groupId>
+  		<artifactId>gremlin-groovy</artifactId>
+  		<version>${blueprints.version}</version>
+  	</dependency>
+	<dependency>
+    	<groupId>com.tinkerpop.gremlin</groupId>
+		<artifactId>gremlin-java</artifactId>
+        <version>${blueprints.version}</version>
+	</dependency>   	
+	<dependency>
   		<groupId>com.google.guava</groupId>
   		<artifactId>guava</artifactId>
   		<version>14.0.1</version>
@@ -149,11 +175,11 @@
   		<artifactId>orientdb-nativeos</artifactId>
   		<version>1.6.2</version>
   	</dependency>
-<!--   	<dependency> -->
-<!--   		<groupId>com.tinkerpop</groupId> -->
-<!--   		<artifactId>pipes</artifactId> -->
-<!--   		<version>2.5.0-SNAPSHOT</version> -->
-<!--   	</dependency> -->
+  	<dependency>
+  		<groupId>com.tinkerpop</groupId>
+  		<artifactId>pipes</artifactId>
+  		<version>${blueprints.version}</version>
+  	</dependency>
   	<dependency>
   		<groupId>org.slf4j</groupId>
   		<artifactId>slf4j-api</artifactId>
@@ -198,11 +224,4 @@
       </plugin>
     </plugins>
   </build>
-  <name>graphdb-benchmarks</name>
-  <url>https://github.com/socialsensor/graphdb-benchmarks</url>
-  <description>Performance benchmark between popular graph databases.</description>
-  <organization>
-  	<name>SocialSensor</name>
-  	<url>http://www.socialsensor.eu/</url>
-  </organization>
 </project>
