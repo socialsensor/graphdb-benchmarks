@@ -19,7 +19,7 @@ public class OrientMassiveInsertion {
 	public static void main(String args[]) {
 		OrientMassiveInsertion test = new OrientMassiveInsertion();
 		test.startup("data/orientDB");
-		test.createGraph("data/flickrEdges.txt");
+		test.createGraph("data/enronEdges.txt");
 		test.shutdown();
 	}
 	

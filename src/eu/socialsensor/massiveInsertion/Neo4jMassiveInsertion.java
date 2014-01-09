@@ -30,7 +30,7 @@ public class Neo4jMassiveInsertion {
 	public static void main(String args[]) {
 		Neo4jMassiveInsertion test = new Neo4jMassiveInsertion();
 		test.startup("data/neo4j");
-		test.createGraph("data/flickrEdges.txt");
+		test.createGraph("data/enronEdges.txt");
 		test.shutdown();
 	}
 	
