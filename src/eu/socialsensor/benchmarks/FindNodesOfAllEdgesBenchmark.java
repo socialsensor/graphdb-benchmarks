@@ -1,9 +1,9 @@
 package eu.socialsensor.benchmarks;
 
-import eu.socialsensor.main.Utils;
 import eu.socialsensor.query.Neo4jQuery;
 import eu.socialsensor.query.OrientQuery;
 import eu.socialsensor.query.TitanQuery;
+import eu.socialsensor.utils.Utils;
 
 public class FindNodesOfAllEdgesBenchmark {
 	

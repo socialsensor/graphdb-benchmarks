@@ -7,7 +7,7 @@ import java.util.List;
 import eu.socialsensor.singleInsertion.Neo4jSingleInsertion;
 import eu.socialsensor.singleInsertion.OrientSingleInsertion;
 import eu.socialsensor.singleInsertion.TitanSingleInsertion;
-import eu.socialsensor.main.Utils;
+import eu.socialsensor.utils.Utils;
 
 public class SingleInsertionBenchmark {
 	

@@ -2,10 +2,10 @@ package eu.socialsensor.benchmarks;
 
 import java.io.File;
 
-import eu.socialsensor.main.Utils;
 import eu.socialsensor.massiveInsertion.Neo4jMassiveInsertion;
 import eu.socialsensor.massiveInsertion.OrientMassiveInsertion;
 import eu.socialsensor.massiveInsertion.TitanMassiveInsertion;
+import eu.socialsensor.utils.Utils;
 
 public class MassiveInsertionBenchmark {
 	

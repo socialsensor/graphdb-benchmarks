@@ -1,4 +1,4 @@
-package eu.socialsensor.main;
+package eu.socialsensor.utils;
 
 import java.io.BufferedWriter;
 import java.io.File;
