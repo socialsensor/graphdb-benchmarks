@@ -1,10 +1,12 @@
 package eu.socialsensor.benchmarks;
 
+import insert.MassiveInsertion;
+import insert.Neo4jMassiveInsertion;
+import insert.OrientMassiveInsertion;
+import insert.TitanMassiveInsertion;
+
 import java.io.File;
 
-import eu.socialsensor.massiveInsertion.Neo4jMassiveInsertion;
-import eu.socialsensor.massiveInsertion.OrientMassiveInsertion;
-import eu.socialsensor.massiveInsertion.TitanMassiveInsertion;
 import eu.socialsensor.utils.Utils;
 
 public class MassiveInsertionBenchmark {
@@ -90,7 +92,7 @@ public class MassiveInsertionBenchmark {
 	}
 	
 	public double orientMassiveInsertionBenchmark() {
-		OrientMassiveInsertion orientMassiveInsertion = new OrientMassiveInsertion();
+		MassiveInsertion orientMassiveInsertion = new OrientMassiveInsertion();
 		orientMassiveInsertion.startup(orientDBDir);
 		long start = System.currentTimeMillis();
 		orientMassiveInsertion.createGraph(datasetDir);
@@ -109,7 +111,7 @@ public class MassiveInsertionBenchmark {
 	}
 	
 	public double titanMassiveInsertionBenchmark() {
-		TitanMassiveInsertion titanMassiveInsertion = new TitanMassiveInsertion();
+		MassiveInsertion titanMassiveInsertion = new TitanMassiveInsertion();
 		titanMassiveInsertion.startup(titanDBDir);
 		long start = System.currentTimeMillis();
 		titanMassiveInsertion.createGraph(datasetDir);
@@ -128,7 +130,7 @@ public class MassiveInsertionBenchmark {
 	}
 	
 	public double neo4jMassiveInsertionBenchmark() {
-		Neo4jMassiveInsertion neo4jMassiveInsertion = new Neo4jMassiveInsertion();
+		MassiveInsertion neo4jMassiveInsertion = new Neo4jMassiveInsertion();
 		neo4jMassiveInsertion.startup(neo4jDBDir);
 		long start = System.currentTimeMillis();
 		neo4jMassiveInsertion.createGraph(datasetDir);

@@ -2,6 +2,7 @@ package eu.socialsensor.benchmarks;
 
 import insert.Neo4jSingleInsertion;
 import insert.OrientSingleInsertion;
+import insert.SingleInsertion;
 import insert.TitanSingleInsertion;
 
 import java.io.File;
@@ -85,7 +86,7 @@ public class SingleInsertionBenchmark {
 	}
 	
 	public List<Double> titanSingleInsertionBenchmark() {
-		TitanSingleInsertion titanSingleInsertion = new TitanSingleInsertion();
+		SingleInsertion titanSingleInsertion = new TitanSingleInsertion();
 		titanSingleInsertion.startup(titanDBDir);
 		List<Double> titanInsertionTimes = titanSingleInsertion.createGraph(datasetDir);
 		titanSingleInsertion.shutdown();
@@ -102,7 +103,7 @@ public class SingleInsertionBenchmark {
 	}
 		
 	public List<Double> orientSingleInsertionBenchmark() {
-		OrientSingleInsertion orientSingleInsertion = new OrientSingleInsertion();
+		SingleInsertion orientSingleInsertion = new OrientSingleInsertion();
 		orientSingleInsertion.startup(orientDBDir);
 		List<Double> orientInsertionTimes = orientSingleInsertion.createGraph(datasetDir);
 		orientSingleInsertion.shutdown();
@@ -119,7 +120,7 @@ public class SingleInsertionBenchmark {
 	}
 	
 	public List<Double> neo4jSinglesInsertionBenchmark() {
-		Neo4jSingleInsertion neo4jSingleInsertion = new Neo4jSingleInsertion();
+		SingleInsertion neo4jSingleInsertion = new Neo4jSingleInsertion();
 		neo4jSingleInsertion.startup(neo4jDBDir);
 		List<Double> neo4jInsertionTimes = neo4jSingleInsertion.createGraph(datasetDir);
 		neo4jSingleInsertion.shutdown();
