@@ -11,7 +11,7 @@ import com.tinkerpop.blueprints.Index;
 import com.tinkerpop.blueprints.impls.orient.OrientGraphNoTx;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 
-public class OrientMassiveInsertion implements Insertion {
+public class OrientMassiveInsertion implements MassiveInsertion {
 	
 	private OrientGraphNoTx orientGraph = null;
 	Index<OrientVertex> vetrices = null;
