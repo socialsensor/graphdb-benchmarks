@@ -1,12 +1,13 @@
 package eu.socialsensor.benchmarks;
 
+import insert.Neo4jSingleInsertion;
+import insert.OrientSingleInsertion;
+import insert.TitanSingleInsertion;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import eu.socialsensor.singleInsertion.Neo4jSingleInsertion;
-import eu.socialsensor.singleInsertion.OrientSingleInsertion;
-import eu.socialsensor.singleInsertion.TitanSingleInsertion;
 import eu.socialsensor.utils.Utils;
 
 public class SingleInsertionBenchmark {
@@ -102,7 +103,7 @@ public class SingleInsertionBenchmark {
 		
 	public List<Double> orientSingleInsertionBenchmark() {
 		OrientSingleInsertion orientSingleInsertion = new OrientSingleInsertion();
-		orientSingleInsertion.strartup(orientDBDir);
+		orientSingleInsertion.startup(orientDBDir);
 		List<Double> orientInsertionTimes = orientSingleInsertion.createGraph(datasetDir);
 		orientSingleInsertion.shutdown();
 		try {
