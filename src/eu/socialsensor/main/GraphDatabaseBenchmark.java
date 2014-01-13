@@ -18,11 +18,11 @@ public class GraphDatabaseBenchmark {
 	 */
 	public static void main(String[] args) {
 		
-//		MassiveInsertionBenchmark massiveInsertionBenchmark = new MassiveInsertionBenchmark(flickrDataset);
-//		massiveInsertionBenchmark.startMassiveBenchmark();		
+		MassiveInsertionBenchmark massiveInsertionBenchmark = new MassiveInsertionBenchmark("data/test.txt");
+		massiveInsertionBenchmark.startMassiveBenchmark();		
 		
-		SingleInsertionBenchmark singleInsertionBenchmark = new SingleInsertionBenchmark("data/test.txt");
-		singleInsertionBenchmark.startBenchmark();
+//		SingleInsertionBenchmark singleInsertionBenchmark = new SingleInsertionBenchmark("data/test.txt");
+//		singleInsertionBenchmark.startBenchmark();
 		
 //		FindNeighboursOfAllNodesBenchmark findNeighboursOfAllNodesBenchmark = new FindNeighboursOfAllNodesBenchmark();
 //		findNeighboursOfAllNodesBenchmark.startBenchmark();
