@@ -11,7 +11,7 @@ import com.tinkerpop.blueprints.Index;
 import com.tinkerpop.blueprints.impls.orient.OrientGraphNoTx;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 
-public class OrientMassiveInsertion implements MassiveInsertion {
+public class OrientMassiveInsertion implements Insertion {
 	
 	private OrientGraphNoTx orientGraph = null;
 	Index<OrientVertex> vetrices = null;
@@ -19,7 +19,7 @@ public class OrientMassiveInsertion implements MassiveInsertion {
 	public static void main(String args[]) {
 		OrientMassiveInsertion test = new OrientMassiveInsertion();
 		test.startup("data/orientDB");
-		test.createGraph("data/enronEdges.txt");
+		test.createGraph("data/test.txt");
 		test.shutdown();
 	}
 	

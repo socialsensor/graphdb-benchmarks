@@ -1,13 +1,31 @@
 package eu.socialsensor.utils;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
+import eu.socialsensor.benchmarks.SingleInsertionBenchmark;
+
 public class Utils {
+	
+	static public void main(String args[]) {
+		Utils utils = new Utils();
+		System.out.println(utils.getListFromTextDoc("data/test1"));
+	}
+	
+	public void getDocumentsAs2dList(List<List<Double>> data, String docPath) {
+		Utils utils = new Utils();
+		for(int i = 0; i < SingleInsertionBenchmark.SCENARIOS; i++) {
+			data.add(utils.getListFromTextDoc(docPath+"."+(i+1)));
+		}
+	}
 	
 	/**
 	 * Calculates the mean value of x-dimenstion vector.
@@ -63,6 +81,12 @@ public class Utils {
 		}
 	}
 	
+	public void deleteMultipleFiles(String filePath, int numberOfFiles) {
+		for(int i = 0; i < numberOfFiles; i++) {
+			deleteRecursively(new File(filePath+"."+(i+1)));
+		}
+	}
+	
 	public void writeTimes(List<Double> insertionTimes, String outputPath) {
 		try {
 			BufferedWriter out = new BufferedWriter(new FileWriter(outputPath));
@@ -76,6 +100,25 @@ public class Utils {
 		catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public List<Double> getListFromTextDoc(String docPath) {
+		List<Double> values = new ArrayList<Double>();
+		try {
+			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(docPath)));
+			String line;
+			while((line = reader.readLine()) != null) {
+				values.add(Double.valueOf(line));
+			}
+			reader.close();
+		} 
+		catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} 
+		catch (IOException e) {
+			e.printStackTrace();
+		}
+		return values;
 	}
 
 }

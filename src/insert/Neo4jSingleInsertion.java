@@ -9,14 +9,18 @@ import java.util.List;
 
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 import org.neo4j.graphdb.index.Index;
 
-public class Neo4jSingleInsertion implements SingleInsertion {
+import eu.socialsensor.utils.Utils;
 
+public class Neo4jSingleInsertion implements Insertion {
+
+	public static String INSERTION_TIMES_OUTPUT_PATH = "data/neo4j.insertion.times";
+	
+	private static int count;
 	
 	private GraphDatabaseService neo4jGraph = null;
 	private Index<Node> nodeIndex = null;
@@ -46,7 +50,8 @@ public class Neo4jSingleInsertion implements SingleInsertion {
 		}
 	}
 	
-	public List<Double> createGraph(String datasetDir) {
+	public void createGraph(String datasetDir) {
+		count++;
 		System.out.println("Incrementally creating the Neo4j database . . . .");
 		List<Double> insertionTimes = new ArrayList<Double>();
 		try {
@@ -54,8 +59,6 @@ public class Neo4jSingleInsertion implements SingleInsertion {
 			String line;
 			int nodesCounter = 0;
 			int lineCounter = 1;
-			int blocksCounter = 0;
-			int nodes = 0;
 			Transaction tx = null;
 			long start = System.currentTimeMillis();
 			long duration;
@@ -72,7 +75,6 @@ public class Neo4jSingleInsertion implements SingleInsertion {
 						tx.success();
 						tx.finish();
 						nodesCounter++;
-						nodes++;
 					}
 					
 					if(nodesCounter == 1000) {
@@ -80,11 +82,6 @@ public class Neo4jSingleInsertion implements SingleInsertion {
 						insertionTimes.add((double) duration);
 						nodesCounter = 0;
 						start = System.currentTimeMillis();
-						
-						blocksCounter++;
-//						System.out.println("Nodes: "+nodes);
-//						System.out.println("Time: "+duration);
-//						System.out.println("blocks: "+blocksCounter);
 					}
 					
 					Node dstNode = nodeIndex.get("nodeId", parts[1]).getSingle();
@@ -96,11 +93,10 @@ public class Neo4jSingleInsertion implements SingleInsertion {
 						tx.success();
 						tx.finish();
 						nodesCounter++;
-						nodes++;
 					}
 					
 					tx = neo4jGraph.beginTx();
-					Relationship relationship = srcNode.createRelationshipTo(dstNode, RelTypes.SIMILAR);
+					srcNode.createRelationshipTo(dstNode, RelTypes.SIMILAR);
 					tx.success();
 					tx.finish();
 					
@@ -109,33 +105,19 @@ public class Neo4jSingleInsertion implements SingleInsertion {
 						insertionTimes.add((double) duration);
 						nodesCounter = 0;
 						start = System.currentTimeMillis();
-						
-						blocksCounter++;
-//						System.out.println("Nodes: "+nodes);
-//						System.out.println("Time: "+duration);
-//						System.out.println("blocks: "+blocksCounter);
 					}
 				}
 				lineCounter++;
 			}
-			if(nodesCounter == 1000) {
-				duration = System.currentTimeMillis() - start;
-				insertionTimes.add((double) duration);
-				nodesCounter = 0;
-				start = System.currentTimeMillis();
-				
-				blocksCounter++;
-//				System.out.println("Nodes: "+nodes);
-//				System.out.println("Time: "+duration);
-//				System.out.println("blocks: "+blocksCounter);
-			}
-			
+			duration = System.currentTimeMillis() - start;
+			insertionTimes.add((double) duration);
 			reader.close();
 		} 
 		catch (IOException e) {
 			e.printStackTrace();
 		}
-		return insertionTimes;
+		Utils utils = new Utils();
+		utils.writeTimes(insertionTimes, Neo4jSingleInsertion.INSERTION_TIMES_OUTPUT_PATH+"."+count);
 	}
 	
 }

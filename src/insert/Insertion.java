@@ -1,6 +1,6 @@
 package insert;
 
-public interface MassiveInsertion {
+public interface Insertion {
 	
 	public void startup(String dbDir);
 	

@@ -1,8 +1,8 @@
 package eu.socialsensor.benchmarks;
 
+import insert.Insertion;
 import insert.Neo4jSingleInsertion;
 import insert.OrientSingleInsertion;
-import insert.SingleInsertion;
 import insert.TitanSingleInsertion;
 
 import java.io.File;
@@ -13,62 +13,67 @@ import eu.socialsensor.utils.Utils;
 
 public class SingleInsertionBenchmark {
 	
-	private final static String orientDBDir = "data/OrientDB";
-	private final static String titanDBDir = "data/TitanDB";
-	private final static String neo4jDBDir = "data/Neo4jDB";
+	public static int SCENARIOS = 6;
 	
-	private String datasetDir;
+	private final static String ORIENTDB_PATH = "data/OrientDB";
+	private final static String TITANDB_PATH = "data/TitanDB";
+	private final static String NEO4JDB_PATH = "data/Neo4jDB";
 	
-	public SingleInsertionBenchmark(String datasetDir) {
-		this.datasetDir = datasetDir;
+	private String DATASET_PATH;
+	
+	public SingleInsertionBenchmark(String datasetPath) {
+		this.DATASET_PATH = datasetPath;
 	}
 	
 	public void startBenchmark() {
 		System.out.println("###########################################################");
 		System.out.println("############ Starting Single Insertion Benchmark ############");
 		System.out.println("###########################################################");
-		
-		List<List<Double>> titanInsertionTimesOfEachScenario = new ArrayList<List<Double>>();
-		List<List<Double>> orientInsertionTimesOfEachScenario = new ArrayList<List<Double>>();
-		List<List<Double>> neo4jInsertionTimesOfEachScenario = new ArrayList<List<Double>>();
-		
+	
 		//Scenario 1
 		System.out.println("##################### Running scenario 1 #####################");
-		titanInsertionTimesOfEachScenario.add(titanSingleInsertionBenchmark());
-		orientInsertionTimesOfEachScenario.add(orientSingleInsertionBenchmark());
-		neo4jInsertionTimesOfEachScenario.add(neo4jSinglesInsertionBenchmark());
-		
+		titanSingleInsertionBenchmark();
+		orientSingleInsertionBenchmark();
+		neo4jSinglesInsertionBenchmark();
+
 		//Scenario 2
 		System.out.println("##################### Running scenario 2 #####################");
-		titanInsertionTimesOfEachScenario.add(titanSingleInsertionBenchmark());
-		neo4jInsertionTimesOfEachScenario.add(neo4jSinglesInsertionBenchmark());
-		orientInsertionTimesOfEachScenario.add(orientSingleInsertionBenchmark());
-				
+		titanSingleInsertionBenchmark();
+		neo4jSinglesInsertionBenchmark();
+		orientSingleInsertionBenchmark();
+
 		//Scenario 3
 		System.out.println("##################### Running scenario 3 #####################");
-		orientInsertionTimesOfEachScenario.add(orientSingleInsertionBenchmark());
-		titanInsertionTimesOfEachScenario.add(titanSingleInsertionBenchmark());
-		neo4jInsertionTimesOfEachScenario.add(neo4jSinglesInsertionBenchmark());
-				
+		orientSingleInsertionBenchmark();
+		titanSingleInsertionBenchmark();
+		neo4jSinglesInsertionBenchmark();
+
 		//Scenario 4
 		System.out.println("##################### Running scenario 4 #####################");
-		orientInsertionTimesOfEachScenario.add(orientSingleInsertionBenchmark());
-		neo4jInsertionTimesOfEachScenario.add(neo4jSinglesInsertionBenchmark());
-		titanInsertionTimesOfEachScenario.add(titanSingleInsertionBenchmark());
-				
+		orientSingleInsertionBenchmark();
+		neo4jSinglesInsertionBenchmark();
+		titanSingleInsertionBenchmark();
+
 		//Scenario 5
 		System.out.println("##################### Running scenario 5 #####################");
-		neo4jInsertionTimesOfEachScenario.add(neo4jSinglesInsertionBenchmark());
-		titanInsertionTimesOfEachScenario.add(titanSingleInsertionBenchmark());
-		orientInsertionTimesOfEachScenario.add(orientSingleInsertionBenchmark());
-				
+		neo4jSinglesInsertionBenchmark();
+		titanSingleInsertionBenchmark();
+		orientSingleInsertionBenchmark();
+
 		//Scenario 6
 		System.out.println("##################### Running scenario 6 #####################");
-		neo4jInsertionTimesOfEachScenario.add(neo4jSinglesInsertionBenchmark());
-		orientInsertionTimesOfEachScenario.add(orientSingleInsertionBenchmark());
-		titanInsertionTimesOfEachScenario.add(titanSingleInsertionBenchmark());
+		neo4jSinglesInsertionBenchmark();
+		orientSingleInsertionBenchmark();
+		titanSingleInsertionBenchmark();
 		
 		Utils utils = new Utils();
+		List<List<Double>> titanInsertionTimesOfEachScenario = new ArrayList<List<Double>>(SingleInsertionBenchmark.SCENARIOS);
+		utils.getDocumentsAs2dList(titanInsertionTimesOfEachScenario, TitanSingleInsertion.INSERTION_TIMES_OUTPUT_PATH);
+		List<List<Double>> orientInsertionTimesOfEachScenario = new ArrayList<List<Double>>(SingleInsertionBenchmark.SCENARIOS);
+		utils.getDocumentsAs2dList(orientInsertionTimesOfEachScenario, OrientSingleInsertion.INSERTION_TIMES_OUTPUT_PATH);
+		List<List<Double>> neo4jInsertionTimesOfEachScenario = new ArrayList<List<Double>>(SingleInsertionBenchmark.SCENARIOS);
+		utils.getDocumentsAs2dList(neo4jInsertionTimesOfEachScenario, Neo4jSingleInsertion.INSERTION_TIMES_OUTPUT_PATH);
+		
 		System.out.println("Finding mean values . . . .");
 		List<Double> titanMeanInsertionTimes = utils.calculateMeanList(titanInsertionTimesOfEachScenario);
 		List<Double> orientMeanInsertionTimes = utils.calculateMeanList(orientInsertionTimesOfEachScenario);
@@ -79,16 +84,20 @@ public class SingleInsertionBenchmark {
 		utils.writeTimes(orientMeanInsertionTimes, "data/orientInsertionTimes");
 		utils.writeTimes(neo4jMeanInsertionTimes, "data/neo4jInsertionTimes");
 		
-		System.out.println("###########################################################");
-		System.out.println("############ Single Insertion Benchmark Finished ############");
-		System.out.println("######################### RESULTS #########################");
+		System.out.println("Clearing thrash . . . .");
+		utils.deleteMultipleFiles(TitanSingleInsertion.INSERTION_TIMES_OUTPUT_PATH, SingleInsertionBenchmark.SCENARIOS);
+		utils.deleteMultipleFiles(OrientSingleInsertion.INSERTION_TIMES_OUTPUT_PATH, SingleInsertionBenchmark.SCENARIOS);
+		utils.deleteMultipleFiles(Neo4jSingleInsertion.INSERTION_TIMES_OUTPUT_PATH, SingleInsertionBenchmark.SCENARIOS);
 		
+		System.out.println("#############################################################");
+		System.out.println("############ Single Insertion Benchmark Finished ############");
+		System.out.println("#############################################################");
 	}
 	
-	public List<Double> titanSingleInsertionBenchmark() {
-		SingleInsertion titanSingleInsertion = new TitanSingleInsertion();
-		titanSingleInsertion.startup(titanDBDir);
-		List<Double> titanInsertionTimes = titanSingleInsertion.createGraph(datasetDir);
+	public void titanSingleInsertionBenchmark() {
+		Insertion titanSingleInsertion = new TitanSingleInsertion();
+		titanSingleInsertion.startup(SingleInsertionBenchmark.TITANDB_PATH);
+		titanSingleInsertion.createGraph(DATASET_PATH);
 		titanSingleInsertion.shutdown();
 		try {
 			Thread.sleep(6000);
@@ -97,15 +106,13 @@ public class SingleInsertionBenchmark {
 			e.printStackTrace();
 		}
 		Utils utils = new Utils();
-//		utils.writeTimes(titanInsertionTimes, "data/titanInsertionTimes");
-		utils.deleteRecursively(new File(titanDBDir));
-		return titanInsertionTimes;
+		utils.deleteRecursively(new File(SingleInsertionBenchmark.TITANDB_PATH));
 	}
 		
-	public List<Double> orientSingleInsertionBenchmark() {
-		SingleInsertion orientSingleInsertion = new OrientSingleInsertion();
-		orientSingleInsertion.startup(orientDBDir);
-		List<Double> orientInsertionTimes = orientSingleInsertion.createGraph(datasetDir);
+	public void orientSingleInsertionBenchmark() {
+		Insertion orientSingleInsertion = new OrientSingleInsertion();
+		orientSingleInsertion.startup(SingleInsertionBenchmark.ORIENTDB_PATH);
+		orientSingleInsertion.createGraph(DATASET_PATH);
 		orientSingleInsertion.shutdown();
 		try {
 			Thread.sleep(6000);
@@ -114,15 +121,13 @@ public class SingleInsertionBenchmark {
 			e.printStackTrace();
 		}
 		Utils utils = new Utils();
-//		utils.writeTimes(orientInsertionTimes, "data/orientInsertionTimes");
-		utils.deleteRecursively(new File(orientDBDir));
-		return orientInsertionTimes;
+		utils.deleteRecursively(new File(SingleInsertionBenchmark.ORIENTDB_PATH));
 	}
 	
-	public List<Double> neo4jSinglesInsertionBenchmark() {
-		SingleInsertion neo4jSingleInsertion = new Neo4jSingleInsertion();
-		neo4jSingleInsertion.startup(neo4jDBDir);
-		List<Double> neo4jInsertionTimes = neo4jSingleInsertion.createGraph(datasetDir);
+	public void neo4jSinglesInsertionBenchmark() {
+		Insertion neo4jSingleInsertion = new Neo4jSingleInsertion();
+		neo4jSingleInsertion.startup(SingleInsertionBenchmark.NEO4JDB_PATH);
+		neo4jSingleInsertion.createGraph(DATASET_PATH);
 		neo4jSingleInsertion.shutdown();
 		try {
 			Thread.sleep(6000);
@@ -131,9 +136,7 @@ public class SingleInsertionBenchmark {
 			e.printStackTrace();
 		}
 		Utils utils = new Utils();
-//		utils.writeTimes(neo4jInsertionTimes, "data/neo4jInsertionTimes");
-		utils.deleteRecursively(new File(neo4jDBDir));
-		return neo4jInsertionTimes;
+		utils.deleteRecursively(new File(SingleInsertionBenchmark.NEO4JDB_PATH));
 	}
 
 }

@@ -7,18 +7,26 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Index;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 
-public class OrientSingleInsertion implements SingleInsertion {
+import eu.socialsensor.utils.Utils;
+
+public class OrientSingleInsertion implements Insertion {
+	
+	public static String INSERTION_TIMES_OUTPUT_PATH = "data/orient.insertion.times";
+	
+	private static int count;
 	
 	private OrientGraph orientGraph = null;
 	Index<OrientVertex> vetrices = null;
 	
 	public static void main(String args[]) {
-		
+		OrientSingleInsertion test = new OrientSingleInsertion();
+		test.startup("data/orientdb");
+		test.createGraph("data/flickrEdges.txt");
+		test.shutdown();
 	}
 	
 	public void startup(String orientDBDir) {
@@ -38,7 +46,8 @@ public class OrientSingleInsertion implements SingleInsertion {
 		}
 	}
 	
-	public List<Double> createGraph(String datasetDir) {
+	public void createGraph(String datasetDir) {
+		count++;
 		System.out.println("Incrementally creating the Orient database . . . .");
 		List<Double> insertionTimes = new ArrayList<Double>(); 
 		try {
@@ -50,8 +59,6 @@ public class OrientSingleInsertion implements SingleInsertion {
 			Iterable<OrientVertex> cache;
 			long start = System.currentTimeMillis();
 			long duration;
-			int blocksCounter = 0;
-			int nodes = 0;
 			while((line = reader.readLine()) != null) {
 				if(lineCounter > 4) {
 					String[] parts = line.split("\t");
@@ -65,7 +72,6 @@ public class OrientSingleInsertion implements SingleInsertion {
 						vetrices.put("nodeId", parts[0], srcVertex);
 						orientGraph.commit();
 						nodesCounter++;
-						nodes++;
 					}
 					
 					if(nodesCounter == 1000) {
@@ -73,11 +79,6 @@ public class OrientSingleInsertion implements SingleInsertion {
 						insertionTimes.add((double) duration);
 						nodesCounter = 0;
 						start = System.currentTimeMillis();
-						
-						blocksCounter++;
-//						System.out.println("Nodes: "+nodes);
-//						System.out.println("Time: "+duration);
-//						System.out.println("blocks: "+blocksCounter);
 					}
 					
 					cache = vetrices.get("nodeId", parts[1]);
@@ -89,10 +90,9 @@ public class OrientSingleInsertion implements SingleInsertion {
 						vetrices.put("nodeId", parts[1], dstVertex);
 						orientGraph.commit();
 						nodesCounter++;
-						nodes++;
 					}
 					
-					Edge edge = orientGraph.addEdge(null, srcVertex, dstVertex, "similar");
+					orientGraph.addEdge(null, srcVertex, dstVertex, "similar");
 					orientGraph.commit();
 					
 					if(nodesCounter == 1000) {
@@ -100,11 +100,6 @@ public class OrientSingleInsertion implements SingleInsertion {
 						insertionTimes.add((double) duration);
 						nodesCounter = 0;
 						start = System.currentTimeMillis();
-						
-						blocksCounter++;
-//						System.out.println("Nodes: "+nodes);
-//						System.out.println("Time: "+duration);
-//						System.out.println("blocks: "+blocksCounter);
 					}
 				}
 				lineCounter++;
@@ -112,11 +107,6 @@ public class OrientSingleInsertion implements SingleInsertion {
 			
 			duration = System.currentTimeMillis() - start;
 			insertionTimes.add((double) duration);
-			blocksCounter++;
-//			System.out.println("Nodes: "+nodes);
-//			System.out.println("Time: "+duration);
-//			System.out.println("blocks: "+blocksCounter);
-			
 			reader.close();
 		}
 		catch(IOException ioe) {
@@ -127,6 +117,7 @@ public class OrientSingleInsertion implements SingleInsertion {
 			System.out.println(e);
 			orientGraph.rollback();
 		}
-		return insertionTimes;
+		Utils utils = new Utils();
+		utils.writeTimes(insertionTimes, OrientSingleInsertion.INSERTION_TIMES_OUTPUT_PATH+"."+count);
 	}
 }

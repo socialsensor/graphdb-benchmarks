@@ -17,7 +17,7 @@ import org.neo4j.unsafe.batchinsert.BatchInserterIndexProvider;
 import org.neo4j.unsafe.batchinsert.BatchInserters;
 
 
-public class Neo4jMassiveInsertion implements MassiveInsertion {
+public class Neo4jMassiveInsertion implements Insertion {
 	
 	private BatchInserter inserter = null;
 	private BatchInserterIndexProvider indexProvider = null;

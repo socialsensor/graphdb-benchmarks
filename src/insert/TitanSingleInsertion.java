@@ -5,7 +5,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import org.apache.commons.configuration.BaseConfiguration;
@@ -13,16 +12,18 @@ import org.apache.commons.configuration.Configuration;
 
 import com.thinkaurelius.titan.core.TitanFactory;
 import com.thinkaurelius.titan.core.TitanGraph;
-import com.thinkaurelius.titan.core.TitanMultiVertexQuery;
 import com.thinkaurelius.titan.graphdb.configuration.GraphDatabaseConfiguration;
-import com.thinkaurelius.titan.graphdb.query.MultiVertexCentricQueryBuilder;
 import com.tinkerpop.blueprints.Compare;
-import com.tinkerpop.blueprints.Direction;
-import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 
-public class TitanSingleInsertion implements SingleInsertion {
+import eu.socialsensor.utils.Utils;
 
+public class TitanSingleInsertion implements Insertion {
+	
+	public static String INSERTION_TIMES_OUTPUT_PATH = "data/titan.insertion.times";
+	
+	private static int count;
+	
 	private TitanGraph titanGraph = null;
 	
 	public static void main(String args[]) {
@@ -56,7 +57,8 @@ public class TitanSingleInsertion implements SingleInsertion {
 		}
 	}
 	
-	public List<Double> createGraph(String datasetDir) {
+	public void createGraph(String datasetDir) {
+		count++;
 		System.out.println("Incrementally creating the Titan database . . . .");
 		List<Double> insertionTimes = new ArrayList<Double>();
 		try {
@@ -66,8 +68,6 @@ public class TitanSingleInsertion implements SingleInsertion {
 			int nodesCounter = 0;
 			long start = System.currentTimeMillis();
 			long duration;
-			int blocksCounter = 0;
-			int nodes = 0;
 			Vertex srcVertex, dstVertex;
 			while((line = reader.readLine()) != null) {
 				if(lineCounter > 4) {
@@ -81,7 +81,6 @@ public class TitanSingleInsertion implements SingleInsertion {
 						titanGraph.commit();
 						srcVertex.setProperty("nodeId", parts[0]);
 						nodesCounter++;
-						nodes++;
 					}
 					
 					if(nodesCounter == 1000) {
@@ -89,11 +88,6 @@ public class TitanSingleInsertion implements SingleInsertion {
 						insertionTimes.add((double) duration);
 						nodesCounter = 0;
 						start = System.currentTimeMillis();
-						
-						blocksCounter++;
-//						System.out.println("Nodes: "+nodes);
-//						System.out.println("Time: "+duration);
-//						System.out.println("blocks: "+blocksCounter);
 					}
 					
 					if(titanGraph.query().has("nodeId", Compare.EQUAL, parts[1]).vertices().iterator().hasNext()) {
@@ -104,10 +98,9 @@ public class TitanSingleInsertion implements SingleInsertion {
 						titanGraph.commit();
 						dstVertex.setProperty("nodeId", parts[1]);
 						nodesCounter++;
-						nodes++;
 					}
 					
-					Edge edge = titanGraph.addEdge(null, srcVertex, dstVertex, "similar");
+					titanGraph.addEdge(null, srcVertex, dstVertex, "similar");
 					titanGraph.commit();
 					
 					if(nodesCounter == 1000) {
@@ -115,23 +108,12 @@ public class TitanSingleInsertion implements SingleInsertion {
 						insertionTimes.add((double) duration);
 						nodesCounter = 0;
 						start = System.currentTimeMillis();
-						
-						blocksCounter++;
-//						System.out.println("Nodes: "+nodes);
-//						System.out.println("Time: "+duration);
-//						System.out.println("blocks: "+blocksCounter);
 					}
-	
 				}
 				lineCounter++;
 			}
 			duration = System.currentTimeMillis() - start;
 			insertionTimes.add((double) duration);
-			blocksCounter++;
-//			System.out.println("Nodes: "+nodesCounter);
-//			System.out.println("Time: "+duration);
-//			System.out.println("blocks: "+blocksCounter);
-			
 			reader.close();
 		}
 		catch(IOException ioe) {
@@ -140,7 +122,8 @@ public class TitanSingleInsertion implements SingleInsertion {
 		catch( Exception e ) {
 			titanGraph.rollback();
 		}
-		return insertionTimes;
+		Utils utils = new Utils();
+		utils.writeTimes(insertionTimes, TitanSingleInsertion.INSERTION_TIMES_OUTPUT_PATH+"."+count);
 	}
 
 }

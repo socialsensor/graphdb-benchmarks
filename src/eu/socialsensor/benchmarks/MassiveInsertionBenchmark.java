@@ -1,6 +1,6 @@
 package eu.socialsensor.benchmarks;
 
-import insert.MassiveInsertion;
+import insert.Insertion;
 import insert.Neo4jMassiveInsertion;
 import insert.OrientMassiveInsertion;
 import insert.TitanMassiveInsertion;
@@ -92,7 +92,7 @@ public class MassiveInsertionBenchmark {
 	}
 	
 	public double orientMassiveInsertionBenchmark() {
-		MassiveInsertion orientMassiveInsertion = new OrientMassiveInsertion();
+		Insertion orientMassiveInsertion = new OrientMassiveInsertion();
 		orientMassiveInsertion.startup(orientDBDir);
 		long start = System.currentTimeMillis();
 		orientMassiveInsertion.createGraph(datasetDir);
@@ -111,7 +111,7 @@ public class MassiveInsertionBenchmark {
 	}
 	
 	public double titanMassiveInsertionBenchmark() {
-		MassiveInsertion titanMassiveInsertion = new TitanMassiveInsertion();
+		Insertion titanMassiveInsertion = new TitanMassiveInsertion();
 		titanMassiveInsertion.startup(titanDBDir);
 		long start = System.currentTimeMillis();
 		titanMassiveInsertion.createGraph(datasetDir);
@@ -130,7 +130,7 @@ public class MassiveInsertionBenchmark {
 	}
 	
 	public double neo4jMassiveInsertionBenchmark() {
-		MassiveInsertion neo4jMassiveInsertion = new Neo4jMassiveInsertion();
+		Insertion neo4jMassiveInsertion = new Neo4jMassiveInsertion();
 		neo4jMassiveInsertion.startup(neo4jDBDir);
 		long start = System.currentTimeMillis();
 		neo4jMassiveInsertion.createGraph(datasetDir);

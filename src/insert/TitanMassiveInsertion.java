@@ -15,7 +15,7 @@ import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.util.wrappers.batch.BatchGraph;
 import com.tinkerpop.blueprints.util.wrappers.batch.VertexIDType;
 
-public class TitanMassiveInsertion implements MassiveInsertion {
+public class TitanMassiveInsertion implements Insertion {
 	
 	private TitanGraph titanGraph = null;
 	private BatchGraph<TitanGraph> batchGraph = null;
@@ -23,7 +23,7 @@ public class TitanMassiveInsertion implements MassiveInsertion {
 	public static void main(String args[]) {
 		TitanMassiveInsertion test = new TitanMassiveInsertion();
 		test.startup("data/titanDB");
-		test.createGraph("data/enronEdges.txt");
+		test.createGraph("data/test.txt");
 		test.shutdown();		
 	}
 	
