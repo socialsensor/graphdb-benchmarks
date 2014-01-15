@@ -1,4 +1,4 @@
-package insert;
+package eu.socialsensor.insert;
 
 public interface Insertion {
 	

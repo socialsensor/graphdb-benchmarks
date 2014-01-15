@@ -1,14 +1,13 @@
 package eu.socialsensor.benchmarks;
 
-import insert.Insertion;
-import insert.Neo4jSingleInsertion;
-import insert.OrientSingleInsertion;
-import insert.TitanSingleInsertion;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import eu.socialsensor.insert.Insertion;
+import eu.socialsensor.insert.Neo4jSingleInsertion;
+import eu.socialsensor.insert.OrientSingleInsertion;
+import eu.socialsensor.insert.TitanSingleInsertion;
 import eu.socialsensor.utils.Utils;
 
 public class SingleInsertionBenchmark {

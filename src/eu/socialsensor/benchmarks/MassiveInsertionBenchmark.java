@@ -1,12 +1,11 @@
 package eu.socialsensor.benchmarks;
 
-import insert.Insertion;
-import insert.Neo4jMassiveInsertion;
-import insert.OrientMassiveInsertion;
-import insert.TitanMassiveInsertion;
-
 import java.io.File;
 
+import eu.socialsensor.insert.Insertion;
+import eu.socialsensor.insert.Neo4jMassiveInsertion;
+import eu.socialsensor.insert.OrientMassiveInsertion;
+import eu.socialsensor.insert.TitanMassiveInsertion;
 import eu.socialsensor.utils.Utils;
 
 public class MassiveInsertionBenchmark {

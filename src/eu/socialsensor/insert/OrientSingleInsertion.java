@@ -1,4 +1,4 @@
-package insert;
+package eu.socialsensor.insert;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
