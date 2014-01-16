@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.orientechnologies.orient.core.config.OGlobalConfiguration;
 import com.tinkerpop.blueprints.Index;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
@@ -25,13 +26,14 @@ public class OrientSingleInsertion implements Insertion {
 	public static void main(String args[]) {
 		OrientSingleInsertion test = new OrientSingleInsertion();
 		test.startup("data/orientdb");
-		test.createGraph("data/flickrEdges.txt");
+		test.createGraph("data/enronEdges.txt");
 		test.shutdown();
 	}
 	
 	public void startup(String orientDBDir) {
 		System.out.println("The Orient database is now starting . . . .");
-		orientGraph = new OrientGraph("local:"+orientDBDir);
+		OGlobalConfiguration.DISK_CACHE_SIZE.setValue(150);
+		orientGraph = new OrientGraph("plocal:"+orientDBDir);
 		orientGraph.createIndex("nodeId", OrientVertex.class);
 	    vetrices = orientGraph.getIndex("nodeId", OrientVertex.class);
 	}
