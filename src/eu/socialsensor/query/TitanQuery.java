@@ -55,54 +55,30 @@ public class TitanQuery {
 	public void findNodesOfAllEdges() {
 		for(Edge e : titanGraph.getEdges()) {
 			GremlinPipeline<String, Vertex> getNodesPipe = new GremlinPipeline<String, Vertex>(e).bothV();
-
 		}
 	}
 	
 	public void findShortestPath() {
-		Vertex v1 = titanGraph.getVertices("nodeId", "110969224").iterator().next();
-		System.out.println(v1);
-		final Vertex v2 = titanGraph.getVertices("nodeId", "141396276").iterator().next();
-		System.out.println(v2);
-		final GremlinPipeline<String, List> pathPipe = new GremlinPipeline<String, List>(v1)
-				.as("similar")
-				.both("similar")
-				.loop("similar", new PipeFunction<LoopBundle<Vertex>, Boolean>() {
-					//@Override
-					public Boolean compute(LoopBundle<Vertex> bundle) {
-						return bundle.getLoops() < 5 && bundle.getObject() != v2;
-					}
-				})
-				.path();
-		
-		Iterator iter = pathPipe.iterator();
-		while(iter.hasNext()) {
-			System.out.println(iter.next());
+		Iterable<Vertex> vertices = titanGraph.getVertices();
+		Iterator<Vertex> vertexIter = vertices.iterator();
+		final Vertex v1 = vertexIter.next();
+		int iterations = 0;
+		while(iterations < 5) {
+			final Vertex v2 = vertexIter.next();
+			final GremlinPipeline<String, List> pathPipe = new GremlinPipeline<String, List>(v1)
+					.as("similar")
+					.both("similar")
+					.loop("similar", new PipeFunction<LoopBundle<Vertex>, Boolean>() {
+						//@Override
+						public Boolean compute(LoopBundle<Vertex> bundle) {
+							return bundle.getLoops() < 5 && bundle.getObject() != v2;
+						}
+					})
+					.path();
+			int length = pathPipe.iterator().next().size() - 1;
+			System.out.println(v1.getProperty("nodeId")+" and "+v2.getProperty("nodeId")+" has length: "+length);
+			iterations++;
 		}
-		
-		int length = pathPipe.iterator().next().size() - 1;
-		System.out.println(v1.getProperty("nodeId")+" and "+v2.getProperty("nodeId")+" has length: "+length);
-		
-//		Iterable<Vertex> vertices = titanGraph.getVertices();
-//		Iterator<Vertex> vertexIter = vertices.iterator();
-//		final Vertex v1 = vertexIter.next();
-//		int iterations = 0;
-//		while(iterations < 10) {
-//			final Vertex v2 = vertexIter.next();
-//			final GremlinPipeline<String, List> pathPipe = new GremlinPipeline<String, List>(v1)
-//					.as("similar")
-//					.both("similar")
-//					.loop("similar", new PipeFunction<LoopBundle<Vertex>, Boolean>() {
-//						//@Override
-//						public Boolean compute(LoopBundle<Vertex> bundle) {
-//							return bundle.getLoops() < 5 && bundle.getObject() != v2;
-//						}
-//					})
-//					.path();
-//			int length = pathPipe.iterator().next().size() - 1;
-//			System.out.println(v1.getProperty("nodeId")+" and "+v2.getProperty("nodeId")+" has length: "+length);
-//			iterations++;
-//		}
 	}
 	
 }
