@@ -29,10 +29,7 @@ public class TitanSingleInsertion implements Insertion {
 	public static void main(String args[]) {
 		TitanSingleInsertion test = new TitanSingleInsertion();
 		test.startup("data/titanDB");
-		long start = System.currentTimeMillis();
-		test.createGraph("data/flickrEdges.txt");
-		long duration = System.currentTimeMillis() - start;
-		System.out.println("TIME=======> "+duration);
+		test.createGraph("data/enronEdges.txt");
 		test.shutdown();
 	}
 	

@@ -23,7 +23,7 @@ public class TitanMassiveInsertion implements Insertion {
 	public static void main(String args[]) {
 		TitanMassiveInsertion test = new TitanMassiveInsertion();
 		test.startup("data/titanDB");
-		test.createGraph("data/test.txt");
+		test.createGraph("data/enronEdges.txt");
 		test.shutdown();		
 	}
 	
