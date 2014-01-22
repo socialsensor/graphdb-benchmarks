@@ -32,7 +32,7 @@ public class OrientSingleInsertion implements Insertion {
 	
 	public void startup(String orientDBDir) {
 		System.out.println("The Orient database is now starting . . . .");
-		OGlobalConfiguration.DISK_CACHE_SIZE.setValue(150);
+		OGlobalConfiguration.DISK_CACHE_SIZE.setValue(5120); //this value depends of the installed memory
 		orientGraph = new OrientGraph("plocal:"+orientDBDir);
 		orientGraph.createIndex("nodeId", OrientVertex.class);
 	    vetrices = orientGraph.getIndex("nodeId", OrientVertex.class);
