@@ -20,7 +20,8 @@ import eu.socialsensor.utils.Utils;
 
 public class TitanSingleInsertion implements Insertion {
 	
-	public static String INSERTION_TIMES_OUTPUT_PATH = "data/titan.insertion.times";
+	public static final String INSERTION_TIMES_OUTPUT_PATH = "data/titan.insertion.times";
+	public static final String STORAGE_BACKEND = "local";
 	
 	private static int count;
 	
@@ -37,7 +38,7 @@ public class TitanSingleInsertion implements Insertion {
 		System.out.println("The Titan database is now starting . . . .");
 		BaseConfiguration config = new BaseConfiguration();
         Configuration storage = config.subset(GraphDatabaseConfiguration.STORAGE_NAMESPACE);
-        storage.setProperty(GraphDatabaseConfiguration.STORAGE_BACKEND_KEY, "local");
+        storage.setProperty(GraphDatabaseConfiguration.STORAGE_BACKEND_KEY, STORAGE_BACKEND);
         storage.setProperty(GraphDatabaseConfiguration.STORAGE_DIRECTORY_KEY, titanDBDir);
         storage.setProperty(GraphDatabaseConfiguration.STORAGE_TRANSACTIONAL_KEY, false);
 		titanGraph = TitanFactory.open(config);
