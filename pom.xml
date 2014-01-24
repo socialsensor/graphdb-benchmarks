@@ -39,21 +39,9 @@
         </repository>
     </repositories>
   <properties>
-<!--         <osgi.import> -->
-<!--             com.tinkerpop.blueprints;resolution:=optional, -->
-<!--             com.tinkerpop.gremlin.groovy.jsr223;resolution:=optional, -->
-<!--             com.tinkerpop.gremlin.java;resolution:=optional, -->
-<!--             * -->
-<!--         </osgi.import> -->
-<!--         <osgi.export>com.orientechnologies.orient.graph.*</osgi.export> -->
-        <blueprints.version>2.5.0-SNAPSHOT</blueprints.version>
-    </properties>
+  	<blueprints.version>2.5.0-SNAPSHOT</blueprints.version>
+  </properties>
   <dependencies>
-<dependency>
-  		<groupId>com.tinkerpop.blueprints</groupId>
-  		<artifactId>blueprints-orient-graph</artifactId>
-  		<version>${blueprints.version}</version>
-  	</dependency>
   	<dependency>
   		<groupId>colt</groupId>
   		<artifactId>colt</artifactId>
@@ -89,7 +77,7 @@
   		<artifactId>geronimo-jta_1.1_spec</artifactId>
   		<version>1.1.1</version>
   	</dependency>
-<dependency>
+	<dependency>
   		<groupId>com.tinkerpop.gremlin</groupId>
   		<artifactId>gremlin-groovy</artifactId>
   		<version>${blueprints.version}</version>
@@ -158,22 +146,22 @@
   	<dependency>
   		<groupId>com.orientechnologies</groupId>
   		<artifactId>orient-commons</artifactId>
-  		<version>1.6.2</version>
+  		<version>1.7-SNAPSHOT</version>
   	</dependency>
   	<dependency>
   		<groupId>com.orientechnologies</groupId>
   		<artifactId>orientdb-core</artifactId>
-  		<version>1.6.2</version>
+  		<version>1.7-SNAPSHOT</version>
   	</dependency>
   	<dependency>
   		<groupId>com.orientechnologies</groupId>
   		<artifactId>orientdb-graphdb</artifactId>
-  		<version>1.6.2</version>
+  		<version>1.7-SNAPSHOT</version>
   	</dependency>
   	<dependency>
   		<groupId>com.orientechnologies</groupId>
   		<artifactId>orientdb-nativeos</artifactId>
-  		<version>1.6.2</version>
+  		<version>1.7-SNAPSHOT</version>
   	</dependency>
   	<dependency>
   		<groupId>com.tinkerpop</groupId>
