@@ -8,8 +8,6 @@ import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.gremlin.java.GremlinPipeline;
-import com.tinkerpop.pipes.PipeFunction;
-import com.tinkerpop.pipes.branch.LoopPipe.LoopBundle;
 
 public class OrientQuery {
 	
@@ -54,9 +52,12 @@ public class OrientQuery {
 		int iterations = 0;
 		while(iterations < 5) {
 			Vertex v2 = vertexIter.next();
+			double start = System.currentTimeMillis() / 1000.0;
 			Iterable<Object> spath = orientGraph.getRawGraph().command(new OSQLSynchQuery<Object>( 
 					"select shortestPath("+v1.getId()+","+v2.getId()+",'BOTH')"));
 			System.out.println(spath.iterator().next());
+			double end = System.currentTimeMillis() / 1000.0;
+			System.out.println(end - start);
 			iterations++;
 		}
 	}
