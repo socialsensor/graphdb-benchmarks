@@ -23,7 +23,7 @@ public class TitanMassiveInsertion implements Insertion {
 	public static void main(String args[]) {
 		TitanMassiveInsertion test = new TitanMassiveInsertion();
 		test.startup("data/titanDB");
-		test.createGraph("data/enronEdges.txt");
+		test.createGraph("data/amazonEdges.txt");
 		test.shutdown();		
 	}
 	
@@ -38,11 +38,11 @@ public class TitanMassiveInsertion implements Insertion {
         storage.setProperty(GraphDatabaseConfiguration.STORAGE_BACKEND_KEY, "local");
         storage.setProperty(GraphDatabaseConfiguration.STORAGE_DIRECTORY_KEY, titanDBDir);
         storage.setProperty(GraphDatabaseConfiguration.STORAGE_BATCH_KEY, true);
-		titanGraph = TitanFactory.open(config);
+        titanGraph = TitanFactory.open(config);
 		titanGraph.makeKey("nodeId").dataType(String.class).indexed(Vertex.class).make();
 		titanGraph.makeLabel("similar").unidirected().make();
 		titanGraph.commit();
-		batchGraph = new BatchGraph<TitanGraph>(titanGraph, VertexIDType.STRING, 1000);
+		batchGraph = new BatchGraph<TitanGraph>(titanGraph, VertexIDType.STRING, 10000);
 		batchGraph.setVertexIdKey("nodeId");
 		batchGraph.setLoadingFromScratch(true);
 		
@@ -69,20 +69,10 @@ public class TitanMassiveInsertion implements Insertion {
 				if(lineCounter > 4) {
 					String[] parts = line.split("\t");
 					
-					srcVertex = batchGraph.getVertex(parts[0]);
-					if(srcVertex == null) {
-						srcVertex = batchGraph.addVertex(parts[0]);
-						srcVertex.setProperty("nodeId", parts[0]);
-					}
-					dstVertex = batchGraph.getVertex(parts[1]);
-					if(dstVertex == null) {
-						dstVertex = batchGraph.addVertex(parts[1]);
-						dstVertex.setProperty("nodeId", parts[1]);
-					}
+					srcVertex = getOrCreate(parts[0]);
+					dstVertex = getOrCreate(parts[1]);
 					
-					if(!srcVertex.equals(dstVertex)) {
-						srcVertex.addEdge("similar", dstVertex);
-					}
+					srcVertex.addEdge("similar", dstVertex);
 				}
 				lineCounter++;
 			}
@@ -91,6 +81,16 @@ public class TitanMassiveInsertion implements Insertion {
 		catch(IOException ioe) {
 			ioe.printStackTrace();
 		}
+	}
+	
+	private Vertex getOrCreate(String value) {
+		Vertex vertex = batchGraph.getVertex(value);
+		if(vertex == null) {
+			vertex = batchGraph.addVertex(value);
+			vertex.setProperty("nodeId", value);
+		}
+		return vertex;
+		
 	}
 
 
