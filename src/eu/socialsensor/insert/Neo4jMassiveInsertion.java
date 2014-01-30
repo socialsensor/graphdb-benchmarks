@@ -20,8 +20,9 @@ import org.neo4j.unsafe.batchinsert.BatchInserters;
 public class Neo4jMassiveInsertion implements Insertion {
 	
 	private BatchInserter inserter = null;
-	private BatchInserterIndexProvider indexProvider = null;
-	private BatchInserterIndex nodes = null;
+//	private BatchInserterIndexProvider indexProvider = null;
+//	private BatchInserterIndex nodes = null;
+	Map<Long, Long> cache = new HashMap<Long, Long>();
 	
 	private static enum RelTypes implements RelationshipType {
 	    SIMILAR
@@ -30,7 +31,7 @@ public class Neo4jMassiveInsertion implements Insertion {
 	public static void main(String args[]) {
 		Neo4jMassiveInsertion test = new Neo4jMassiveInsertion();
 		test.startup("data/neo4j");
-		test.createGraph("data/enronEdges.txt");
+		test.createGraph("data/amazonEdges.txt");
 		test.shutdown();
 	}
 	
@@ -41,17 +42,23 @@ public class Neo4jMassiveInsertion implements Insertion {
 	public void startup(String neo4jDBDir) {
 		System.out.println("The Neo4j database is now starting . . . .");
 		Map<String, String> config = new HashMap<String, String>();
+		config.put("cache_type", "none");
+		config.put("use_memory_mapped_buffers", "true");
+		config.put("neostore.nodestore.db.mapped_memory", "200M");
+		config.put("neostore.relationshipstore.db.mapped_memory", "1000M");
+		config.put("neostore.propertystore.db.mapped_memory", "250M");
+		config.put("neostore.propertystore.db.strings.mapped_memory", "250M");
 		inserter = BatchInserters.inserter(neo4jDBDir, config);
-		indexProvider = new LuceneBatchInserterIndexProvider(inserter);
-		nodes = indexProvider.nodeIndex("nodes", MapUtil.stringMap("type", "exact"));
+//		indexProvider = new LuceneBatchInserterIndexProvider(inserter);
+//		nodes = indexProvider.nodeIndex("nodes", MapUtil.stringMap("type", "exact"));
 	}
 	
 	public void shutdown() {
 		System.out.println("The Neo4j database is now shuting down . . . .");
 		if(inserter != null) {
-			indexProvider.shutdown();
+//			indexProvider.shutdown();
 			inserter.shutdown();
-			indexProvider = null;
+//			indexProvider = null;
 			inserter = null;
 		}
 	}
@@ -62,32 +69,16 @@ public class Neo4jMassiveInsertion implements Insertion {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(datasetDir)));
 			String line;
 			int lineCounter = 1;
-			Map<String, Object> properties;
-			IndexHits<Long> cache;
+//			Map<String, Object> properties;
+//			IndexHits<Long> cache;
 			long srcNode, dstNode;
 			while((line = reader.readLine()) != null) {
 				if(lineCounter > 4) {
 					String[] parts = line.split("\t");
-					cache = nodes.get("nodeId", parts[0]);
-					if(cache.hasNext()) {
-						srcNode = cache.next();
-					}
-					else {
-						properties = MapUtil.map("nodeId", parts[0]);
-						srcNode = inserter.createNode(properties);
-						nodes.add(srcNode, properties);
-						nodes.flush();
-					}
-					cache = nodes.get("nodeId", parts[1]);
-					if(cache.hasNext()) {
-						dstNode = cache.next();
-					}
-					else {
-						properties = MapUtil.map("nodeId", parts[1]);
-						dstNode = inserter.createNode(properties);
-						nodes.add(dstNode, properties);
-						nodes.flush();
-					}
+					
+					srcNode = getOrCreate(parts[0]);
+					dstNode = getOrCreate(parts[1]);
+					
 					inserter.createRelationship(srcNode, dstNode, RelTypes.SIMILAR, null);
 				}
 				lineCounter++;
@@ -97,6 +88,16 @@ public class Neo4jMassiveInsertion implements Insertion {
 		catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	private long getOrCreate(String value) {
+		Long id = cache.get(Long.valueOf(value));
+		if(id == null) {
+			Map<String, Object> properties = MapUtil.map("nodeId", value);
+			id = inserter.createNode(properties);
+			cache.put(Long.valueOf(value), id);
+		}
+		return id;
 	}
 
 
