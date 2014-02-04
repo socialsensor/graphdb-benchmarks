@@ -12,7 +12,9 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
+import org.neo4j.graphdb.factory.GraphDatabaseSetting;
 import org.neo4j.graphdb.index.Index;
+import org.neo4j.kernel.GraphDatabaseAPI;
 
 import eu.socialsensor.utils.Utils;
 
@@ -32,7 +34,7 @@ public class Neo4jSingleInsertion implements Insertion {
 	public static void main(String args[]) {
 		Neo4jSingleInsertion test = new Neo4jSingleInsertion();
 		test.startup("data/neo4j");
-		test.createGraph("data/flickrEdges.txt");
+		test.createGraph("data/enronEdges.txt");
 		test.shutdown();
 	}
 	
@@ -68,7 +70,7 @@ public class Neo4jSingleInsertion implements Insertion {
 					
 					Node srcNode = nodeIndex.get("nodeId", parts[0]).getSingle();
 					if(srcNode == null) {
-						tx = neo4jGraph.beginTx();
+						tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin();
 						srcNode = neo4jGraph.createNode();
 						srcNode.setProperty("nodeId", parts[0]);
 						nodeIndex.add(srcNode, "nodeId", parts[0]);
@@ -86,7 +88,7 @@ public class Neo4jSingleInsertion implements Insertion {
 					
 					Node dstNode = nodeIndex.get("nodeId", parts[1]).getSingle();
 					if(dstNode == null) {
-						tx = neo4jGraph.beginTx();
+						tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin();
 						dstNode = neo4jGraph.createNode();
 						dstNode.setProperty("nodeId", parts[1]);
 						nodeIndex.add(dstNode, "nodeId", parts[1]);
@@ -95,7 +97,7 @@ public class Neo4jSingleInsertion implements Insertion {
 						nodesCounter++;
 					}
 					
-					tx = neo4jGraph.beginTx();
+					tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin();
 					srcNode.createRelationshipTo(dstNode, RelTypes.SIMILAR);
 					tx.success();
 					tx.finish();
