@@ -27,8 +27,8 @@ public class Neo4jQuery {
 	public static void main(String args[]) {
 		Neo4jQuery test = new Neo4jQuery();
 		test.openDB("data/neo4j");
-//		test.findNeighborsOfAllNodes();
-//		test.findNodesOfAllEdges();
+		test.findNeighborsOfAllNodes();
+		test.findNodesOfAllEdges();
 		test.findShortestPaths();
 		test.shutdown();
 	}

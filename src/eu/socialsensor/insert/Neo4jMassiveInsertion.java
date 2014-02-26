@@ -7,10 +7,15 @@ import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.helpers.collection.MapUtil;
 import org.neo4j.index.lucene.unsafe.batchinsert.LuceneBatchInserterIndexProvider;
+import org.neo4j.tooling.GlobalGraphOperations;
 import org.neo4j.unsafe.batchinsert.BatchInserter;
 import org.neo4j.unsafe.batchinsert.BatchInserterIndex;
 import org.neo4j.unsafe.batchinsert.BatchInserterIndexProvider;
@@ -20,8 +25,8 @@ import org.neo4j.unsafe.batchinsert.BatchInserters;
 public class Neo4jMassiveInsertion implements Insertion {
 	
 	private BatchInserter inserter = null;
-//	private BatchInserterIndexProvider indexProvider = null;
-//	private BatchInserterIndex nodes = null;
+	private BatchInserterIndexProvider indexProvider = null;
+	private BatchInserterIndex nodes = null;
 	Map<Long, Long> cache = new HashMap<Long, Long>();
 	
 	private static enum RelTypes implements RelationshipType {
@@ -30,9 +35,23 @@ public class Neo4jMassiveInsertion implements Insertion {
 	
 	public static void main(String args[]) {
 		Neo4jMassiveInsertion test = new Neo4jMassiveInsertion();
-		test.startup("data/neo4j");
-		test.createGraph("data/amazonEdges.txt");
-		test.shutdown();
+//		test.startup("data/neo4j");
+//		test.createGraph("data/livejournalEdges.txt");
+//		test.shutdown();
+		test.test();
+	}
+	
+	public void test() {
+		GraphDatabaseService g = new GraphDatabaseFactory().newEmbeddedDatabase("data/neo4j");
+		try(Transaction tx = g.beginTx()) {
+			for(Node n : GlobalGraphOperations.at(g).getAllNodes()) {
+				
+			}
+			tx.success();
+			tx.close();
+		}
+		g.shutdown();
+		
 	}
 	
 	/**
@@ -49,16 +68,16 @@ public class Neo4jMassiveInsertion implements Insertion {
 		config.put("neostore.propertystore.db.mapped_memory", "250M");
 		config.put("neostore.propertystore.db.strings.mapped_memory", "250M");
 		inserter = BatchInserters.inserter(neo4jDBDir, config);
-//		indexProvider = new LuceneBatchInserterIndexProvider(inserter);
-//		nodes = indexProvider.nodeIndex("nodes", MapUtil.stringMap("type", "exact"));
+		indexProvider = new LuceneBatchInserterIndexProvider(inserter);
+		nodes = indexProvider.nodeIndex("nodes", MapUtil.stringMap("type", "exact"));
 	}
 	
 	public void shutdown() {
 		System.out.println("The Neo4j database is now shuting down . . . .");
 		if(inserter != null) {
-//			indexProvider.shutdown();
+			indexProvider.shutdown();
 			inserter.shutdown();
-//			indexProvider = null;
+			indexProvider = null;
 			inserter = null;
 		}
 	}
@@ -88,6 +107,7 @@ public class Neo4jMassiveInsertion implements Insertion {
 		catch (IOException e) {
 			e.printStackTrace();
 		}
+		nodes.flush();
 	}
 	
 	private long getOrCreate(String value) {
@@ -96,6 +116,7 @@ public class Neo4jMassiveInsertion implements Insertion {
 			Map<String, Object> properties = MapUtil.map("nodeId", value);
 			id = inserter.createNode(properties);
 			cache.put(Long.valueOf(value), id);
+			nodes.add(id, properties);
 		}
 		return id;
 	}
