@@ -1,8 +1,6 @@
 package eu.socialsensor.main;
 
 import eu.socialsensor.benchmarks.FindNeighboursOfAllNodesBenchmark;
-import eu.socialsensor.benchmarks.MassiveInsertionBenchmark;
-import eu.socialsensor.benchmarks.SingleInsertionBenchmark;
 
 public class GraphDatabaseBenchmark {
 		
@@ -17,11 +15,15 @@ public class GraphDatabaseBenchmark {
 	 */
 	public static void main(String[] args) {
 		
+		GraphDatabase titanGraphDatabase = new TitanGraphDatabase();
+		
+		
+		
 //		MassiveInsertionBenchmark massiveInsertionBenchmark = new MassiveInsertionBenchmark("data/test.txt");
 //		massiveInsertionBenchmark.startMassiveBenchmark();		
 		
-		SingleInsertionBenchmark singleInsertionBenchmark = new SingleInsertionBenchmark("data/test.txt");
-		singleInsertionBenchmark.startBenchmark();
+//		SingleInsertionBenchmark singleInsertionBenchmark = new SingleInsertionBenchmark("data/test.txt");
+//		singleInsertionBenchmark.startBenchmark();
 		
 //		FindNeighboursOfAllNodesBenchmark findNeighboursOfAllNodesBenchmark = new FindNeighboursOfAllNodesBenchmark();
 //		findNeighboursOfAllNodesBenchmark.startBenchmark();
