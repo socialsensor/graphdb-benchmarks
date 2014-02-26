@@ -9,15 +9,20 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import eu.socialsensor.benchmarks.SingleInsertionBenchmark;
+
+//import eu.socialsensor.benchmarks.SingleInsertionBenchmark;
 
 public class Utils {
 	
 	static public void main(String args[]) {
 		Utils utils = new Utils();
-		System.out.println(utils.getListFromTextDoc("data/test1"));
+		Map<Integer, List<Integer>> map = utils.mapNodesToCommunities("data/synthetic data/community.dat");
+		System.out.println();
 	}
 	
 	public void getDocumentsAs2dList(List<List<Double>> data, String docPath) {
@@ -119,6 +124,44 @@ public class Utils {
 			e.printStackTrace();
 		}
 		return values;
+	}
+	
+	public Map<Integer, List<Integer>> mapNodesToCommunities(String dataPath) {
+		Map<Integer, List<Integer>> communities = new HashMap<Integer, List<Integer>>();
+		try {
+			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(dataPath)));
+			String line;
+			while((line = reader.readLine()) != null) {
+				String[] parts = line.split("\t");
+				int node = Integer.valueOf(parts[0]);
+				int community = Integer.valueOf(parts[1].substring(0, parts[1].length()-1)) - 1;
+				if(!communities.containsKey(community)) {
+					List<Integer> nodes = new ArrayList<Integer>();
+					nodes.add(node);
+					communities.put(community, nodes);
+				}
+				else {
+					communities.get(community).add(node);
+				}
+			}
+		}
+		catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+		}
+		return communities;
+	}
+	
+	public long getKeyByValue(Map<Long, Integer> map, int value) {
+		long key = 0;
+		for(Map.Entry<Long, Integer> entry : map.entrySet()) {
+			if(value == entry.getValue()) {
+				key = entry.getKey();
+			}
+		}
+		return key;
 	}
 
 }

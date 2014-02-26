@@ -18,8 +18,8 @@ public class OrientMassiveInsertion implements Insertion {
 	
 	public static void main(String args[]) {
 		OrientMassiveInsertion test = new OrientMassiveInsertion();
-		test.startup("data/orientDB");
-		test.createGraph("data/enronEdges.txt");
+		test.startup("data/orient");
+		test.createGraph("data/network.dat");
 		test.shutdown();
 	}
 	

@@ -26,7 +26,7 @@ public class OrientSingleInsertion implements Insertion {
 	public static void main(String args[]) {
 		OrientSingleInsertion test = new OrientSingleInsertion();
 		test.startup("data/orientdb");
-		test.createGraph("data/enronEdges.txt");
+		test.createGraph("data/livejournalEdges.txt");
 		test.shutdown();
 	}
 	

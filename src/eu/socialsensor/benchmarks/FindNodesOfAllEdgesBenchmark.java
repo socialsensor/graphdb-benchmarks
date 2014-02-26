@@ -10,7 +10,7 @@ public class FindNodesOfAllEdgesBenchmark {
 	private final static String orientDBDir = "data/OrientDB";
 	private final static String titanDBDir = "data/TitanDB";
 	private final static String neo4jDBDir = "data/Neo4jDB";
-
+ 
 	public void startBenchmark() {
 		System.out.println("###########################################################");
 		System.out.println("############ Starting Find Nodes of Each Edge Benchmark ############");

@@ -11,6 +11,7 @@ import org.apache.commons.configuration.Configuration;
 import com.thinkaurelius.titan.core.TitanFactory;
 import com.thinkaurelius.titan.core.TitanGraph;
 import com.thinkaurelius.titan.graphdb.configuration.GraphDatabaseConfiguration;
+import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.util.wrappers.batch.BatchGraph;
 import com.tinkerpop.blueprints.util.wrappers.batch.VertexIDType;
@@ -22,9 +23,24 @@ public class TitanMassiveInsertion implements Insertion {
 	
 	public static void main(String args[]) {
 		TitanMassiveInsertion test = new TitanMassiveInsertion();
-		test.startup("data/titanDB");
-		test.createGraph("data/amazonEdges.txt");
+		test.startup("data/titan");
+		test.createGraph("data/network.dat");
+		test.test();
 		test.shutdown();		
+	}
+	
+	public void test() {
+		int count = 0;
+		for(Vertex v : titanGraph.getVertices()) {
+			System.out.println(v.getProperty("nodeId"));
+			count++;
+		}
+		System.out.println("Nodes: "+count);
+		count = 0;
+		for(Edge e : titanGraph.getEdges()) {
+			count++;
+		}
+		System.out.println("Edges: "+count);
 	}
 	
 	/**
@@ -40,7 +56,7 @@ public class TitanMassiveInsertion implements Insertion {
         storage.setProperty(GraphDatabaseConfiguration.STORAGE_BATCH_KEY, true);
         titanGraph = TitanFactory.open(config);
 		titanGraph.makeKey("nodeId").dataType(String.class).indexed(Vertex.class).make();
-		titanGraph.makeLabel("similar").unidirected().make();
+		titanGraph.makeLabel("similar").make();
 		titanGraph.commit();
 		batchGraph = new BatchGraph<TitanGraph>(titanGraph, VertexIDType.STRING, 10000);
 		batchGraph.setVertexIdKey("nodeId");
