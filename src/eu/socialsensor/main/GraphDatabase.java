@@ -42,9 +42,13 @@ public interface GraphDatabase {
 	
 	public double getCommunityWeight(int community);
 	
+	public double getNodeCommunityWeight(int nodeCommunity);
+	
 	public void moveNode(int from, int to);
 	
 	public int getNumberOfCommunities();
 	
 	public double getGraphWeightSum();
+	
+	public void testCommunities();
 }

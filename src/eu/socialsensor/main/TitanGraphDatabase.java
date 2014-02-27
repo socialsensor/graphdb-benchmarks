@@ -1,6 +1,8 @@
 package eu.socialsensor.main;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -14,9 +16,11 @@ import org.apache.commons.configuration.Configuration;
 import org.apache.log4j.Logger;
 
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.thinkaurelius.titan.core.TitanFactory;
 import com.thinkaurelius.titan.core.TitanGraph;
 import com.thinkaurelius.titan.graphdb.configuration.GraphDatabaseConfiguration;
+import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.util.wrappers.batch.BatchGraph;
@@ -45,28 +49,38 @@ public class TitanGraphDatabase implements GraphDatabase{
 		test.shutdown();
 	}
 	
+	public void testCommunities() {
+		System.out.println("======================================");
+		for(Vertex v : titanGraph.getVertices()) {
+			System.out.println("Node "+v.getProperty("nodeId")+" ==> Community "+v.getProperty("community"));
+		}
+		System.out.println("======================================");
+	}
+	
 	public void test() {
-//		int counter = 0;
-//		for(Vertex v: titanGraph.getVertices()) {
-//			if(counter < 2) {
-//				v.setProperty("community", 1);
-//			}
-//			else if(counter < 4){
-//				v.setProperty("community", 2);
-//			}
-//			else {
-//				v.setProperty("community", 3);
-//			}
-//			counter++;
-//		}
+		int counter = 0;
+		for(Vertex v: titanGraph.getVertices()) {
+			if(counter < 4) {
+				v.setProperty("community", 1);
+			}
+			else if(counter < 6){
+				v.setProperty("community", 2);
+			}
+			else {
+				v.setProperty("community", 3);
+			}
+			counter++;
+		}
 		for(Vertex v : titanGraph.getVertices()) {
 			System.out.println(v.getProperty("community"));
 		}
-		Iterable<Vertex> iter = titanGraph.getVertices("community", "0");
+		System.out.println("==============");
+		Iterable<Vertex> iter = titanGraph.getVertices("community", 1);
 		for(Vertex v : iter) {
 			System.out.println(v.getProperty("nodeId"));
 		}
 		
+		System.out.println(Iterables.size(iter));
 	}
 	
 	@Override
@@ -202,9 +216,7 @@ public class TitanGraphDatabase implements GraphDatabase{
 		for(Vertex v: titanGraph.getVertices()) {
 			v.setProperty("community", communityCounter++);
 		}
-		for(Vertex v : titanGraph.getVertices()) {
-			System.out.println(v.getProperty("community"));
-		}
+		
 	}
 
 	@Override
@@ -221,8 +233,6 @@ public class TitanGraphDatabase implements GraphDatabase{
 				}
 			}
 		}
-		
-//		System.out.println(communities);
 		return communities;
 	}
 
@@ -233,7 +243,7 @@ public class TitanGraphDatabase implements GraphDatabase{
 		for(Vertex v : iter) {
 			nodes.add(v);
 		}
-		return null;
+		return nodes;
 	}
 
 	@Override
@@ -257,10 +267,22 @@ public class TitanGraphDatabase implements GraphDatabase{
 	public double getCommunityWeight(int community) {
 		double communityWeight = 0;
 		Iterable<Vertex> iter = titanGraph.getVertices("community", community);
-		for(Vertex vertex : iter) {
-			communityWeight += getNodeInDegree(vertex);
+		if(Iterables.size(iter) > 1) {
+			for(Vertex vertex : iter) {
+				communityWeight += getNodeInDegree(vertex);
+			}
 		}
 		return communityWeight;
+	}
+	
+	@Override
+	public double getNodeCommunityWeight(int nodeCommunity) {
+		double nodeCommunityWeight = 0;
+		Iterable<Vertex> iter = titanGraph.getVertices("community", nodeCommunity);
+			for(Vertex vertex : iter) {
+				nodeCommunityWeight += getNodeInDegree(vertex);
+			}
+		return nodeCommunityWeight;
 	}
 
 	@Override
@@ -291,6 +313,8 @@ public class TitanGraphDatabase implements GraphDatabase{
 			count++;
 		}
 		return (double)count;
-	}	
+	}
+
+		
 
 }

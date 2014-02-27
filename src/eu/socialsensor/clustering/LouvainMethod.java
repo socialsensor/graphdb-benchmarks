@@ -63,7 +63,7 @@ public class LouvainMethod {
 	
 	public void computeModularity(GraphDatabase graphDatabase, double currentResolution, boolean randomized) {
 		Random rand = new Random();
-		
+		graphDatabase.testCommunities();
 		boolean someChange = true;
 		while(someChange) {
 			someChange = false;
@@ -80,6 +80,8 @@ public class LouvainMethod {
 					if((i != bestCommunity)) {
 						graphDatabase.moveNode(i, bestCommunity);
 						localChange = true;
+						graphDatabase.testCommunities();
+						System.out.println();
 					}
 				}
 				someChange = localChange || someChange;
@@ -110,7 +112,7 @@ public class LouvainMethod {
 	private double q(GraphDatabase graphDatabase, int node, int community, double currentResolution) {
 		double edgesInCommunity = graphDatabase.getEdgesInsideCommunity(node, community);
 		double communityWeight = graphDatabase.getCommunityWeight(community);
-		double nodeWeight = graphDatabase.getCommunityWeight(node);
+		double nodeWeight = graphDatabase.getNodeCommunityWeight(node);
 		double qValue = currentResolution * edgesInCommunity - (nodeWeight * communityWeight) / (2.0 * this.graphWeightSum);
 		if((node == community) && (graphDatabase.getNodesFromCommunity(node).size() > 1)) {
 			qValue = currentResolution * edgesInCommunity - (nodeWeight * (communityWeight - nodeWeight)) / (2.0 * this.graphWeightSum);

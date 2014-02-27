@@ -15,20 +15,14 @@ import com.tinkerpop.blueprints.Vertex;
 
 import eu.socialsensor.clustering.Modularity.ModEdge;
 import eu.socialsensor.main.GraphDatabase;
-import eu.socialsensor.main.Neo4jGraphDatabase;
-import eu.socialsensor.main.OrientGraphDatabase;
 import eu.socialsensor.main.TitanGraphDatabase;
 import eu.socialsensor.utils.Metrics;
 import eu.socialsensor.utils.Utils;
 
 public class Modularity {
 	
-	//public static final String MODULARITY_CLASS = "modularity_class";
-//    private ProgressTicket progress;
     private boolean isCanceled;
     private CommunityStructure structure;
-    private double modularity;
-    private double modularityResolution;
     private boolean isRandomized = false;
     private boolean useWeight = true;
     private double resolution = 1.;
@@ -57,47 +51,42 @@ public class Modularity {
 	    	System.out.println(com.nodes);
 	    }
 		
-		Utils utils = new Utils();
-		HashMap<Integer, List<Integer>> communities = new HashMap<Integer, List<Integer>>();
-		HashMap<Long, Integer> map = this.structure.map;
-	    for(Map.Entry<Integer, Community> entry : invmap.entrySet()) {
-	    	List<Integer> nodesIndeces = entry.getValue().nodes;
-	    	List<Integer> nodes = new ArrayList<Integer>();
-	    	for(Integer nodeIndex : nodesIndeces) {
-	    		long node = utils.getKeyByValue(map, nodeIndex);
-	    		nodes.add((int)node);
-	    	}
-	    	communities.put(entry.getKey(), nodes);
-	    }
-
-	    Map<Integer, List<Integer>> actualCommunities = utils.mapNodesToCommunities("data/community.dat");
-	    
-	    Metrics metrics = new Metrics();
-	    double nmi = metrics.normalizedMutualInformation(32, communities, actualCommunities);
-	    System.out.println(nmi);
-	    
-	    Map<Community, Integer>[] nodeConnectionsCount = this.structure.nodeConnectionsCount;
-	    for(int i = 0; i < nodeConnectionsCount.length; i++) {
-	    	Map<Community, Integer> ncc = nodeConnectionsCount[i];
-	    	for(Map.Entry<Community, Integer> entry : ncc.entrySet()) {
-	    		System.out.println(entry.getValue());
-	    	}
-	    }
-	    
-	    Map<Community, Float>[] nodeConnectionsWeight = this.structure.nodeConnectionsWeight;
-	    for(int i = 0; i < nodeConnectionsWeight.length; i++) {
-	    	Map<Community, Float> ncc = nodeConnectionsWeight[i];
-	    	for(Map.Entry<Community, Float> entry : ncc.entrySet()) {
-	    		System.out.println(entry.getValue());
-	    	}
-	    }
+//		Utils utils = new Utils();
+//		HashMap<Integer, List<Integer>> communities = new HashMap<Integer, List<Integer>>();
+//		HashMap<Long, Integer> map = this.structure.map;
+//	    for(Map.Entry<Integer, Community> entry : invmap.entrySet()) {
+//	    	List<Integer> nodesIndeces = entry.getValue().nodes;
+//	    	List<Integer> nodes = new ArrayList<Integer>();
+//	    	for(Integer nodeIndex : nodesIndeces) {
+//	    		long node = utils.getKeyByValue(map, nodeIndex);
+//	    		nodes.add((int)node);
+//	    	}
+//	    	communities.put(entry.getKey(), nodes);
+//	    }
+//
+//	    Map<Integer, List<Integer>> actualCommunities = utils.mapNodesToCommunities("data/community.dat");
+//	    
+//	    Metrics metrics = new Metrics();
+//	    double nmi = metrics.normalizedMutualInformation(32, communities, actualCommunities);
+//	    System.out.println(nmi);
+//	    
+//	    Map<Community, Integer>[] nodeConnectionsCount = this.structure.nodeConnectionsCount;
+//	    for(int i = 0; i < nodeConnectionsCount.length; i++) {
+//	    	Map<Community, Integer> ncc = nodeConnectionsCount[i];
+//	    	for(Map.Entry<Community, Integer> entry : ncc.entrySet()) {
+//	    		System.out.println(entry.getValue());
+//	    	}
+//	    }
+//	    
+//	    Map<Community, Float>[] nodeConnectionsWeight = this.structure.nodeConnectionsWeight;
+//	    for(int i = 0; i < nodeConnectionsWeight.length; i++) {
+//	    	Map<Community, Float> ncc = nodeConnectionsWeight[i];
+//	    	for(Map.Entry<Community, Float> entry : ncc.entrySet()) {
+//	    		System.out.println(entry.getValue());
+//	    	}
+//	    }
 	}
 	
-//	public Modularity() {
-//	    this.isRandomized = false;
-//	    this.useWeight = false;
-//	    this.resolution = 1.0D;
-//	 }
 	
 	class ModEdge {
 
