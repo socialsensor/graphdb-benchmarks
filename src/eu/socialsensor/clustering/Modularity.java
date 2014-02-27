@@ -335,7 +335,7 @@ public class Modularity {
             HashMap<Integer, Community> newInvMap = new HashMap<Integer, Community>();
             for (int i = 0; i < communities.size(); i++) {//Community com : mCommunities) {
                 Community com = communities.get(i);
-                nodeConnectionsWeight[index] = new HashMap<Community, Float>();
+                 nodeConnectionsWeight[index] = new HashMap<Community, Float>();
                 nodeConnectionsCount[index] = new HashMap<Community, Integer>();
                 newTopology[index] = new LinkedList<ModEdge>();
                 nodeCommunities[index] = new Community(com);
@@ -415,6 +415,7 @@ public class Modularity {
         public void seed(int node) {
             nodes.add(node);
             weightSum += structure.weights[node];
+            System.out.println();
         }
 
         public boolean add(int node) {
@@ -514,6 +515,8 @@ public class Modularity {
         }
         double weightSum = community.weightSum;
         double nodeWeight = theStructure.weights[node];
+        System.out.println("============================");
+        System.out.println(nodeWeight);
         double qValue = currentResolution * edgesTo - (nodeWeight * weightSum) / (2.0 * theStructure.graphWeightSum);
         if ((theStructure.nodeCommunities[node] == community) && (theStructure.nodeCommunities[node].size() > 1)) {
             qValue = currentResolution * edgesTo - (nodeWeight * (weightSum - nodeWeight)) / (2.0 * theStructure.graphWeightSum);

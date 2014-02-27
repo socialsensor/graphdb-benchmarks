@@ -110,9 +110,11 @@ public class LouvainMethod {
 	
 	
 	private double q(GraphDatabase graphDatabase, int node, int community, double currentResolution) {
+		graphDatabase.getNodesFromCommunity(community);
 		double edgesInCommunity = graphDatabase.getEdgesInsideCommunity(node, community);
 		double communityWeight = graphDatabase.getCommunityWeight(community);
 		double nodeWeight = graphDatabase.getNodeCommunityWeight(node);
+		System.out.println(nodeWeight);
 		double qValue = currentResolution * edgesInCommunity - (nodeWeight * communityWeight) / (2.0 * this.graphWeightSum);
 		if((node == community) && (graphDatabase.getNodesFromCommunity(node).size() > 1)) {
 			qValue = currentResolution * edgesInCommunity - (nodeWeight * (communityWeight - nodeWeight)) / (2.0 * this.graphWeightSum);

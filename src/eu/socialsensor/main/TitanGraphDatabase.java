@@ -59,18 +59,18 @@ public class TitanGraphDatabase implements GraphDatabase{
 	
 	public void test() {
 		int counter = 0;
-		for(Vertex v: titanGraph.getVertices()) {
-			if(counter < 4) {
-				v.setProperty("community", 1);
-			}
-			else if(counter < 6){
-				v.setProperty("community", 2);
-			}
-			else {
-				v.setProperty("community", 3);
-			}
-			counter++;
-		}
+//		for(Vertex v: titanGraph.getVertices()) {
+//			if(counter < 4) {
+//				v.setProperty("community", 1);
+//			}
+//			else if(counter < 6){
+//				v.setProperty("community", 2);
+//			}
+//			else {
+//				v.setProperty("community", 3);
+//			}
+//			counter++;
+//		}
 		for(Vertex v : titanGraph.getVertices()) {
 			System.out.println(v.getProperty("community"));
 		}
@@ -80,7 +80,6 @@ public class TitanGraphDatabase implements GraphDatabase{
 			System.out.println(v.getProperty("nodeId"));
 		}
 		
-		System.out.println(Iterables.size(iter));
 	}
 	
 	@Override
