@@ -479,6 +479,33 @@ public class Modularity {
                         localChange = true;
                     }
                 }
+                
+                
+                Iterator<Community> iter = theStructure.communities.iterator();
+                Map<Long, Integer> map = theStructure.map;
+                int comCounter = 1;
+                while(iter.hasNext()) {
+                	Iterator<Integer> nodesIter = iter.next().nodes.iterator();
+                	List<Long> nodes = new ArrayList<Long>();
+                	while(nodesIter.hasNext()) {
+                		long nodeId = 0;
+                		int n = nodesIter.next();
+                		for(Map.Entry<Long, Integer> entry : map.entrySet()) {
+                			long key = entry.getKey();
+                			int value = entry.getValue();
+                			if(value == n) {
+                				nodeId = key;
+                				break;
+                			}
+                		}
+                		nodes.add(nodeId);
+                	}
+                	System.out.println("Community "+comCounter);
+                	System.out.println(nodes);
+                	comCounter++;
+                }
+                
+                
                 someChange = localChange || someChange;
             }
 
@@ -508,6 +535,8 @@ public class Modularity {
 
 	
 	private double q(int node, Community community, CommunityStructure theStructure, double currentResolution) {
+		printCommunity(theStructure.nodeCommunities[node]);
+		printCommunity(community);
         Float edgesToFloat = theStructure.nodeConnectionsWeight[node].get(community);
         double edgesTo = 0;
         if (edgesToFloat != null) {
@@ -515,8 +544,6 @@ public class Modularity {
         }
         double weightSum = community.weightSum;
         double nodeWeight = theStructure.weights[node];
-        System.out.println("============================");
-        System.out.println(nodeWeight);
         double qValue = currentResolution * edgesTo - (nodeWeight * weightSum) / (2.0 * theStructure.graphWeightSum);
         if ((theStructure.nodeCommunities[node] == community) && (theStructure.nodeCommunities[node].size() > 1)) {
             qValue = currentResolution * edgesTo - (nodeWeight * (weightSum - nodeWeight)) / (2.0 * theStructure.graphWeightSum);
@@ -527,7 +554,26 @@ public class Modularity {
         return qValue;
     }
 
-
+	public void printCommunity(Community community) {
+		Map<Long, Integer> map = this.structure.map;
+		Iterator<Integer> nodesIter = community.nodes.iterator();
+		List<Long> nodes = new ArrayList<Long>();
+    	while(nodesIter.hasNext()) {
+    		long nodeId = 0;
+    		int n = nodesIter.next();
+    		for(Map.Entry<Long, Integer> entry : map.entrySet()) {
+    			long key = entry.getKey();
+    			int value = entry.getValue();
+    			if(value == n) {
+    				nodeId = key;
+    				break;
+    			}
+    		}
+    		nodes.add(nodeId);
+    	}
+    	System.out.println("===========================");
+    	System.out.println(nodes);
+	}
 	
 	
 	

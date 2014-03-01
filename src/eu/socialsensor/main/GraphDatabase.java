@@ -51,4 +51,12 @@ public interface GraphDatabase {
 	public double getGraphWeightSum();
 	
 	public void testCommunities();
+	
+	public void reInitializeCommunities(Set<Integer> communityIds);
+	
+	public void printCommunities();
+	
+	public int getCommunity(int nodeCommunity);
+	
+	public int getCommunitySize(int community);
 }
