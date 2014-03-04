@@ -5,6 +5,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import org.apache.log4j.Logger;
+
 import com.orientechnologies.orient.core.config.OGlobalConfiguration;
 import com.orientechnologies.orient.core.intent.OIntentMassiveInsert;
 import com.tinkerpop.blueprints.Index;
@@ -16,38 +18,16 @@ public class OrientMassiveInsertion implements Insertion {
 	private OrientGraphNoTx orientGraph = null;
 	Index<OrientVertex> vetrices = null;
 	
-	public static void main(String args[]) {
-		OrientMassiveInsertion test = new OrientMassiveInsertion();
-		test.startup("data/orient");
-		test.createGraph("data/network.dat");
-		test.shutdown();
-	}
-	
-	/**
-	 * Start the orientdb database and configure for massive insertion
-	 * @param orientDBDir
-	 */
-	public void startup(String orientDBDir) {
-		System.out.println("The Orient database is now starting . . . .");
-		OGlobalConfiguration.STORAGE_KEEP_OPEN.setValue(false);
-	    OGlobalConfiguration.TX_USE_LOG.setValue(false);
-	    OGlobalConfiguration.ENVIRONMENT_CONCURRENT.setValue(false);
-	    orientGraph = new OrientGraphNoTx("plocal:"+orientDBDir);
-	    orientGraph.createIndex("nodeId", OrientVertex.class);
-	    vetrices = orientGraph.getIndex("nodeId", OrientVertex.class);
-	}
-	
-	public void shutdown() {
-		System.out.println("The Orient database is now shuting down . . . .");
-		if(orientGraph != null) {
-			orientGraph.shutdown();
-			orientGraph = null;
-			vetrices = null;
-		}
+	private Logger logger = Logger.getLogger(OrientMassiveInsertion.class);
+		
+	public OrientMassiveInsertion(OrientGraphNoTx orientGraph, Index<OrientVertex> vertices) {
+		this.orientGraph = orientGraph;
+		this.vetrices = vertices;
 	}
 	
 	public void createGraph(String datasetDir) {
-		System.out.println("Creating the Orient database . . . .");
+		System.out.println("Loading data in massive mode in OrientDB database");
+		logger.info("Loading data in massive mode in OrientDB database");
 		orientGraph.getRawGraph().declareIntent(new OIntentMassiveInsert());
 		try {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(datasetDir)));
@@ -58,7 +38,6 @@ public class OrientMassiveInsertion implements Insertion {
 			while((line = reader.readLine()) != null) {
 				if(lineCounter > 4) {
 					String[] parts = line.split("\t");
-					
 					cache = vetrices.get("nodeId", parts[0]);
 					if(cache.iterator().hasNext()) {
 						srcVertex = cache.iterator().next();

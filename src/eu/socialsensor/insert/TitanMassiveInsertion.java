@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 
 import org.apache.commons.configuration.BaseConfiguration;
 import org.apache.commons.configuration.Configuration;
+import org.apache.log4j.Logger;
 
 import com.thinkaurelius.titan.core.TitanFactory;
 import com.thinkaurelius.titan.core.TitanGraph;
@@ -18,64 +19,19 @@ import com.tinkerpop.blueprints.util.wrappers.batch.VertexIDType;
 
 public class TitanMassiveInsertion implements Insertion {
 	
-	private TitanGraph titanGraph = null;
+//	private TitanGraph titanGraph = null;
 	private BatchGraph<TitanGraph> batchGraph = null;
 	
-	public static void main(String args[]) {
-		TitanMassiveInsertion test = new TitanMassiveInsertion();
-		test.startup("data/titan");
-		test.createGraph("data/network.dat");
-		test.test();
-		test.shutdown();		
+	Logger logger = Logger.getLogger(TitanMassiveInsertion.class);
+	
+	public TitanMassiveInsertion(BatchGraph<TitanGraph> batchGraph) {
+		this.batchGraph = batchGraph;
 	}
 	
-	public void test() {
-		int count = 0;
-		for(Vertex v : titanGraph.getVertices()) {
-			System.out.println(v.getProperty("nodeId"));
-			count++;
-		}
-		System.out.println("Nodes: "+count);
-		count = 0;
-		for(Edge e : titanGraph.getEdges()) {
-			count++;
-		}
-		System.out.println("Edges: "+count);
-	}
-	
-	/**
-	 * Start the titan database and configure for massive insertion
-	 * @param titanDBDir
-	 */
-	public void startup(String titanDBDir) {
-		System.out.println("The Titan database is now starting . . . .");
-		BaseConfiguration config = new BaseConfiguration();
-        Configuration storage = config.subset(GraphDatabaseConfiguration.STORAGE_NAMESPACE);
-        storage.setProperty(GraphDatabaseConfiguration.STORAGE_BACKEND_KEY, "local");
-        storage.setProperty(GraphDatabaseConfiguration.STORAGE_DIRECTORY_KEY, titanDBDir);
-        storage.setProperty(GraphDatabaseConfiguration.STORAGE_BATCH_KEY, true);
-        titanGraph = TitanFactory.open(config);
-		titanGraph.makeKey("nodeId").dataType(String.class).indexed(Vertex.class).make();
-		titanGraph.makeLabel("similar").make();
-		titanGraph.commit();
-		batchGraph = new BatchGraph<TitanGraph>(titanGraph, VertexIDType.STRING, 10000);
-		batchGraph.setVertexIdKey("nodeId");
-		batchGraph.setLoadingFromScratch(true);
-		
-	}
-	
-	public void shutdown() {
-		System.out.println("The Titan database is now shuting down . . . .");
-		if(titanGraph != null) {
-			batchGraph.shutdown();
-			titanGraph.shutdown();
-			batchGraph = null;
-			titanGraph = null;
-		}
-	}
 	
 	public void createGraph(String datasetDir) {
-		System.out.println("Creating the Titan database . . . .");		
+		System.out.println("Loading data in massive mode in Titan database");
+//		logger.info("Loading data in massive mode in Titan database");
 		try {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(datasetDir)));
 			String line;

@@ -2,6 +2,7 @@ package eu.socialsensor.main;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.tinkerpop.blueprints.Vertex;
@@ -11,6 +12,10 @@ public interface GraphDatabase {
 	public void open(String dbPath);
 	
 	public void createGraphForSingleLoad(String dbPath);
+	
+	public void massiveModeLoading(String dataPath);
+	
+	public void singleModeLoading(String dataPath);
 	
 	public void createGraphForMassiveLoad(String dbPath);
 	
@@ -59,4 +64,9 @@ public interface GraphDatabase {
 	public int getCommunity(int nodeCommunity);
 	
 	public int getCommunitySize(int community);
+	
+	public Set<Integer> getCommunityIds();
+	
+	public Map<Integer, List<Integer>> mapCommunities(int numberOfCommunities);
+	
 }

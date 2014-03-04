@@ -34,35 +34,15 @@ public class Neo4jSingleInsertion implements Insertion {
 	    SIMILAR
 	}
 	
-	public static void main(String args[]) {
-		Neo4jSingleInsertion test = new Neo4jSingleInsertion();
-		test.startup("data/neo4j");
-		test.createGraph("data/enronEdges.txt");
-		test.shutdown();
-	}
 	
-	public void startup(String neo4jDBDir) {
-		System.out.println("The Neo4j database is now starting . . . .");
-		neo4jGraph = new GraphDatabaseFactory().newEmbeddedDatabase(neo4jDBDir);
-		try ( Transaction tx = neo4jGraph.beginTx() ) {
-			nodeIndex = neo4jGraph.index().forNodes("nodes");
-			tx.success();
-			tx.close();
-		}
-		
-	}
-	
-	public void shutdown() {
-		System.out.println("The Neo4j database is now shuting down . . . .");
-		if(neo4jGraph != null) {
-			neo4jGraph.shutdown();
-			nodeIndex = null;
-		}
+	public Neo4jSingleInsertion(GraphDatabaseService neo4jGraph, Index<Node> nodeIndex) {
+		this.neo4jGraph = neo4jGraph;
+		this.nodeIndex = nodeIndex;
 	}
 	
 	public void createGraph(String datasetDir) {
 		count++;
-		System.out.println("Incrementally creating the Neo4j database . . . .");
+		System.out.println("Loading data in single mode in Neo4j database . . . .");
 		List<Double> insertionTimes = new ArrayList<Double>();
 		try {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(datasetDir)));

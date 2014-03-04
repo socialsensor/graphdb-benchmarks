@@ -22,30 +22,10 @@ public class OrientSingleInsertion implements Insertion {
 	
 	private OrientGraph orientGraph = null;
 	Index<OrientVertex> vetrices = null;
-	
-	public static void main(String args[]) {
-		OrientSingleInsertion test = new OrientSingleInsertion();
-		test.startup("data/orientdb");
-		test.createGraph("data/livejournalEdges.txt");
-		test.shutdown();
-	}
-	
-	public void startup(String orientDBDir) {
-		System.out.println("The Orient database is now starting . . . .");
-		OGlobalConfiguration.DISK_CACHE_SIZE.setValue(5120); //this value depends of the installed memory
-		orientGraph = new OrientGraph("plocal:"+orientDBDir);
-		orientGraph.createIndex("nodeId", OrientVertex.class);
-	    vetrices = orientGraph.getIndex("nodeId", OrientVertex.class);
-	}
-	
-	public void shutdown() {
-		System.out.println("The Orient database is now shuting down . . . .");
-		if(orientGraph != null) {
-			orientGraph.drop();
-			orientGraph.shutdown();
-			orientGraph = null;
-			vetrices = null;
-		}
+		
+	public OrientSingleInsertion(OrientGraph orientGraph, Index<OrientVertex> vertices) {
+		this.orientGraph = orientGraph;
+		this.vetrices = vertices;
 	}
 	
 	public void createGraph(String datasetDir) {

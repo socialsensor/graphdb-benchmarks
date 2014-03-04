@@ -26,38 +26,14 @@ public class TitanSingleInsertion implements Insertion {
 	private static int count;
 	
 	private TitanGraph titanGraph = null;
-	
-	public static void main(String args[]) {
-		TitanSingleInsertion test = new TitanSingleInsertion();
-		test.startup("data/titanDB");
-		test.createGraph("data/enronEdges.txt");
-		test.shutdown();
-	}
-	
-	public void startup(String titanDBDir) {
-		System.out.println("The Titan database is now starting . . . .");
-		BaseConfiguration config = new BaseConfiguration();
-        Configuration storage = config.subset(GraphDatabaseConfiguration.STORAGE_NAMESPACE);
-        storage.setProperty(GraphDatabaseConfiguration.STORAGE_BACKEND_KEY, STORAGE_BACKEND);
-        storage.setProperty(GraphDatabaseConfiguration.STORAGE_DIRECTORY_KEY, titanDBDir);
-        storage.setProperty(GraphDatabaseConfiguration.STORAGE_TRANSACTIONAL_KEY, false);
-		titanGraph = TitanFactory.open(config);
-		titanGraph.makeKey("nodeId").dataType(String.class).indexed(Vertex.class).make();
-		titanGraph.makeLabel("similar").unidirected().make();
-		titanGraph.commit();
-	}
-	
-	public void shutdown() {
-		System.out.println("The Titan database is now shuting down . . . .");
-		if(titanGraph != null) {
-			titanGraph.shutdown();
-			titanGraph = null;
-		}
+		
+	public TitanSingleInsertion(TitanGraph titanGraph) {
+		this.titanGraph = titanGraph;
 	}
 	
 	public void createGraph(String datasetDir) {
 		count++;
-		System.out.println("Incrementally creating the Titan database . . . .");
+		System.out.println("Incrementally loading data in Titan database . . . .");
 		List<Double> insertionTimes = new ArrayList<Double>();
 		try {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(datasetDir)));

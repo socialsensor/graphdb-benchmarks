@@ -27,6 +27,10 @@ import com.tinkerpop.blueprints.util.wrappers.batch.BatchGraph;
 import com.tinkerpop.blueprints.util.wrappers.batch.VertexIDType;
 import com.tinkerpop.gremlin.java.GremlinPipeline;
 
+import eu.socialsensor.insert.Insertion;
+import eu.socialsensor.insert.TitanMassiveInsertion;
+import eu.socialsensor.insert.TitanSingleInsertion;
+
 public class TitanGraphDatabase implements GraphDatabase{
 	
 	public static final String INSERTION_TIMES_OUTPUT_PATH = "data/titan.insertion.times";
@@ -37,7 +41,7 @@ public class TitanGraphDatabase implements GraphDatabase{
 	public TitanGraph titanGraph;
 	public BatchGraph<TitanGraph> batchGraph; 
 //	private Map<Integer, Long> nodes = new HashMap<Integer, Long>();
-	private Logger logger = Logger.getLogger(TitanGraphDatabase.class);
+	Logger logger = Logger.getLogger(TitanGraphDatabase.class);
 	
 	public static void main(String args[]) {
 		TitanGraphDatabase test = new TitanGraphDatabase();
@@ -61,43 +65,44 @@ public class TitanGraphDatabase implements GraphDatabase{
 	
 	public void test() {
 		int counter = 0;
-//		for(Vertex v: titanGraph.getVertices()) {
-//			if(counter < 4) {
-//				v.setProperty("community", 1);
-//			}
-//			else if(counter < 6){
-//				v.setProperty("community", 2);
-//			}
-//			else {
-//				v.setProperty("community", 3);
-//			}
-//			counter++;
-//		}
-		for(Vertex v : titanGraph.getVertices()) {
-			System.out.println(v.getProperty("community"));
-		}
-		System.out.println("==============");
-		Iterable<Vertex> iter = titanGraph.getVertices("community", 1);
-		for(Vertex v : iter) {
-			System.out.println(v.getProperty("nodeId"));
+		for(Vertex v: titanGraph.getVertices()) {
+			if(counter < 4) {
+				v.setProperty("community", 1);
+			}
+			else if(counter < 6){
+				v.setProperty("community", 2);
+			}
+			else {
+				v.setProperty("community", 3);
+			}
+			counter++;
 		}
 		
 	}
 	
 	@Override
 	public void open(String dbPath) {
-		logger.info("Opening Titan Graph Database . . . .");
+		System.out.println("Opening Titan Graph Database . . . .");
+//		logger.info("Opening Titan Graph Database . . . .");
 		BaseConfiguration config = new BaseConfiguration();
         Configuration storage = config.subset(GraphDatabaseConfiguration.STORAGE_NAMESPACE);
         storage.setProperty(GraphDatabaseConfiguration.STORAGE_BACKEND_KEY, STORAGE_BACKEND);
         storage.setProperty(GraphDatabaseConfiguration.STORAGE_DIRECTORY_KEY, dbPath);
         //storage.setProperty(GraphDatabaseConfiguration.STORAGE_TRANSACTIONAL_KEY, false);
-		titanGraph = TitanFactory.open(config);		
+		titanGraph = TitanFactory.open(config);
+		
+		int counter = 0;
+		for(Vertex v : titanGraph.getVertices()) {
+			System.out.println(v);
+			counter++;
+		}
+		System.out.println(counter);
 	}
 	
 	@Override
 	public void createGraphForSingleLoad(String dbPath) {
-		logger.info("Creating Titan Graph Database for single load . . . .");
+		System.out.println("Creating Titan Graph Database for single load . . . .");
+//		logger.info("Creating Titan Graph Database for single load . . . .");
 		BaseConfiguration config = new BaseConfiguration();
         Configuration storage = config.subset(GraphDatabaseConfiguration.STORAGE_NAMESPACE);
         storage.setProperty(GraphDatabaseConfiguration.STORAGE_BACKEND_KEY, STORAGE_BACKEND);
@@ -108,10 +113,11 @@ public class TitanGraphDatabase implements GraphDatabase{
 		titanGraph.makeLabel("similar").unidirected().make();
 		titanGraph.commit();
 	}
-
+	
 	@Override
 	public void createGraphForMassiveLoad(String dbPath) {
-		logger.info("Creating Titan Graph Database for massive load . . . .");
+		System.out.println("Creating Titan Graph Database for massive load . . . .");
+//		logger.info("Creating Titan Graph Database for massive load . . . .");
 		BaseConfiguration config = new BaseConfiguration();
         Configuration storage = config.subset(GraphDatabaseConfiguration.STORAGE_NAMESPACE);
         storage.setProperty(GraphDatabaseConfiguration.STORAGE_BACKEND_KEY, "local");
@@ -127,8 +133,21 @@ public class TitanGraphDatabase implements GraphDatabase{
 	}
 	
 	@Override
+	public void massiveModeLoading(String dataPath) {
+		Insertion titanMassiveInsertion = new TitanMassiveInsertion(this.batchGraph);
+		titanMassiveInsertion.createGraph(dataPath);
+	}
+	
+	@Override
+	public void singleModeLoading(String dataPath) {
+		Insertion titanSingleInsertion = new TitanSingleInsertion(this.titanGraph);
+		titanSingleInsertion.createGraph(dataPath);
+	}
+	
+	@Override
 	public void shutdown() {
-		logger.info("The Titan database is now shuting down . . . .");
+		System.out.println("The Titan database is now shuting down . . . .");
+//		logger.info("The Titan database is now shuting down . . . .");
 		if(titanGraph != null) {
 			titanGraph.shutdown();
 			titanGraph = null;
@@ -138,7 +157,8 @@ public class TitanGraphDatabase implements GraphDatabase{
 
 	@Override
 	public void shutdownMassiveGraph() {
-		logger.info("Massive Graph is shutting down . . . .");
+		System.out.println("Massive Graph is shutting down . . . .");
+//		logger.info("Massive Graph is shutting down . . . .");
 		if(titanGraph != null) {
 			batchGraph.shutdown();
 			titanGraph.shutdown();
@@ -374,5 +394,38 @@ public class TitanGraphDatabase implements GraphDatabase{
 		}
 		return nodeCommunities.size();
 	}
+
+	@Override
+	public Set<Integer> getCommunityIds() {
+		Set<Integer> communityIds = new HashSet<Integer>();
+		for(Vertex v : titanGraph.getVertices()) {
+			int communityId = v.getProperty("community");
+			if(!communityIds.contains(communityId)) {
+				communityIds.add(communityId);
+			}
+		}
+		return communityIds;
+	}
+	
+	@Override
+	public Map<Integer, List<Integer>> mapCommunities(int numberOfCommunities) {
+		Map<Integer, List<Integer>> communities = new HashMap<Integer, List<Integer>>();
+		for(int i = 0; i < numberOfCommunities; i++) {
+			Iterator<Vertex> verticesIter = titanGraph.getVertices("community", i).iterator();
+			List<Integer> vertices = new ArrayList<Integer>();
+			while(verticesIter.hasNext()) {
+				String nodeIdString = verticesIter.next().getProperty("nodeId");
+				vertices.add(Integer.valueOf(nodeIdString));
+			}
+			communities.put(i, vertices);
+		}
+		return communities;
+	}
+	
+	private BatchGraph<TitanGraph> getGraphForMassiveLoad() {
+		return this.batchGraph;
+	}
+
+	
 
 }
