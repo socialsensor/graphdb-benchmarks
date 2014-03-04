@@ -23,7 +23,11 @@ public class LouvainMethod {
     private double graphWeightSum;
     private int N;
     private List<Double> communityWeights;
-    private Set<Integer> communityIds;
+//    private Set<Integer> communityIds;
+    
+    public int counter = 0;;
+    
+    private boolean communityUpdate = false;
 	
 	public static void main(String args[]) {
 		GraphDatabase graphDatabase = new TitanGraphDatabase();
@@ -38,23 +42,21 @@ public class LouvainMethod {
 		LouvainMethod lm = new LouvainMethod();
 		lm.execute(graphDatabase);
 		
-//		lm.test(graphDatabase);
+		lm.test(graphDatabase);
 	}
 	
 	
 	
 	public void test(GraphDatabase graphDatabase) {
 		
-		System.out.println(graphDatabase.getNodeCount());
-		
-//		Utils utils = new Utils();
-//		HashMap<Integer, List<Integer>> communities = new HashMap<Integer, List<Integer>>();
-//
-//	    Map<Integer, List<Integer>> actualCommunities = utils.mapNodesToCommunities("data/community.dat");
-//	    
-//	    Metrics metrics = new Metrics();
-//	    double nmi = metrics.normalizedMutualInformation(1000, communities, actualCommunities);
-//	    System.out.println(nmi);
+				
+		Utils utils = new Utils();
+		Map<Integer, List<Integer>> communities = graphDatabase.mapCommunities(this.N);
+	    Map<Integer, List<Integer>> actualCommunities = utils.mapNodesToCommunities("data/community.dat");
+
+	    Metrics metrics = new Metrics();
+	    double nmi = metrics.normalizedMutualInformation(32, communities, actualCommunities);
+	    System.out.println(nmi);
 	  
 	}
 	
@@ -73,12 +75,13 @@ public class LouvainMethod {
 	
 	public void computeModularity(GraphDatabase graphDatabase, double currentResolution, boolean randomized) {
 		Random rand = new Random();
-		graphDatabase.testCommunities();
+//		graphDatabase.testCommunities();
 		boolean someChange = true;
 		while(someChange) {
+//			System.out.println(counter++);
 			someChange = false;
 			boolean localChange = true;
-			this.communityIds  = new HashSet<Integer>();
+//			this.communityIds  = new HashSet<Integer>();
 			while(localChange) {
 				localChange = false;
 				int start = 0;
@@ -86,34 +89,34 @@ public class LouvainMethod {
 					start = Math.abs(rand.nextInt()) % this.N;
 				}
 				int step = 0;
-//				for(int i = 1; i < (this.N + 1); i++) {
 				for(int i = start; step < this.N; i = (i + 1) % this.N) {
+//					System.out.println(counter++);
 					step++;
 					int bestCommunity = updateBestCommunity(graphDatabase, i, currentResolution);
-					if((graphDatabase.getCommunity(i) != bestCommunity)) {
+					if((graphDatabase.getCommunity(i) != bestCommunity) && (this.communityUpdate)) {
 						graphDatabase.moveNode(i, bestCommunity);
 						double bestCommunityWeight = this.communityWeights.get(bestCommunity);
 						bestCommunityWeight += graphDatabase.getNodeCommunityWeight(i);
 						this.communityWeights.set(bestCommunity, bestCommunityWeight);
-						communityIds.add(bestCommunity);
+//						communityIds.add(bestCommunity);
 						localChange = true;
-						graphDatabase.testCommunities();
-						System.out.println();
+//						graphDatabase.testCommunities();
+//						System.out.println();
 					}
-					System.out.println();
+					
+					this.communityUpdate = false;
+//					System.out.println();
 				}
-				graphDatabase.printCommunities();
+//				graphDatabase.printCommunities();
 				someChange = localChange || someChange;
 			}
 			if(someChange) {
 				zoomOut(graphDatabase);
-//				this.N = communityIds.size();
-//				graphDatabase.zoomOut(this.communityIds);
-				System.out.println("=====");
-				graphDatabase.printCommunities();
-				System.out.println("=====");
-				graphDatabase.testCommunities();
-				System.out.println();
+//				System.out.println("=====");
+//				graphDatabase.printCommunities();
+//				System.out.println("=====");
+//				graphDatabase.testCommunities();
+//				System.out.println();
 			}
 		}
 	}
@@ -127,6 +130,7 @@ public class LouvainMethod {
 			if(qValue > best) {
 				best = qValue;
 				bestCommunity = community;
+				this.communityUpdate = true;
 			}
 		}
 		return bestCommunity;
@@ -145,7 +149,6 @@ public class LouvainMethod {
 		if((actualNodeCom == community) && (graphDatabase.getCommunitySize(community) > 1)) {
 			qValue = currentResolution * edgesInCommunity - (nodeWeight * (communityWeight - nodeWeight)) / (2.0 * this.graphWeightSum);
 		}
-		
 		if ((actualNodeCom == community) && graphDatabase.getCommunitySize(community) == 1) {
 			qValue = 0.;
 		}
@@ -153,8 +156,9 @@ public class LouvainMethod {
 	}
 	
 	public void zoomOut(GraphDatabase graphDatabase) {
+		Set<Integer> communityIds = graphDatabase.getCommunityIds();
 		this.N = communityIds.size();
-		graphDatabase.reInitializeCommunities(this.communityIds);
+		graphDatabase.reInitializeCommunities(communityIds);
 		this.communityWeights = new ArrayList<Double>(this.N);
 		for(int i = 0; i < this.N; i++) {
 			this.communityWeights.add(graphDatabase.getCommunityWeight(i));
