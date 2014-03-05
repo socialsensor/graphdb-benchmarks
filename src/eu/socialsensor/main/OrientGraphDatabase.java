@@ -90,7 +90,7 @@ public class OrientGraphDatabase implements GraphDatabase{
 	public void shutdown() {
 		System.out.println("The OrientDB database is now shuting down . . . .");
 		if(orientGraph != null) {
-			orientGraph.drop();
+//			orientGraph.drop();
 			orientGraph.shutdown();
 			orientGraph = null;
 			vetrices = null;
