@@ -4,10 +4,13 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import eu.socialsensor.insert.Insertion;
 import eu.socialsensor.insert.Neo4jSingleInsertion;
 import eu.socialsensor.insert.OrientSingleInsertion;
 import eu.socialsensor.insert.TitanSingleInsertion;
+import eu.socialsensor.main.GraphDatabase;
+import eu.socialsensor.main.Neo4jGraphDatabase;
+import eu.socialsensor.main.OrientGraphDatabase;
+import eu.socialsensor.main.TitanGraphDatabase;
 import eu.socialsensor.utils.Utils;
 
 public class SingleInsertionBenchmark {
@@ -94,10 +97,10 @@ public class SingleInsertionBenchmark {
 	}
 	
 	public void titanSingleInsertionBenchmark() {
-		Insertion titanSingleInsertion = new TitanSingleInsertion();
-		titanSingleInsertion.startup(SingleInsertionBenchmark.TITANDB_PATH);
-		titanSingleInsertion.createGraph(DATASET_PATH);
-		titanSingleInsertion.shutdown();
+		GraphDatabase titanGraphDatabase = new TitanGraphDatabase();
+		titanGraphDatabase.createGraphForSingleLoad(TITANDB_PATH);
+		titanGraphDatabase.singleModeLoading(DATASET_PATH);
+		titanGraphDatabase.shutdown();
 		try {
 			Thread.sleep(6000);
 		} 
@@ -109,10 +112,10 @@ public class SingleInsertionBenchmark {
 	}
 		
 	public void orientSingleInsertionBenchmark() {
-		Insertion orientSingleInsertion = new OrientSingleInsertion();
-		orientSingleInsertion.startup(SingleInsertionBenchmark.ORIENTDB_PATH);
-		orientSingleInsertion.createGraph(DATASET_PATH);
-		orientSingleInsertion.shutdown();
+		GraphDatabase orientGraphDatabase = new OrientGraphDatabase();
+		orientGraphDatabase.createGraphForSingleLoad(ORIENTDB_PATH);
+		orientGraphDatabase.singleModeLoading(DATASET_PATH);
+		orientGraphDatabase.shutdown();
 		try {
 			Thread.sleep(6000);
 		} 
@@ -124,10 +127,10 @@ public class SingleInsertionBenchmark {
 	}
 	
 	public void neo4jSinglesInsertionBenchmark() {
-		Insertion neo4jSingleInsertion = new Neo4jSingleInsertion();
-		neo4jSingleInsertion.startup(SingleInsertionBenchmark.NEO4JDB_PATH);
-		neo4jSingleInsertion.createGraph(DATASET_PATH);
-		neo4jSingleInsertion.shutdown();
+		GraphDatabase neo4jGraphDatabase = new Neo4jGraphDatabase();
+		neo4jGraphDatabase.createGraphForSingleLoad(NEO4JDB_PATH);
+		neo4jGraphDatabase.singleModeLoading(DATASET_PATH);
+		neo4jGraphDatabase.shutdown();
 		try {
 			Thread.sleep(6000);
 		} 
