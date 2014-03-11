@@ -47,10 +47,8 @@ public class TitanGraphDatabase implements GraphDatabase{
 	public static void main(String args[]) {
 		TitanGraphDatabase test = new TitanGraphDatabase();
 		test.open("data/titan");
-//		System.out.println(test.getNeighborsIds(1));
-		//test.initCommunityProperty();
-		test.test();
-		
+		System.out.println(test.getGraphWeightSum());
+
 		test.shutdown();
 	}
 	
@@ -169,19 +167,6 @@ public class TitanGraphDatabase implements GraphDatabase{
 	}
 	
 	@Override
-	public Iterable getNodes() {
-		return titanGraph.getVertices();
-	}
-	
-	public List<Long> getNodeIds() {
-		List<Long> nodeIds = new ArrayList<Long>();
-		for(Vertex v : titanGraph.getVertices()) {
-			String nodeId = v.getProperty("nodeId");
-			nodeIds.add(Long.valueOf(nodeId));
-		}
-		return nodeIds;
-	}
-	
 	public int getNodeCount() {
 		int nodeCount = 0;
 		for(Vertex v : titanGraph.getVertices()) {
@@ -195,16 +180,7 @@ public class TitanGraphDatabase implements GraphDatabase{
 	public Set<Integer> getNeighborsIds(int nodeId) {
 		Set<Integer> neighbours = new HashSet<Integer>();
 		Vertex vertex = titanGraph.getVertices("nodeId", String.valueOf(nodeId)).iterator().next();
-//		long pipeInCount = new GremlinPipeline<String, Vertex>(vertex).in("similar").count();
-//		long pipeOutCount = new GremlinPipeline<String, Vertex>(vertex).out("similar").count();
 		GremlinPipeline<String, Vertex> pipe = new GremlinPipeline<String, Vertex>(vertex).in("similar");
-//		if(pipeInCount > pipeOutCount) {
-//			pipe = new GremlinPipeline<String, Vertex>(vertex).in("similar");
-//		}
-//		else {
-//			pipe = new GremlinPipeline<String, Vertex>(vertex).out("similar");
-//		}
-//		
 		Iterator<Vertex> iter = pipe.iterator();
 		while(iter.hasNext()) {
 			String neighborId = iter.next().getProperty("nodeId");
@@ -213,10 +189,11 @@ public class TitanGraphDatabase implements GraphDatabase{
 		return neighbours;
 	}
 	
+	
 	@Override
-	public double getNodeDegree(long nodeId) {
+	public double getNodeWeight(int nodeId) {
 		Vertex vertex = titanGraph.getVertices("nodeId", String.valueOf(nodeId)).iterator().next();
-		GremlinPipeline<String, Vertex> pipe = new GremlinPipeline<String, Vertex>(vertex).both("similar");
+		GremlinPipeline<String, Vertex> pipe = new GremlinPipeline<String, Vertex>(vertex).out("similar");
 		return (double)pipe.count();
 	}
 	
@@ -260,15 +237,27 @@ public class TitanGraphDatabase implements GraphDatabase{
 		return communities;
 	}
 
-//	@Override
-//	public LinkedList<Vertex> getNodesFromCommunity(int community) {
-//		LinkedList<Vertex> nodes = new LinkedList<Vertex>();
-//		Iterable<Vertex> iter = titanGraph.getVertices("community", community);
-//		for(Vertex v : iter) {
-//			nodes.add(v);
-//		}
-//		return nodes;
-//	}
+	@Override
+	public Set<Integer> getNodesFromCommunity(int community) {
+		Set<Integer> nodes = new HashSet<Integer>();
+		Iterable<Vertex> iter = titanGraph.getVertices("community", community);
+		for(Vertex v : iter) {
+			String nodeIdString = v.getProperty("nodeId");
+			nodes.add(Integer.valueOf(nodeIdString));
+		}
+		return nodes;
+	}
+	
+	@Override
+	public Set<Integer> getNodesFromNodeCommunity(int nodeCommunity) {
+		Set<Integer> nodes = new HashSet<Integer>();
+		Iterable<Vertex> iter = titanGraph.getVertices("nodeCommunity", nodeCommunity);
+		for(Vertex v : iter) {
+			String nodeIdString = v.getProperty("nodeId");
+			nodes.add(Integer.valueOf(nodeIdString));
+		}
+		return nodes;
+	}
 
 	@Override
 	public double getEdgesInsideCommunity(int vertexCommunity, int communityVertices) {
@@ -310,10 +299,10 @@ public class TitanGraphDatabase implements GraphDatabase{
 	}
 
 	@Override
-	public void moveNode(int from, int to) {
-		Iterable<Vertex> fromIter = titanGraph.getVertices("nodeCommunity", from);
+	public void moveNode(int nodeCommunity, int toCommunity) {
+		Iterable<Vertex> fromIter = titanGraph.getVertices("nodeCommunity", nodeCommunity);
 		for(Vertex vertex : fromIter) {
-			vertex.setProperty("community", to);
+			vertex.setProperty("community", toCommunity);
 		}
 		
 	}
@@ -351,14 +340,29 @@ public class TitanGraphDatabase implements GraphDatabase{
 			}
 			communityCounter++;
 		}
-		testCommunities();
-		System.out.println();
+	}
+	
+	@Override
+	public int reInitializeCommunities2() {
+		Map<Integer, Integer> initCommunities = new HashMap<Integer, Integer>();
+		int communityCounter = 0;
+		for(Vertex v : titanGraph.getVertices()) {
+			int communityId = v.getProperty("community");
+			if(!initCommunities.containsKey(communityId)) {
+				initCommunities.put(communityId, communityCounter);
+				communityCounter++;
+			}
+			int newCommunityId = initCommunities.get(communityId);
+			v.setProperty("community", newCommunityId);
+			v.setProperty("nodeCommunity", newCommunityId);
+		}
+		return communityCounter;
 	}
 
 	@Override
 	public void printCommunities() {
 //		int nodes =  32;
-		for(int i = 0; i < 128; i++) {
+		for(int i = 0; i < 32; i++) {
 			List<String> verticesId = new ArrayList<String>();
 			Iterable<Vertex> vertices = titanGraph.getVertices("community", i);
 			if(Iterables.size(vertices) != 0) {
@@ -375,10 +379,15 @@ public class TitanGraphDatabase implements GraphDatabase{
 	
 	@Override
 	public int getCommunity(int nodeCommunity) {
-//		Iterable<Vertex> nodeVertices = titanGraph.getVertices("nodeCommunity", nodeCommunity);
 		Vertex vertex = titanGraph.getVertices("nodeCommunity", nodeCommunity).iterator().next();
 		int community = vertex.getProperty("community");
 		return community;
+	}
+	
+	@Override
+	public int getCommunityFromNode(int nodeId) {
+		Vertex vertex = titanGraph.getVertices("nodeId", nodeId).iterator().next();
+		return vertex.getProperty("community");
 	}
 	
 	@Override
@@ -419,36 +428,6 @@ public class TitanGraphDatabase implements GraphDatabase{
 			communities.put(i, vertices);
 		}
 		return communities;
-	}
-	
-	private BatchGraph<TitanGraph> getGraphForMassiveLoad() {
-		return this.batchGraph;
-	}
-
-	@Override
-	public Set<Integer> getNodesFromNodeCommunity(int nodeCommunity) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Set<Integer> getNodesFromCommunity(int community) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public int reInitializeCommunities2() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public double getNodeWeight(int nodeId) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	
+	}	
 
 }
