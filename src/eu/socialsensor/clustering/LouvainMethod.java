@@ -9,8 +9,8 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
-import eu.socialsensor.main.GraphDatabase;
-import eu.socialsensor.main.TitanGraphDatabase;
+import eu.socialsensor.graphdatabases.GraphDatabase;
+import eu.socialsensor.graphdatabases.TitanGraphDatabase;
 import eu.socialsensor.utils.Metrics;
 import eu.socialsensor.utils.Utils;
 
@@ -52,10 +52,10 @@ public class LouvainMethod {
 				
 		Utils utils = new Utils();
 		Map<Integer, List<Integer>> communities = graphDatabase.mapCommunities(this.N);
-	    Map<Integer, List<Integer>> actualCommunities = utils.mapNodesToCommunities("data/community.dat");
+	    Map<Integer, List<Integer>> actualCommunities = utils.mapNodesToCommunities("data/community1.dat");
 
 	    Metrics metrics = new Metrics();
-	    double nmi = metrics.normalizedMutualInformation(32, communities, actualCommunities);
+	    double nmi = metrics.normalizedMutualInformation(128, communities, actualCommunities);
 	    System.out.println(nmi);
 	  
 	}
@@ -93,6 +93,8 @@ public class LouvainMethod {
 //					System.out.println(counter++);
 					step++;
 					int bestCommunity = updateBestCommunity(graphDatabase, i, currentResolution);
+					System.out.println(i);
+					graphDatabase.testCommunities();
 					if((graphDatabase.getCommunity(i) != bestCommunity) && (this.communityUpdate)) {
 						graphDatabase.moveNode(i, bestCommunity);
 						double bestCommunityWeight = this.communityWeights.get(bestCommunity);
@@ -100,23 +102,24 @@ public class LouvainMethod {
 						this.communityWeights.set(bestCommunity, bestCommunityWeight);
 //						communityIds.add(bestCommunity);
 						localChange = true;
-//						graphDatabase.testCommunities();
+						graphDatabase.testCommunities();
+//						graphDatabase.printCommunities();
 //						System.out.println();
 					}
 					
 					this.communityUpdate = false;
 //					System.out.println();
 				}
-//				graphDatabase.printCommunities();
+				graphDatabase.printCommunities();
 				someChange = localChange || someChange;
 			}
 			if(someChange) {
 				zoomOut(graphDatabase);
-//				System.out.println("=====");
-//				graphDatabase.printCommunities();
-//				System.out.println("=====");
-//				graphDatabase.testCommunities();
-//				System.out.println();
+				System.out.println("=====");
+				graphDatabase.printCommunities();
+				System.out.println("=====");
+				graphDatabase.testCommunities();
+				System.out.println();
 			}
 		}
 	}

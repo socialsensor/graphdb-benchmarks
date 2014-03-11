@@ -7,9 +7,9 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
-import eu.socialsensor.main.GraphDatabase;
-import eu.socialsensor.main.OrientGraphDatabase;
-import eu.socialsensor.main.TitanGraphDatabase;
+import eu.socialsensor.graphdatabases.GraphDatabase;
+import eu.socialsensor.graphdatabases.OrientGraphDatabase;
+import eu.socialsensor.graphdatabases.TitanGraphDatabase;
 import eu.socialsensor.utils.Metrics;
 import eu.socialsensor.utils.Utils;
 

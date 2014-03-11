@@ -2,10 +2,10 @@ package eu.socialsensor.benchmarks;
 
 import java.io.File;
 
-import eu.socialsensor.main.GraphDatabase;
-import eu.socialsensor.main.Neo4jGraphDatabase;
-import eu.socialsensor.main.OrientGraphDatabase;
-import eu.socialsensor.main.TitanGraphDatabase;
+import eu.socialsensor.graphdatabases.GraphDatabase;
+import eu.socialsensor.graphdatabases.Neo4jGraphDatabase;
+import eu.socialsensor.graphdatabases.OrientGraphDatabase;
+import eu.socialsensor.graphdatabases.TitanGraphDatabase;
 import eu.socialsensor.utils.Utils;
 
 public class MassiveInsertionBenchmark {

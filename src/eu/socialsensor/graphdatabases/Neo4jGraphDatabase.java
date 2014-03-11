@@ -1,7 +1,8 @@
-package eu.socialsensor.main;
+package eu.socialsensor.graphdatabases;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -45,8 +46,6 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 		test.open("data/neo4j");
 //		System.out.println(test.getNodeCount());
 //		System.out.println(test.getNodeIds().size());
-		System.out.println(test.getNeighborsIds(1));
-		System.out.println(test.getNodeDegree(1));
 	}
 	
 	@Override
@@ -139,23 +138,23 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 		return nodeCount;
 	}
 
-	@Override
-	public List<Long> getNodeIds() {
-		List<Long> nodes = new ArrayList<Long>();
-		try(Transaction tx = neo4jGraph.beginTx()) {
-			for(Node n : GlobalGraphOperations.at(neo4jGraph).getAllNodes()) {
-				String nodeId = (String)n.getProperty("nodeId");
-				nodes.add(Long.valueOf(nodeId));
-			}
-			tx.success();
-			tx.close();
-		}
-		return nodes;
-	}
+//	@Override
+//	public List<Long> getNodeIds() {
+//		List<Long> nodes = new ArrayList<Long>();
+//		try(Transaction tx = neo4jGraph.beginTx()) {
+//			for(Node n : GlobalGraphOperations.at(neo4jGraph).getAllNodes()) {
+//				String nodeId = (String)n.getProperty("nodeId");
+//				nodes.add(Long.valueOf(nodeId));
+//			}
+//			tx.success();
+//			tx.close();
+//		}
+//		return nodes;
+//	}
 
 	@Override
-	public List<Long> getNeighborsIds(long nodeId) {
-		List<Long> neighbours = new ArrayList<Long>();
+	public Set<Integer> getNeighborsIds(int nodeId) {
+		Set<Integer> neighbours = new HashSet<Integer>();
 		try (Transaction tx = neo4jGraph.beginTx()) {
 			Node n = nodeIndex.get("nodeId", nodeId).getSingle();
 			Traverser traverse = Traversal.description()
@@ -165,7 +164,7 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 					.traverse(n);
 			for(Node neighbour : traverse.nodes()) {
 				String neighbourId = (String)neighbour.getProperty("nodeId");
-				neighbours.add(Long.valueOf(neighbourId));
+				neighbours.add(Integer.valueOf(neighbourId));
 			}
 			tx.success();
 			tx.close();
@@ -174,18 +173,18 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 		return neighbours;
 	}
 
-	@Override
-	public double getNodeDegree(long nodeId) {
-		Node n;
-		int nodeDegree;
-		try (Transaction tx = neo4jGraph.beginTx()) {
-			n = nodeIndex.get("nodeId", nodeId).getSingle();
-			nodeDegree = n.getDegree();
-			tx.success();
-			tx.close();
-		}
-		return (double)nodeDegree;
-	}
+//	@Override
+//	public double getNodeDegree(long nodeId) {
+//		Node n;
+//		int nodeDegree;
+//		try (Transaction tx = neo4jGraph.beginTx()) {
+//			n = nodeIndex.get("nodeId", nodeId).getSingle();
+//			nodeDegree = n.getDegree();
+//			tx.success();
+//			tx.close();
+//		}
+//		return (double)nodeDegree;
+//	}
 
 	
 
@@ -195,11 +194,11 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 
 
 
-	@Override
-	public Iterable getNodes() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+//	@Override
+//	public Iterable getNodes() {
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
 
 	@Override
 	public void initCommunityProperty() {
@@ -209,12 +208,6 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 
 	@Override
 	public Set<Integer> getCommunitiesConnectedToNodeCommunities(int nodeCommunities) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public LinkedList<Vertex> getNodesFromCommunity(int community) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -309,6 +302,36 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 	public Map<Integer, List<Integer>> mapCommunities(int numberOfCommunities) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public Set<Integer> getNodesFromNodeCommunity(int nodeCommunity) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Set<Integer> getNodesFromCommunity(int community) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public int reInitializeCommunities2() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public double getNodeWeight(int nodeId) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public int getCommunityFromNode(int nodeId) {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 
 	

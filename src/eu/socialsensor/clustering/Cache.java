@@ -8,7 +8,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
-import eu.socialsensor.main.GraphDatabase;
+import eu.socialsensor.graphdatabases.GraphDatabase;
 
 public class Cache {
 	

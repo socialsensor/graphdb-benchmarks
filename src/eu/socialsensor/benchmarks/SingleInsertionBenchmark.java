@@ -4,13 +4,13 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import eu.socialsensor.graphdatabases.GraphDatabase;
+import eu.socialsensor.graphdatabases.Neo4jGraphDatabase;
+import eu.socialsensor.graphdatabases.OrientGraphDatabase;
+import eu.socialsensor.graphdatabases.TitanGraphDatabase;
 import eu.socialsensor.insert.Neo4jSingleInsertion;
 import eu.socialsensor.insert.OrientSingleInsertion;
 import eu.socialsensor.insert.TitanSingleInsertion;
-import eu.socialsensor.main.GraphDatabase;
-import eu.socialsensor.main.Neo4jGraphDatabase;
-import eu.socialsensor.main.OrientGraphDatabase;
-import eu.socialsensor.main.TitanGraphDatabase;
 import eu.socialsensor.utils.Utils;
 
 public class SingleInsertionBenchmark {

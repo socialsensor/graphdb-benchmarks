@@ -1,6 +1,5 @@
-package eu.socialsensor.main;
+package eu.socialsensor.graphdatabases;
 
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -25,13 +24,15 @@ public interface GraphDatabase {
 		
 	public int getNodeCount();
 	
-	public Iterable getNodes();
+//	public Iterable getNodes();
 	
-	public List<Long> getNodeIds();
+//	public List<Long> getNodeIds();
 	
-	public List<Long> getNeighborsIds(long nodeId);
+	public Set<Integer> getNeighborsIds(int nodeId);
 	
-	public double getNodeDegree(long nodeId);
+//	public double getNodeDegree(long nodeId);
+	
+	public double getNodeWeight(int nodeId);
 	
 	public double getNodeInDegree(Vertex vertex);
 	
@@ -41,7 +42,9 @@ public interface GraphDatabase {
 	
 	public Set<Integer> getCommunitiesConnectedToNodeCommunities(int nodeCommunities);
 	
-	public LinkedList<Vertex> getNodesFromCommunity(int community);
+	public Set<Integer> getNodesFromCommunity(int community);
+	
+	public Set<Integer> getNodesFromNodeCommunity(int nodeCommunity);
 	
 	public double getEdgesInsideCommunity(int nodeCommunity, int communityNodes);
 	
@@ -59,7 +62,11 @@ public interface GraphDatabase {
 	
 	public void reInitializeCommunities(Set<Integer> communityIds);
 	
+	public int reInitializeCommunities2();
+	
 	public void printCommunities();
+	
+	public int getCommunityFromNode(int nodeId);
 	
 	public int getCommunity(int nodeCommunity);
 	
