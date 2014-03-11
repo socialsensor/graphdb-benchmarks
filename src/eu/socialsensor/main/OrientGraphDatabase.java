@@ -1,15 +1,20 @@
 package eu.socialsensor.main;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import org.apache.log4j.Logger;
 
+import com.google.common.collect.Iterables;
 import com.orientechnologies.orient.core.config.OGlobalConfiguration;
+import com.tinkerpop.blueprints.Direction;
+import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Index;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
@@ -31,11 +36,23 @@ public class OrientGraphDatabase implements GraphDatabase{
 	
 	public static void main(String args[]) {
 		OrientGraphDatabase test = new OrientGraphDatabase();
-		test.open("data/orientDB");
-//		System.out.println(test.getNodeCount());
-//		System.out.println(test.getNodeIds().size());
-//		System.out.println(test.getNeighborsIds(1));
-//		System.out.println(test.getNodeDegree(1));
+		test.open("data/orient");
+		test.initCommunityProperty();
+		test.testCommunities();
+		System.out.println(test.getCommunityFromNode(1));
+		test.shutdown();
+	}
+	
+	@Override
+	public void testCommunities() {
+		System.out.println("======================================");
+		for(Vertex v : orientGraph.getVertices()) {
+			System.out.println("Node "+v.getProperty("nodeId")+
+					"==> nodeCommunity "+v.getProperty("nodeCommunity")+
+					" ==> Community "+v.getProperty("community"));
+		}
+		System.out.println("======================================");
+		
 	}
 	
 	@Override
@@ -44,13 +61,6 @@ public class OrientGraphDatabase implements GraphDatabase{
 //		logger.info("Opening OrientDB Graph Database . . . .");
 		orientGraph = new OrientGraph("plocal:"+dbPAth);
 		vetrices = orientGraph.getIndex("nodeId", OrientVertex.class);
-		
-		int counter = 0;
-		for(Vertex v : orientGraph.getVertices()) {
-			System.out.println(v);
-			counter++;
-		}
-		System.out.println(counter);
 	}
 	
 	@Override
@@ -114,172 +124,256 @@ public class OrientGraphDatabase implements GraphDatabase{
 	}
 
 	@Override
-	public List<Long> getNodeIds() {
-		List<Long> nodeIds = new ArrayList<Long>();
-		for(Vertex v : orientGraph.getVertices()) {
-			String nodeId = v.getProperty("nodeId");
-			nodeIds.add(Long.valueOf(nodeId));
-		}
-		return nodeIds;
-	}
-
-	@Override
-	public List<Long> getNeighborsIds(long nodeId) {
-		List<Long> neighbours = new ArrayList<Long>();
+	public Set<Integer> getNeighborsIds(int nodeId) {
+		Set<Integer> neighbours = new HashSet<Integer>();
 		Vertex vertex = orientGraph.getVertices("nodeId", String.valueOf(nodeId)).iterator().next();
-		long pipeInCount = new GremlinPipeline<String, Vertex>(vertex).in("similar").count();
-		long pipeOutCount = new GremlinPipeline<String, Vertex>(vertex).out("similar").count();
-		GremlinPipeline<String, Vertex> pipe;
-		if(pipeInCount > pipeOutCount) {
-			pipe = new GremlinPipeline<String, Vertex>(vertex).in("similar");
-		}
-		else {
-			pipe = new GremlinPipeline<String, Vertex>(vertex).out("similar");
-		}
-		
+		GremlinPipeline<String, Vertex> pipe = new GremlinPipeline<String, Vertex>(vertex).in("similar");
 		Iterator<Vertex> iter = pipe.iterator();
 		while(iter.hasNext()) {
 			String neighborId = iter.next().getProperty("nodeId");
-			neighbours.add(Long.valueOf(neighborId));
+			neighbours.add(Integer.valueOf(neighborId));
 		}
 		return neighbours;
 	}
 
 	@Override
-	public double getNodeDegree(long nodeId) {
+	public double getNodeWeight(int nodeId) {
 		Vertex vertex = orientGraph.getVertices("nodeId", String.valueOf(nodeId)).iterator().next();
-		GremlinPipeline<String, Vertex> pipe = new GremlinPipeline<String, Vertex>(vertex).both("similar");
+		GremlinPipeline<String, Vertex> pipe = new GremlinPipeline<String, Vertex>(vertex).out("similar");
 		return (double)pipe.count();
 	}
-
 	
-
-	
-
-	
-
-	
-
-	@Override
-	public Iterable getNodes() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void initCommunityProperty() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public Set<Integer> getCommunitiesConnectedToNodeCommunities(int nodeCommunities) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public LinkedList<Vertex> getNodesFromCommunity(int community) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	@Override
 	public double getNodeInDegree(Vertex vertex) {
-		// TODO Auto-generated method stub
-		return 0;
+		GremlinPipeline<String, Vertex> pipe = new GremlinPipeline<String, Vertex>(vertex).in("similar");
+		return (double)pipe.count();
 	}
 
 	@Override
 	public double getNodeOutDegree(Vertex vertex) {
-		// TODO Auto-generated method stub
-		return 0;
+		GremlinPipeline<String, Vertex> pipe = new GremlinPipeline<String, Vertex>(vertex).out("similar");
+		return (double)pipe.count();
 	}
 
+	@Override
+	public void initCommunityProperty() {
+		int communityCounter = 0;
+		for(Vertex v: orientGraph.getVertices()) {
+			v.setProperty("nodeCommunity", communityCounter);
+			v.setProperty("community", communityCounter);
+			communityCounter++;
+		}
+	}
+
+	@Override
+	public Set<Integer> getCommunitiesConnectedToNodeCommunities(int nodeCommunities) {
+		Set<Integer> communities = new HashSet<>();
+		Iterable<Vertex> vertices = orientGraph.getVertices("nodeCommunity", nodeCommunities);
+		for(Vertex vertex : vertices) {
+			GremlinPipeline<String, Vertex> pipe = new GremlinPipeline<String, Vertex>(vertex).in("similar");
+			Iterator<Vertex> iter = pipe.iterator();
+			while(iter.hasNext()) {
+				int community = iter.next().getProperty("community");
+				if(!communities.contains(community)) {
+					communities.add(community);
+				}
+			}
+		}
+		return communities;
+	}
+
+	@Override
+	public Set<Integer> getNodesFromCommunity(int community) {
+		Set<Integer> nodes = new HashSet<Integer>();
+		Iterable<Vertex> iter = orientGraph.getVertices("community", community);
+		for(Vertex v : iter) {
+			String nodeIdString = v.getProperty("nodeId");
+			nodes.add(Integer.valueOf(nodeIdString));
+		}
+		return nodes;
+	}
+	
+	@Override
+	public Set<Integer> getNodesFromNodeCommunity(int nodeCommunity) {
+		Set<Integer> nodes = new HashSet<Integer>();
+		Iterable<Vertex> iter = orientGraph.getVertices("nodeCommunity", nodeCommunity);
+		for(Vertex v : iter) {
+			String nodeIdString = v.getProperty("nodeId");
+			nodes.add(Integer.valueOf(nodeIdString));
+		}
+		return nodes;
+	}
+	
+	@Override
+	public double getEdgesInsideCommunity(int vertexCommunity, int communityVertices) {
+		double edges = 0;
+		Iterable<Vertex> vertices = orientGraph.getVertices("nodeCommunity", vertexCommunity);
+		Iterable<Vertex> comVertices = orientGraph.getVertices("community", orientGraph);
+		for(Vertex vertex : vertices) {
+			GremlinPipeline<String, Vertex> pipe = new GremlinPipeline<String, Vertex>(vertex).in("similar");
+			Iterator<Vertex> iter = pipe.iterator();
+			while(iter.hasNext()) {
+				if(Iterables.contains(comVertices, iter.next())){
+					edges++;
+				}
+			}
+		}
+		return edges;
+	}
+	
 	@Override
 	public double getCommunityWeight(int community) {
-		// TODO Auto-generated method stub
-		return 0;
+		double communityWeight = 0;
+		Iterable<Vertex> iter = orientGraph.getVertices("community", community);
+		if(Iterables.size(iter) > 1) {
+			for(Vertex vertex : iter) {
+				communityWeight += getNodeInDegree(vertex);
+			}
+		}
+		return communityWeight;
 	}
-
-	@Override
-	public double getEdgesInsideCommunity(int nodes, int communityNodes) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public void moveNode(int from, int to) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public int getNumberOfCommunities() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public double getGraphWeightSum() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
+	
 	@Override
 	public double getNodeCommunityWeight(int nodeCommunity) {
-		// TODO Auto-generated method stub
-		return 0;
+		double nodeCommunityWeight = 0;
+		Iterable<Vertex> iter = orientGraph.getVertices("nodeCommunity", nodeCommunity);
+			for(Vertex vertex : iter) {
+				nodeCommunityWeight += getNodeInDegree(vertex);
+			}
+		return nodeCommunityWeight;
 	}
-
 	
-
 	@Override
-	public void testCommunities() {
-		// TODO Auto-generated method stub
-		
+	public void moveNode(int nodeCommunity, int toCommunity) {
+		Iterable<Vertex> fromIter = orientGraph.getVertices("nodeCommunity", nodeCommunity);
+		for(Vertex vertex : fromIter) {
+			vertex.setProperty("community", toCommunity);
+		}
 	}
-
+	
+	@Override
+	public int getNumberOfCommunities() {
+		Set<Integer> communities = new HashSet<Integer>();
+		for(Vertex v : orientGraph.getVertices()) {
+			int community = v.getProperty("community");
+			if(!communities.contains(community)) {
+				communities.add(community);
+			}
+		}
+		return communities.size();
+	}
+	
+	@Override
+	public double getGraphWeightSum() {
+		Set<Object> edges = new HashSet<Object>();
+		for(Vertex v : orientGraph.getVertices()) {
+		    for( Edge e : v.getEdges( Direction.BOTH ) )
+		      edges.add( e.getId() );
+		}
+		return (double)edges.size();
+//		return (double)orientGraph.countEdges();
+	}
+	
 	@Override
 	public void reInitializeCommunities(Set<Integer> communityIds) {
-		// TODO Auto-generated method stub
-		
+		int communityCounter = 0;
+		TreeSet<Integer> communityIdsOrdered = new TreeSet<Integer>(communityIds);
+		for(int communityId : communityIdsOrdered) {
+			Iterable<Vertex> vertices = orientGraph.getVertices("community", communityId);
+			for(Vertex v : vertices) {
+				v.setProperty("community", communityCounter);
+				v.setProperty("nodeCommunity", communityCounter);
+			}
+			communityCounter++;
+		}
 	}
-
+	
+	@Override
+	public int reInitializeCommunities2() {
+		Map<Integer, Integer> initCommunities = new HashMap<Integer, Integer>();
+		int communityCounter = 0;
+		for(Vertex v : orientGraph.getVertices()) {
+			int communityId = v.getProperty("community");
+			if(!initCommunities.containsKey(communityId)) {
+				initCommunities.put(communityId, communityCounter);
+				communityCounter++;
+			}
+			int newCommunityId = initCommunities.get(communityId);
+			v.setProperty("community", newCommunityId);
+			v.setProperty("nodeCommunity", newCommunityId);
+		}
+		return communityCounter;
+	}
+	
 	@Override
 	public void printCommunities() {
-		// TODO Auto-generated method stub
+		for(int i = 0; i < 32; i++) {
+			List<String> verticesId = new ArrayList<String>();
+			Iterable<Vertex> vertices = orientGraph.getVertices("community", i);
+			if(Iterables.size(vertices) != 0) {
+				for(Vertex v : vertices) {
+					String nodeId = v.getProperty("nodeId");
+					verticesId.add(nodeId);
+				}
+				System.out.println("Community "+i);
+				System.out.println(verticesId);
+			}
+			
+		}
 		
 	}
-
+	
 	@Override
 	public int getCommunity(int nodeCommunity) {
-		// TODO Auto-generated method stub
-		return 0;
+		Vertex vertex = orientGraph.getVertices("nodeCommunity", nodeCommunity).iterator().next();
+		int community = vertex.getProperty("community");
+		return community;
 	}
-
+	
+	@Override
+	public int getCommunityFromNode(int nodeId) {
+		Vertex vertex = orientGraph.getVertices("nodeId", String.valueOf(nodeId)).iterator().next();
+		return vertex.getProperty("community");
+	}
+	
 	@Override
 	public int getCommunitySize(int community) {
-		// TODO Auto-generated method stub
-		return 0;
+		Iterable<Vertex> vertices = orientGraph.getVertices("community", community);
+		Set<Integer> nodeCommunities = new HashSet<Integer>();
+		for(Vertex v : vertices) {
+			int nodeCommunity = v.getProperty("nodeCommunity");
+			if(!nodeCommunities.contains(nodeCommunity)) {
+				nodeCommunities.add(nodeCommunity);
+			}
+		}
+		return nodeCommunities.size();
 	}
-
+	
 	@Override
 	public Set<Integer> getCommunityIds() {
-		// TODO Auto-generated method stub
-		return null;
+		Set<Integer> communityIds = new HashSet<Integer>();
+		for(Vertex v : orientGraph.getVertices()) {
+			int communityId = v.getProperty("community");
+			if(!communityIds.contains(communityId)) {
+				communityIds.add(communityId);
+			}
+		}
+		return communityIds;
 	}
-
+	
 	@Override
 	public Map<Integer, List<Integer>> mapCommunities(int numberOfCommunities) {
-		// TODO Auto-generated method stub
-		return null;
+		Map<Integer, List<Integer>> communities = new HashMap<Integer, List<Integer>>();
+		for(int i = 0; i < numberOfCommunities; i++) {
+			Iterator<Vertex> verticesIter = orientGraph.getVertices("community", i).iterator();
+			List<Integer> vertices = new ArrayList<Integer>();
+			while(verticesIter.hasNext()) {
+				String nodeIdString = verticesIter.next().getProperty("nodeId");
+				vertices.add(Integer.valueOf(nodeIdString));
+			}
+			communities.put(i, vertices);
+		}
+		return communities;
 	}
 	
-	private OrientGraphNoTx getGraphForMassiveLoad() {
-		return this.orientGraphNoTx;
-	}
-
-	
-
 }
