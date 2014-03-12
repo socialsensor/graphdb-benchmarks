@@ -7,7 +7,9 @@ import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.neo4j.graphdb.DynamicLabel;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Transaction;
@@ -21,6 +23,8 @@ import org.neo4j.unsafe.batchinsert.BatchInserterIndex;
 import org.neo4j.unsafe.batchinsert.BatchInserterIndexProvider;
 import org.neo4j.unsafe.batchinsert.BatchInserters;
 
+import eu.socialsensor.graphdatabases.Neo4jGraphDatabase;
+
 
 public class Neo4jMassiveInsertion implements Insertion {
 	
@@ -29,11 +33,6 @@ public class Neo4jMassiveInsertion implements Insertion {
 	private BatchInserterIndex nodes = null;
 	Map<Long, Long> cache = new HashMap<Long, Long>();
 	
-	private static enum RelTypes implements RelationshipType {
-	    SIMILAR
-	}
-	
-	
 	public Neo4jMassiveInsertion(BatchInserter inserter, BatchInserterIndex index) {
 		this.inserter = inserter;
 		this.nodes = index;
@@ -41,6 +40,7 @@ public class Neo4jMassiveInsertion implements Insertion {
 	
 	public void createGraph(String datasetDir) {
 		System.out.println("Loading data in massive mode in Neo4j database . . . .");
+		inserter.createDeferredSchemaIndex(Neo4jGraphDatabase.NODE_LABEL).on("nodeId").create();
 		try {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(datasetDir)));
 			String line;
@@ -55,7 +55,7 @@ public class Neo4jMassiveInsertion implements Insertion {
 					srcNode = getOrCreate(parts[0]);
 					dstNode = getOrCreate(parts[1]);
 					
-					inserter.createRelationship(srcNode, dstNode, RelTypes.SIMILAR, null);
+					inserter.createRelationship(srcNode, dstNode, Neo4jGraphDatabase.RelTypes.SIMILAR, null);
 				}
 				lineCounter++;
 			}
@@ -71,7 +71,7 @@ public class Neo4jMassiveInsertion implements Insertion {
 		Long id = cache.get(Long.valueOf(value));
 		if(id == null) {
 			Map<String, Object> properties = MapUtil.map("nodeId", value);
-			id = inserter.createNode(properties);
+			id = inserter.createNode(properties, Neo4jGraphDatabase.NODE_LABEL);
 			cache.put(Long.valueOf(value), id);
 			nodes.add(id, properties);
 		}

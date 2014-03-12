@@ -19,6 +19,7 @@ import org.neo4j.graphdb.index.Index;
 
 import org.neo4j.kernel.GraphDatabaseAPI;
 
+import eu.socialsensor.graphdatabases.Neo4jGraphDatabase;
 import eu.socialsensor.utils.Utils;
 
 public class Neo4jSingleInsertion implements Insertion {
@@ -29,12 +30,7 @@ public class Neo4jSingleInsertion implements Insertion {
 	
 	private GraphDatabaseService neo4jGraph = null;
 	private Index<Node> nodeIndex;
-	
-	private static enum RelTypes implements RelationshipType {
-	    SIMILAR
-	}
-	
-	
+		
 	public Neo4jSingleInsertion(GraphDatabaseService neo4jGraph, Index<Node> nodeIndex) {
 		this.neo4jGraph = neo4jGraph;
 		this.nodeIndex = nodeIndex;
@@ -63,7 +59,7 @@ public class Neo4jSingleInsertion implements Insertion {
 //					try (Transaction tx = neo4jGraph.beginTx()) {
 						srcNode = nodeIndex.get("nodeId", parts[0]).getSingle();
 						if(srcNode == null) {
-							srcNode = neo4jGraph.createNode();
+							srcNode = neo4jGraph.createNode(Neo4jGraphDatabase.NODE_LABEL);
 							srcNode.setProperty("nodeId", parts[0]);
 							nodeIndex.add(srcNode, "nodeId", parts[0]);
 							tx.success();
@@ -86,7 +82,7 @@ public class Neo4jSingleInsertion implements Insertion {
 //						try (Transaction tx = neo4jGraph.beginTx()) {
 						dstNode = nodeIndex.get("nodeId", parts[1]).getSingle();
 						if(dstNode == null) {
-							dstNode = neo4jGraph.createNode();
+							dstNode = neo4jGraph.createNode(Neo4jGraphDatabase.NODE_LABEL);
 							dstNode.setProperty("nodeId", parts[1]);
 							nodeIndex.add(dstNode, "nodeId", parts[1]);
 							tx.success();
@@ -98,7 +94,7 @@ public class Neo4jSingleInsertion implements Insertion {
 					
 					try (Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
 //					try (Transaction tx = neo4jGraph.beginTx()) {
-						srcNode.createRelationshipTo(dstNode, RelTypes.SIMILAR);
+						srcNode.createRelationshipTo(dstNode, Neo4jGraphDatabase.RelTypes.SIMILAR);
 						tx.success();
 						tx.close();
 					}
