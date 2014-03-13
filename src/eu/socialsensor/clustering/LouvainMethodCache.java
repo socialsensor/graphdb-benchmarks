@@ -25,6 +25,8 @@ public class LouvainMethodCache {
     
     GraphDatabase graphDatabase;
     Cache cache;
+    
+    public static int CACHE_SIZE = 1000;
         
 	public static void main(String args[]) throws ExecutionException {
 		GraphDatabase graphDatabase = new TitanGraphDatabase();
@@ -36,7 +38,7 @@ public class LouvainMethodCache {
 //		GraphDatabase graphDatabase = new Neo4jGraphDatabase();
 //		graphDatabase.open("data/neo4j");
 		
-		LouvainMethodCache lm = new LouvainMethodCache(graphDatabase, 16, false);
+		LouvainMethodCache lm = new LouvainMethodCache(graphDatabase, 1000, false);
 //		lm.execute(graphDatabase);
 		
 		lm.test(graphDatabase);
@@ -52,7 +54,7 @@ public class LouvainMethodCache {
 		Map<Integer, List<Integer>> communities = graphDatabase.mapCommunities(this.N);
 
 	    Metrics metrics = new Metrics();
-	    double nmi = metrics.normalizedMutualInformation(32, communities, actualCommunities);
+	    double nmi = metrics.normalizedMutualInformation(1000, communities, actualCommunities);
 	    System.out.println(nmi);
 	  
 	}
@@ -60,6 +62,7 @@ public class LouvainMethodCache {
 	public LouvainMethodCache(GraphDatabase graphDatabase, int cacheSize, boolean isRandomized) throws ExecutionException {
 		this.graphDatabase = graphDatabase;
 		this.isRandomized = isRandomized;
+		CACHE_SIZE = cacheSize;
 		initilize();
 		cache = new Cache(graphDatabase, cacheSize);
 		computeModularity(graphDatabase, resolution, isRandomized);
@@ -105,24 +108,24 @@ public class LouvainMethodCache {
 						bestCommunityWeight += cache.getNodeCommunityWeight(i);					
 						this.communityWeights.set(bestCommunity, bestCommunityWeight);
 						localChange = true;
-						graphDatabase.testCommunities();
-						graphDatabase.printCommunities();
-						System.out.println();
+//						graphDatabase.testCommunities();
+//						graphDatabase.printCommunities();
+//						System.out.println();
 					}
 					
 					this.communityUpdate = false;
-					System.out.println();
+//					System.out.println();
 				}
-				graphDatabase.printCommunities();
+//				graphDatabase.printCommunities();
 				someChange = localChange || someChange;
 			}
 			if(someChange) {
 				zoomOut(graphDatabase);
-				System.out.println("=====");
-				graphDatabase.printCommunities();
-				System.out.println("=====");
-				graphDatabase.testCommunities();
-				System.out.println();
+//				System.out.println("=====");
+//				graphDatabase.printCommunities();
+//				System.out.println("=====");
+//				graphDatabase.testCommunities();
+//				System.out.println();
 			}
 		}
 	}
