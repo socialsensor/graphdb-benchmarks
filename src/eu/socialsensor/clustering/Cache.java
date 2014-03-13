@@ -51,7 +51,7 @@ public class Cache {
 						});
 		
 		nodeCommunitiesMap = CacheBuilder.newBuilder()
-				.maximumSize(cacheSize/4)
+				.maximumSize(cacheSize)
 				.build(
 						new CacheLoader<Integer, Set<Integer>>() {
 							public Set<Integer> load(Integer nodeCommunityId) {
@@ -118,6 +118,8 @@ public class Cache {
 		for(int nodeFromCommunity : nodesFromNodeCommunity) {
 			nodeToCommunityMap.put(nodeFromCommunity, toCommunity);
 		}
+		communitySize.put(fromCommunity, communitySize.get(fromCommunity) - 1);
+		communitySize.put(toCommunity, communitySize.get(toCommunity) + 1);
 	}
 	
 	public double getNodeCommunityWeight(int nodeCommunity) throws ExecutionException {
