@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import eu.socialsensor.graphdatabases.GraphDatabase;
+import eu.socialsensor.graphdatabases.Neo4jGraphDatabase;
 import eu.socialsensor.graphdatabases.OrientGraphDatabase;
 import eu.socialsensor.graphdatabases.TitanGraphDatabase;
 import eu.socialsensor.utils.Metrics;
@@ -29,19 +30,23 @@ public class LouvainMethodCache {
     public static int CACHE_SIZE = 1000;
         
 	public static void main(String args[]) throws ExecutionException {
-		GraphDatabase graphDatabase = new TitanGraphDatabase();
-		graphDatabase.open("data/titan");
+		GraphDatabase titanDatabase= new TitanGraphDatabase();
+		titanDatabase.open("data/titan");
+		LouvainMethodCache lm1 = new LouvainMethodCache(titanDatabase, 500, false); 
+		lm1.computeModularity();
+		lm1.test(titanDatabase);
 		
-//		GraphDatabase graphDatabase = new OrientGraphDatabase();
-//		graphDatabase.open("data/orient");
+		GraphDatabase orieDatabase = new OrientGraphDatabase();
+		orieDatabase.open("data/orient");
+		LouvainMethodCache lm2 = new LouvainMethodCache(orieDatabase, 500, false); 
+		lm2.computeModularity();
+		lm2.test(orieDatabase);
 		
-//		GraphDatabase graphDatabase = new Neo4jGraphDatabase();
-//		graphDatabase.open("data/neo4j");
-		
-		LouvainMethodCache lm = new LouvainMethodCache(graphDatabase, 1000, false);
-//		lm.execute(graphDatabase);
-		
-		lm.test(graphDatabase);
+		GraphDatabase neo4jDatabase = new Neo4jGraphDatabase();
+		neo4jDatabase.open("data/neo4j");
+		LouvainMethodCache lm3 = new LouvainMethodCache(neo4jDatabase, 500, false); 
+		lm3.computeModularity();
+		lm3.test(neo4jDatabase);
 	}
 	
 	
@@ -65,23 +70,23 @@ public class LouvainMethodCache {
 		CACHE_SIZE = cacheSize;
 		initilize();
 		cache = new Cache(graphDatabase, cacheSize);
-		computeModularity(graphDatabase, resolution, isRandomized);
 	}
 	
 	private void initilize() {
-		this.N = graphDatabase.getNodeCount();
-		this.graphWeightSum = graphDatabase.getGraphWeightSum() / 2;
+		this.N = this.graphDatabase.getNodeCount();
+		this.graphWeightSum = this.graphDatabase.getGraphWeightSum() / 2;
 		
 		this.communityWeights = new ArrayList<Double>(this.N);
 		for(int i = 0; i < this.N; i++) {
 			this.communityWeights.add(0.0);
 		}
 		
-		graphDatabase.initCommunityProperty();		
+		this.graphDatabase.initCommunityProperty();		
 	}
 	
 	
-	private void computeModularity(GraphDatabase graphDatabase, double currentResolution, boolean randomized) throws ExecutionException {
+	public void computeModularity() throws ExecutionException {
+		System.out.println("Computing communities . . . .");
 		Random rand = new Random();
 //		graphDatabase.testCommunities();
 		boolean someChange = true;
@@ -91,17 +96,17 @@ public class LouvainMethodCache {
 			while(localChange) {
 				localChange = false;
 				int start = 0;
-				if(randomized) {
+				if(this.isRandomized) {
 					start = Math.abs(rand.nextInt()) % this.N;
 				}
 				int step = 0;
 				for(int i = start; step < this.N; i = (i + 1) % this.N) {
 					step++;
-					int bestCommunity = updateBestCommunity(graphDatabase, i, currentResolution);
-					if((cache.getCommunity(i) != bestCommunity) && (this.communityUpdate)) {
+					int bestCommunity = updateBestCommunity(i);
+					if((this.cache.getCommunity(i) != bestCommunity) && (this.communityUpdate)) {
 						
-						cache.moveNodeCommunity(i, bestCommunity);
-						graphDatabase.moveNode(i, bestCommunity);
+						this.cache.moveNodeCommunity(i, bestCommunity);
+						this.graphDatabase.moveNode(i, bestCommunity);
 						
 						double bestCommunityWeight = this.communityWeights.get(bestCommunity);
 						
@@ -120,7 +125,7 @@ public class LouvainMethodCache {
 				someChange = localChange || someChange;
 			}
 			if(someChange) {
-				zoomOut(graphDatabase);
+				zoomOut();
 //				System.out.println("=====");
 //				graphDatabase.printCommunities();
 //				System.out.println("=====");
@@ -130,12 +135,12 @@ public class LouvainMethodCache {
 		}
 	}
 	
-	private int updateBestCommunity(GraphDatabase graphDatabase, int node, double currentResolution) throws ExecutionException {
+	private int updateBestCommunity(int node) throws ExecutionException {
 		int bestCommunity = 0;
 		double best = 0;
-		Set<Integer> communities = cache.getCommunitiesConnectedToNodeCommunities(node);
+		Set<Integer> communities = this.cache.getCommunitiesConnectedToNodeCommunities(node);
 		for(int community : communities) {
-			double qValue = q(graphDatabase, node, community, currentResolution);
+			double qValue = q(node, community);
 			if(qValue > best) {
 				best = qValue;
 				bestCommunity = community;
@@ -148,16 +153,16 @@ public class LouvainMethodCache {
 	
 	
 	
-	private double q(GraphDatabase graphDatabase, int nodeCommunity, int community, double currentResolution) throws ExecutionException {
-		double edgesInCommunity = cache.getEdgesInsideCommunity(nodeCommunity, community);	
+	private double q(int nodeCommunity, int community) throws ExecutionException {
+		double edgesInCommunity = this.cache.getEdgesInsideCommunity(nodeCommunity, community);	
 		double communityWeight = this.communityWeights.get(community);
-		double nodeWeight = cache.getNodeCommunityWeight(nodeCommunity);
-		double qValue = currentResolution * edgesInCommunity - (nodeWeight * communityWeight) / (2.0 * this.graphWeightSum);
-		int actualNodeCom = cache.getCommunity(nodeCommunity);		
-		int communitySize = cache.getCommunitySize(community);
+		double nodeWeight = this.cache.getNodeCommunityWeight(nodeCommunity);
+		double qValue = this.resolution * edgesInCommunity - (nodeWeight * communityWeight) / (2.0 * this.graphWeightSum);
+		int actualNodeCom = this.cache.getCommunity(nodeCommunity);		
+		int communitySize = this.cache.getCommunitySize(community);
 		
 		if((actualNodeCom == community) && (communitySize > 1)) {
-			qValue = currentResolution * edgesInCommunity - (nodeWeight * (communityWeight - nodeWeight)) / (2.0 * this.graphWeightSum);
+			qValue = this.resolution * edgesInCommunity - (nodeWeight * (communityWeight - nodeWeight)) / (2.0 * this.graphWeightSum);
 		}
 		if ((actualNodeCom == community) && (communitySize == 1)) {
 			qValue = 0.;
@@ -165,9 +170,9 @@ public class LouvainMethodCache {
 		return qValue;
 	}
 	
-	public void zoomOut(GraphDatabase graphDatabase) {		
-		this.N = graphDatabase.reInitializeCommunities2();
-		cache.reInitializeCommunities();
+	public void zoomOut() {		
+		this.N = this.graphDatabase.reInitializeCommunities2();
+		this.cache.reInitializeCommunities();
 		this.communityWeights = new ArrayList<Double>(this.N);
 		for(int i = 0; i < this.N; i++) {
 			this.communityWeights.add(graphDatabase.getCommunityWeight(i));

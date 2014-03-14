@@ -159,9 +159,9 @@ public class LouvainMethodNoCache {
 	}
 	
 	public void zoomOut(GraphDatabase graphDatabase) {
-		Set<Integer> communityIds = graphDatabase.getCommunityIds();
-		this.N = communityIds.size();
-		graphDatabase.reInitializeCommunities(communityIds);
+//		Set<Integer> communityIds = graphDatabase.getCommunityIds();
+		this.N = graphDatabase.reInitializeCommunities2();
+//		graphDatabase.reInitializeCommunities(communityIds);
 		this.communityWeights = new ArrayList<Double>(this.N);
 		for(int i = 0; i < this.N; i++) {
 			this.communityWeights.add(graphDatabase.getCommunityWeight(i));
