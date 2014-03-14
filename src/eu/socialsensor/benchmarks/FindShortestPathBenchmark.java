@@ -1,5 +1,9 @@
 package eu.socialsensor.benchmarks;
 
+import eu.socialsensor.graphdatabases.GraphDatabase;
+import eu.socialsensor.graphdatabases.Neo4jGraphDatabase;
+import eu.socialsensor.graphdatabases.OrientGraphDatabase;
+import eu.socialsensor.graphdatabases.TitanGraphDatabase;
 import eu.socialsensor.query.Neo4jQuery;
 import eu.socialsensor.query.OrientQuery;
 import eu.socialsensor.query.TitanQuery;
@@ -77,33 +81,31 @@ public class FindShortestPathBenchmark {
 	}
 	
 	public double orientFindShortestPathBenchmark() {
-		OrientQuery orientQuery = new OrientQuery();
-		orientQuery.openDB(orientDBDir);;
+		GraphDatabase orientGraphDatabase = new OrientGraphDatabase();
+		orientGraphDatabase.open(orientDBDir);
 		long start = System.currentTimeMillis();
-		orientQuery.findShortestPath();
+		orientGraphDatabase.shorestPathQuery();
 		long orientTime = System.currentTimeMillis() - start;
-		orientQuery.shutdown();
-		return orientTime/1000.0;
-	}
+		orientGraphDatabase.shutdown();
+		return orientTime/1000.0;	}
 	
 	public double titanFindShortestPathBenchmark() {
-		TitanQuery titanQuery = new TitanQuery();
-		titanQuery.openDB(titanDBDir);
+		GraphDatabase titanGraphDatabase = new TitanGraphDatabase();
+		titanGraphDatabase.open(titanDBDir);
 		long start = System.currentTimeMillis();
-		titanQuery.findShortestPath();
+		titanGraphDatabase.shorestPathQuery();
 		long titanTime = System.currentTimeMillis() - start;
-		titanQuery.shutdown();
+		titanGraphDatabase.shutdown();
 		return titanTime/1000.0;
 	}
 	
 	public double neo4jFindShortestPathBenchmark() {
-		Neo4jQuery neo4jQuery = new Neo4jQuery();
-		neo4jQuery.openDB(neo4jDBDir);
+		GraphDatabase neo4jGraphDatabase = new Neo4jGraphDatabase();
+		neo4jGraphDatabase.open(neo4jDBDir);
 		long start = System.currentTimeMillis();
-		neo4jQuery.findShortestPaths();
+		neo4jGraphDatabase.neighborsOfAllNodesQuery();
 		long neo4jTime = System.currentTimeMillis() - start;
-		neo4jQuery.shutdown();
-		return neo4jTime/1000.0;
-	}
+		neo4jGraphDatabase.shutdown();
+		return neo4jTime/1000.0;	}
 
 }

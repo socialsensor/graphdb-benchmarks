@@ -9,29 +9,33 @@ import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.gremlin.java.GremlinPipeline;
 
-public class OrientQuery {
+public class OrientQuery  implements Query {
 	
 	private OrientGraph orientGraph = null;
 	
-	public static void main(String args[]) {
-		OrientQuery test = new OrientQuery();
-		test.openDB("data/orientDB");
-		test.findShortestPath();
-		test.shutdown();
+//	public static void main(String args[]) {
+//		OrientQuery test = new OrientQuery();
+//		test.openDB("data/orientDB");
+//		test.findShortestPath();
+//		test.shutdown();
+//	}
+	
+//	public void openDB(String orientDBDir) {
+//		System.out.println("The Orient database is now opening . . . .");
+//		orientGraph = new OrientGraph("plocal:"+orientDBDir);	
+//	}
+//	
+//	public void shutdown() {
+//		System.out.println("The Orient database is now shutting down . . . .");
+//		orientGraph.shutdown();
+//		orientGraph = null;
+//	}
+	
+	public OrientQuery(OrientGraph orientGraph) {
+		this.orientGraph = orientGraph;
 	}
 	
-	public void openDB(String orientDBDir) {
-		System.out.println("The Orient database is now opening . . . .");
-		orientGraph = new OrientGraph("plocal:"+orientDBDir);	
-	}
-	
-	public void shutdown() {
-		System.out.println("The Orient database is now shutting down . . . .");
-		orientGraph.shutdown();
-		orientGraph = null;
-	}
-	
-	public void findNeighboursOfAllNodes() {
+	public void findNeighborsOfAllNodes() {
 		for(Vertex v : orientGraph.getVertices()) {
 			GremlinPipeline<String, Vertex> getNeighboursPipe = new GremlinPipeline<String, Vertex>(v).both("similar");
 		}
@@ -45,7 +49,7 @@ public class OrientQuery {
 		}
 	}
 	
-	public void findShortestPath() {
+	public void findShortestPaths() {
 		Iterable<Vertex> vertices = orientGraph.getVertices();
 		Iterator<Vertex> vertexIter = vertices.iterator();
 		Vertex v1 = vertexIter.next();

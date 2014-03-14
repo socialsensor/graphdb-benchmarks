@@ -15,17 +15,17 @@ import com.tinkerpop.gremlin.java.GremlinPipeline;
 import com.tinkerpop.pipes.PipeFunction;
 import com.tinkerpop.pipes.branch.LoopPipe.LoopBundle;
 
-public class TitanQuery {
+public class TitanQuery implements Query {
 	
 	private TitanGraph titanGraph = null;
 	
 	public static void main(String args[]) {
-		TitanQuery test = new TitanQuery();
-		test.openDB("data/titanDB");
-//		test.findNodesOfAllEdges();
-//		test.findNeighboursOfAllNodes();
-		test.findShortestPath();
-		test.shutdown();
+//		TitanQuery test = new TitanQuery();
+//		test.openDB("data/titanDB");
+////		test.findNodesOfAllEdges();
+////		test.findNeighboursOfAllNodes();
+//		test.findShortestPath();
+//		test.shutdown();
 		
 	}
 	
@@ -46,7 +46,11 @@ public class TitanQuery {
 		titanGraph = TitanFactory.open(config);
 	}
 	
-	public void findNeighboursOfAllNodes() {
+	public TitanQuery(TitanGraph titanGraph) {
+		this.titanGraph = titanGraph;
+	}
+	
+	public void findNeighborsOfAllNodes() {
 		for(Vertex v : titanGraph.getVertices()) {
 			GremlinPipeline<String, Vertex> pipe = new GremlinPipeline<String, Vertex>(v).both("similar");
 		}
@@ -58,7 +62,7 @@ public class TitanQuery {
 		}
 	}
 	
-	public void findShortestPath() {
+	public void findShortestPaths() {
 		Iterable<Vertex> vertices = titanGraph.getVertices();
 		Iterator<Vertex> vertexIter = vertices.iterator();
 		final Vertex v1 = vertexIter.next();

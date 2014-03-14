@@ -16,7 +16,7 @@ import org.neo4j.kernel.Traversal;
 import org.neo4j.tooling.GlobalGraphOperations;
 
 
-public class Neo4jQuery {
+public class Neo4jQuery implements Query {
 	
 	private GraphDatabaseService neo4jGraph = null;
 	
@@ -25,24 +25,28 @@ public class Neo4jQuery {
 	}
 	
 	public static void main(String args[]) {
-		Neo4jQuery test = new Neo4jQuery();
-		test.openDB("data/neo4j");
-		test.findNeighborsOfAllNodes();
-		test.findNodesOfAllEdges();
-		test.findShortestPaths();
-		test.shutdown();
+//		Neo4jQuery test = new Neo4jQuery();
+//		test.openDB("data/neo4j");
+//		test.findNeighborsOfAllNodes();
+//		test.findNodesOfAllEdges();
+//		test.findShortestPaths();
+//		test.shutdown();
 	}
 	
-	public void openDB(String neo4jDBDir) {
-		System.out.println("The Neo4j database is now starting . . . .");
-		neo4jGraph = new GraphDatabaseFactory().newEmbeddedDatabase(neo4jDBDir);
-	}
+//	public void openDB(String neo4jDBDir) {
+//		System.out.println("The Neo4j database is now starting . . . .");
+//		neo4jGraph = new GraphDatabaseFactory().newEmbeddedDatabase(neo4jDBDir);
+//	}
+//	
+//	public void shutdown() {
+//		System.out.println("The Neo4j database is now shuting down . . . .");
+//		if(neo4jGraph != null) {
+//			neo4jGraph.shutdown();
+//		}
+//	}
 	
-	public void shutdown() {
-		System.out.println("The Neo4j database is now shuting down . . . .");
-		if(neo4jGraph != null) {
-			neo4jGraph.shutdown();
-		}
+	public Neo4jQuery(GraphDatabaseService neo4jGraph) {
+		this.neo4jGraph = neo4jGraph;
 	}
 	
 	public void findNeighborsOfAllNodes() {
@@ -75,5 +79,6 @@ public class Neo4jQuery {
 			iterCount++;
 		}
 	}
+
 	
 }
