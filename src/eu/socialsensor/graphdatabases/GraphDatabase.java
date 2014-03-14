@@ -17,27 +17,17 @@ public interface GraphDatabase {
 	public void singleModeLoading(String dataPath);
 	
 	public void createGraphForMassiveLoad(String dbPath);
-	
+		
 	public void shutdown();
 	
 	public void shutdownMassiveGraph();
 		
 	public int getNodeCount();
-	
-//	public Iterable getNodes();
-	
-//	public List<Long> getNodeIds();
-	
+		
 	public Set<Integer> getNeighborsIds(int nodeId);
-	
-//	public double getNodeDegree(long nodeId);
-	
+		
 	public double getNodeWeight(int nodeId);
-	
-	public double getNodeInDegree(Vertex vertex);
-	
-	public double getNodeOutDegree(Vertex vertex);
-	
+		
 	public void initCommunityProperty();
 	
 	public Set<Integer> getCommunitiesConnectedToNodeCommunities(int nodeCommunities);
@@ -54,13 +44,13 @@ public interface GraphDatabase {
 	
 	public void moveNode(int from, int to);
 	
-	public int getNumberOfCommunities();
+//	public int getNumberOfCommunities();
 	
 	public double getGraphWeightSum();
 	
 	public void testCommunities();
 	
-	public void reInitializeCommunities(Set<Integer> communityIds);
+//	public void reInitializeCommunities(Set<Integer> communityIds);
 	
 	public int reInitializeCommunities2();
 	
@@ -72,7 +62,7 @@ public interface GraphDatabase {
 	
 	public int getCommunitySize(int community);
 	
-	public Set<Integer> getCommunityIds();
+//	public Set<Integer> getCommunityIds();
 	
 	public Map<Integer, List<Integer>> mapCommunities(int numberOfCommunities);
 	
