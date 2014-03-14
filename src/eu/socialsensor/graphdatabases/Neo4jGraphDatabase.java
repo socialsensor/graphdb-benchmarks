@@ -18,6 +18,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.ResourceIterable;
+import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 import org.neo4j.graphdb.index.Index;
@@ -34,6 +35,7 @@ import org.neo4j.unsafe.batchinsert.BatchInserterIndex;
 import org.neo4j.unsafe.batchinsert.BatchInserterIndexProvider;
 import org.neo4j.unsafe.batchinsert.BatchInserters;
 
+import com.google.common.collect.Iterables;
 import com.tinkerpop.blueprints.Vertex;
 
 import eu.socialsensor.clustering.LouvainMethodCache;
@@ -58,9 +60,9 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 	
 	public static void main(String args[]) {
 		Neo4jGraphDatabase test = new Neo4jGraphDatabase();
-		test.open("data/neo4jYoutube");
+		test.open("data/neo4jEnron");
 //		test.initCommunityProperty();
-		System.out.println(test.getCommunitiesConnectedToNodeCommunities(1));
+		System.out.println(test.getEdgesInsideCommunity(1, 57));
 //		test.test();
 //		test.testCommunities();
 		test.shutdown();
@@ -68,27 +70,34 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 	
 	@Override
 	public void testCommunities() {
-		int counter = 0;
+//		int counter = 0;
 		Transaction tx = neo4jGraph.beginTx();
 		for(Node n : GlobalGraphOperations.at(neo4jGraph).getAllNodes()) {
 			System.out.println("Node: "+n.getProperty("nodeId")+
 					" ==> nodeCommunity: "+n.getProperty("nodeCommunity")+
 					" ==> community: "+n.getProperty("community"));
-			counter++;
-			if(counter == 50) {
-				break;
-			}
+//			counter++;
+//			if(counter == 70) {
+//				break;
+//			}
 		}
 		tx.success();
 		tx.close();
 	}
 	public void test() {
 		Transaction tx = neo4jGraph.beginTx();
-		for(Node n : GlobalGraphOperations.at(neo4jGraph).getAllNodes()) {
-			System.out.println("Node: "+n.getProperty("nodeId")+
-					" ==> nodeCommunity: "+n.getProperty("nodeCommunity")+
-					" ==> community: "+n.getProperty("community"));
-		}
+		Node n = nodeIndex.get("nodeId", 4).getSingle();
+		System.out.println(n.getLabels().iterator().next());
+//		ResourceIterable<Node> iter = neo4jGraph.findNodesByLabelAndProperty(NODE_LABEL, "nodeCommunity", 1);
+//		Node n = iter.iterator().next();
+//		System.out.println("Node: "+n.getProperty("nodeId")+
+//					" ==> nodeCommunity: "+n.getProperty("nodeCommunity")+
+//					" ==> community: "+n.getProperty("community"));
+//		for(Node n : GlobalGraphOperations.at(neo4jGraph).getAllNodes()) {
+//			System.out.println("Node: "+n.getProperty("nodeId")+
+//					" ==> nodeCommunity: "+n.getProperty("nodeCommunity")+
+//					" ==> community: "+n.getProperty("community"));
+//		}
 //		Label label = DynamicLabel.label("node");
 //		Node n = nodeIndex.get("nodeId", 1).getSingle();
 //		System.out.println(n.getProperty("community"));
@@ -186,18 +195,18 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 
 	@Override
 	public Set<Integer> getNeighborsIds(int nodeId) {
-		Set<Integer> neighbours = new HashSet<Integer>();
+		Set<Integer> neighbors = new HashSet<Integer>();
 		try (Transaction tx = neo4jGraph.beginTx()) {
 			Node n = nodeIndex.get("nodeId", nodeId).getSingle();
-			for(Relationship relationship : n.getRelationships(Direction.OUTGOING, RelTypes.SIMILAR)) {
+			for(Relationship relationship : n.getRelationships(RelTypes.SIMILAR, Direction.OUTGOING)) {
 				Node neighbour = relationship.getOtherNode(n);
 				String neighbourId = (String)neighbour.getProperty("nodeId");
-				neighbours.add(Integer.valueOf(neighbourId));
+				neighbors.add(Integer.valueOf(neighbourId));
 			}
 			tx.success();
-			tx.close();
+//			tx.close();
 		}
-		return neighbours;
+		return neighbors;
 	}
 	
 	@Override
@@ -213,12 +222,14 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 	}
 	
 	public double getNodeInDegree(Node node) {
-		return node.getDegree(Direction.INCOMING);
+		Iterable<Relationship> rel = node.getRelationships(Direction.OUTGOING, RelTypes.SIMILAR);
+		return (double)(IteratorUtil.count(rel));
 	}
 
 
 	public double getNodeOutDegree(Node node) {
-		return node.getDegree(Direction.OUTGOING);
+		Iterable<Relationship> rel = node.getRelationships(Direction.INCOMING, RelTypes.SIMILAR);
+		return (double)(IteratorUtil.count(rel));
 	}
 
 	@Override
@@ -248,7 +259,7 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 		try(Transaction tx = neo4jGraph.beginTx()) {
 			ResourceIterable<Node> nodes = neo4jGraph.findNodesByLabelAndProperty(Neo4jGraphDatabase.NODE_LABEL, "nodeCommunity", nodeCommunities);
 			for(Node n : nodes) {
-				for(Relationship r : n.getRelationships(Direction.OUTGOING, RelTypes.SIMILAR)) {
+				for(Relationship r : n.getRelationships(RelTypes.SIMILAR, Direction.OUTGOING)) {
 					Node neighbour = r.getOtherNode(n);
 					int community = (int)(neighbour.getProperty("community"));
 					communities.add(community);
@@ -259,51 +270,146 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 		}
 		return communities;
 	}
-
-
 	
+	@Override
+	public Set<Integer> getNodesFromCommunity(int community) {
+		Set<Integer> nodes = new HashSet<Integer>();
+		try(Transaction tx = neo4jGraph.beginTx()) {
+			ResourceIterable<Node> iter = neo4jGraph.findNodesByLabelAndProperty(NODE_LABEL, "community", community);
+			for(Node n : iter) {
+				String nodeIdString = (String)(n.getProperty("nodeId"));
+				nodes.add(Integer.valueOf(nodeIdString));
+			}
+			tx.success();
+			tx.close();
+		}
+		return nodes;
+	}
+	
+	@Override
+	public Set<Integer> getNodesFromNodeCommunity(int nodeCommunity) {
+		Set<Integer> nodes = new HashSet<Integer>();
+		try(Transaction tx = neo4jGraph.beginTx()) {
+			ResourceIterable<Node> iter = neo4jGraph.findNodesByLabelAndProperty(NODE_LABEL, "nodeCommunity", nodeCommunity);
+			for(Node n : iter) {
+				String nodeIdString = (String)(n.getProperty("nodeId"));
+				nodes.add(Integer.valueOf(nodeIdString));
+			}
+			tx.success();
+			tx.close();
+		}
+		return nodes;
+	}
+
+	@Override
+	public double getEdgesInsideCommunity(int nodeCommunity, int communityNodes) {
+		double edges = 0;
+		try(Transaction tx = neo4jGraph.beginTx()) {
+			ResourceIterable<Node> nodes = neo4jGraph.findNodesByLabelAndProperty(NODE_LABEL, "nodeCommunity", nodeCommunity);
+			ResourceIterable<Node> comNodes = neo4jGraph.findNodesByLabelAndProperty(NODE_LABEL, "community", communityNodes);
+			for(Node node : nodes) {
+				Iterable<Relationship> relationships = node.getRelationships(RelTypes.SIMILAR, Direction.OUTGOING);
+				for(Relationship r : relationships) {
+					Node neighbor = r.getOtherNode(node);
+					if(Iterables.contains(comNodes, neighbor)) {
+						edges++;
+					}
+				}
+			}
+			tx.success();
+			tx.close();
+		}
+		
+		return edges;
+	}
 
 	@Override
 	public double getCommunityWeight(int community) {
-		// TODO Auto-generated method stub
-		return 0;
+		double communityWeight = 0;
+		try(Transaction tx = neo4jGraph.beginTx()) {
+			ResourceIterable<Node> iter = neo4jGraph.findNodesByLabelAndProperty(NODE_LABEL, "community", community);
+			if(Iterables.size(iter) > 1) {
+				for(Node n : iter) {
+					communityWeight += getNodeOutDegree(n);
+				}
+			}
+			tx.success();
+			tx.close();
+		}
+		return communityWeight;
+	}
+	
+	@Override
+	public double getNodeCommunityWeight(int nodeCommunity) {
+		double nodeCommunityWeight = 0;
+		try(Transaction tx = neo4jGraph.beginTx()) {
+			ResourceIterable<Node> iter = neo4jGraph.findNodesByLabelAndProperty(NODE_LABEL, "nodeCommunity", nodeCommunity);
+			if(Iterables.size(iter) > 1) {
+				for(Node n : iter) {
+					nodeCommunityWeight += getNodeOutDegree(n);
+				}
+			}
+			tx.success();
+			tx.close();
+		}
+		return nodeCommunityWeight;
 	}
 
 	@Override
-	public double getEdgesInsideCommunity(int nodes, int communityNodes) {
-		// TODO Auto-generated method stub
-		return 0;
+	public void moveNode(int nodeCommunity, int toCommunity) {
+		try(Transaction tx = neo4jGraph.beginTx()) {
+			ResourceIterable<Node> fromIter = neo4jGraph.findNodesByLabelAndProperty(NODE_LABEL, "nodeCommunity", nodeCommunity);
+			for(Node node : fromIter) {
+				node.setProperty("community", toCommunity);
+			}
+			tx.success();
+			tx.close();
+		}		
 	}
 
-	@Override
-	public void moveNode(int from, int to) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public int getNumberOfCommunities() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+//	@Override
+//	public int getNumberOfCommunities() {
+//		// TODO Auto-generated method stub
+//		return 0;
+//	}
 
 	@Override
 	public double getGraphWeightSum() {
-		// TODO Auto-generated method stub
-		return 0;
+		int edgeCount;
+		try (Transaction tx = neo4jGraph.beginTx()) {
+			edgeCount = IteratorUtil.count(GlobalGraphOperations.at(neo4jGraph).getAllRelationships());
+			tx.success();
+			tx.close();
+		}
+		return (double)edgeCount;
 	}
-
+	
+	
+//	@Override
+//	public void reInitializeCommunities(Set<Integer> communityIds) {
+//				
+//	}
+	
 	@Override
-	public double getNodeCommunityWeight(int nodeCommunity) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-
-	@Override
-	public void reInitializeCommunities(Set<Integer> communityIds) {
-		// TODO Auto-generated method stub
+	public int reInitializeCommunities2() {
+		Map<Integer, Integer> initCommunities = new HashMap<Integer, Integer>();
+		int communityCounter = 0;
+		try(Transaction tx = neo4jGraph.beginTx()) {
+			for(Node n : GlobalGraphOperations.at(neo4jGraph).getAllNodes()) {
+				int communityId = (int)(n.getProperty("community"));
+				if(!initCommunities.containsKey(communityId)) {
+					initCommunities.put(communityId, communityCounter);
+					communityCounter++;
+				}
+				int newCommunityId = initCommunities.get(communityId);
+				n.setProperty("community", newCommunityId);
+				n.setProperty("nodeCommunity", newCommunityId);
+			}
+			tx.success();
+			tx.close();
+		}
 		
+		return communityCounter;
 	}
 
 	@Override
@@ -314,54 +420,66 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 
 	@Override
 	public int getCommunity(int nodeCommunity) {
-		// TODO Auto-generated method stub
-		return 0;
+		int community = 0;
+		try(Transaction tx = neo4jGraph.beginTx()) {
+			Node node = neo4jGraph.findNodesByLabelAndProperty(NODE_LABEL, "nodeCommunity", nodeCommunity).iterator().next();
+			community = (int)(node.getProperty("community"));
+			tx.success();
+			tx.close();
+		}
+		return community;
+	}
+	
+	@Override
+	public int getCommunityFromNode(int nodeId) {
+		int community = 0;
+		try(Transaction tx = neo4jGraph.beginTx()) {
+			Node node = nodeIndex.get("nodeId", nodeId).getSingle();
+			community = (int)(node.getProperty("community"));
+			tx.success();
+			tx.close();
+		}
+		return community;
 	}
 
 	@Override
 	public int getCommunitySize(int community) {
-		// TODO Auto-generated method stub
-		return 0;
+		Set<Integer> nodeCommunities = new HashSet<Integer>();
+		try(Transaction tx = neo4jGraph.beginTx()) {
+			ResourceIterable<Node> nodes = neo4jGraph.findNodesByLabelAndProperty(NODE_LABEL, "community", community);
+			for(Node n : nodes) {
+				int nodeCommunity = (int)(n.getProperty("community"));
+				nodeCommunities.add(nodeCommunity);
+			}
+			tx.success();
+			tx.close();
+		}
+		return nodeCommunities.size();
 	}
 
-	@Override
-	public Set<Integer> getCommunityIds() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+//	@Override
+//	public Set<Integer> getCommunityIds() {
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
 
 	@Override
 	public Map<Integer, List<Integer>> mapCommunities(int numberOfCommunities) {
-		// TODO Auto-generated method stub
-		return null;
+		Map<Integer, List<Integer>> communities = new HashMap<Integer, List<Integer>>();
+		try(Transaction tx = neo4jGraph.beginTx()) {
+			for(int i = 0; i < numberOfCommunities; i++) {
+				ResourceIterable<Node> nodesIter = neo4jGraph.findNodesByLabelAndProperty(NODE_LABEL, "community", i);
+				List<Integer> nodes = new ArrayList<Integer>();
+				for(Node n : nodesIter) {
+					String nodeIdString = (String)(n.getProperty("nodeId"));
+					nodes.add(Integer.valueOf(nodeIdString));
+				}
+				communities.put(i, nodes);
+			}
+			tx.success();
+			tx.close();
+		}
+		return communities;
 	}
-
-	@Override
-	public Set<Integer> getNodesFromNodeCommunity(int nodeCommunity) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Set<Integer> getNodesFromCommunity(int community) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public int reInitializeCommunities2() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	
-
-	@Override
-	public int getCommunityFromNode(int nodeId) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	
 	
 }
