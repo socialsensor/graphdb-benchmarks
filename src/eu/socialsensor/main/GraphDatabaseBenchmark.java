@@ -36,13 +36,7 @@ public class GraphDatabaseBenchmark {
 	 * @throws ExecutionException 
 	 */
 	public static void main(String[] args) throws ExecutionException {
-		
-//		MassiveInsertionBenchmark test = new MassiveInsertionBenchmark(ENRON_DATASET);
-//		test.startMassiveInsertionBenchmark();
-		
-//		SingleInsertionBenchmark test = new SingleInsertionBenchmark(ENRON_DATASET);
-//		test.startBenchmark();
-		
+				
 //		ClusteringBenchmark clusteringBenchmark = new ClusteringBenchmark();
 //		clusteringBenchmark.startBenchmark();
 		
@@ -50,53 +44,17 @@ public class GraphDatabaseBenchmark {
 //		titanGraphDatabase.createGraphForMassiveLoad("data/titan");
 //		titanGraphDatabase.massiveModeLoading("data/network.dat");
 //		titanGraphDatabase.shutdownMassiveGraph();
-		
-//		titanGraphDatabase.createGraphForSingleLoad("data/titan");
-//		titanGraphDatabase.singleModeLoading(ENRON_DATASET);
-//		titanGraphDatabase.shutdown();
-		
-//		titanGraphDatabase.open("data/titan");
-		
-		
+//		
 //		GraphDatabase orientGraphDatabase = new OrientGraphDatabase();
 //		orientGraphDatabase.createGraphForMassiveLoad("data/orient");
 //		orientGraphDatabase.massiveModeLoading("data/network.dat");
 //		orientGraphDatabase.shutdownMassiveGraph();
-		
-//		orientGraphDatabase.createGraphForSingleLoad("data/orient1");
-//		orientGraphDatabase.singleModeLoading("data/network.dat");
-//		orientGraphDatabase.shutdown();
 //		
-//		orientGraphDatabase.open("data/orient");
-
+//		GraphDatabase neo4jGraphDatabase = new Neo4jGraphDatabase();
+//		neo4jGraphDatabase.createGraphForMassiveLoad("data/neo4j");
+//		neo4jGraphDatabase.massiveModeLoading("data/network.dat");
+//		neo4jGraphDatabase.shutdownMassiveGraph();
 		
-//		
-		GraphDatabase neo4jGraphDatabase = new Neo4jGraphDatabase();
-		neo4jGraphDatabase.createGraphForMassiveLoad("data/neo4j");
-		neo4jGraphDatabase.massiveModeLoading("data/network.dat");
-		neo4jGraphDatabase.shutdownMassiveGraph();
-		
-//		neo4jGraphDatabase.createGraphForSingleLoad("data/neo4j");
-//		neo4jGraphDatabase.singleModeLoading(ENRON_DATASET);
-//		neo4jGraphDatabase.shutdown();
-		
-//		neo4jGraphDatabase.open("data/neo4jC");
-		
-//		System.out.println(counter);
-//		MassiveInsertionBenchmark massiveInsertionBenchmark = new MassiveInsertionBenchmark("data/test.txt");
-//		massiveInsertionBenchmark.startMassiveBenchmark();		
-		
-//		SingleInsertionBenchmark singleInsertionBenchmark = new SingleInsertionBenchmark("data/test.txt");
-//		singleInsertionBenchmark.startBenchmark();
-		
-//		FindNeighboursOfAllNodesBenchmark findNeighboursOfAllNodesBenchmark = new FindNeighboursOfAllNodesBenchmark();
-//		findNeighboursOfAllNodesBenchmark.startBenchmark();
-		
-//		FindNodesOfAllEdgesBenchmark findNodesOfAllEdgesBenchmark = new FindNodesOfAllEdgesBenchmark();
-//		findNodesOfAllEdgesBenchmark.startBenchmark();
-//		
-//		FindShortestPathBenchmark findShortestPathBenchmark = new FindShortestPathBenchmark();
-//		findShortestPathBenchmark.startBenchmark();
 	}
 	
 	
