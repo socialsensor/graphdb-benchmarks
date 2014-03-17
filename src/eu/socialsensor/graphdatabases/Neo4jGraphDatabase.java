@@ -42,6 +42,8 @@ import eu.socialsensor.clustering.LouvainMethodCache;
 import eu.socialsensor.insert.Insertion;
 import eu.socialsensor.insert.Neo4jMassiveInsertion;
 import eu.socialsensor.insert.Neo4jSingleInsertion;
+import eu.socialsensor.query.Neo4jQuery;
+import eu.socialsensor.query.Query;
 
 public class Neo4jGraphDatabase implements GraphDatabase {
 
@@ -180,6 +182,24 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 			indexProvider = null;
 			inserter = null;
 		}
+	}
+	
+	@Override
+	public void shorestPathQuery() {
+		Query neo4jQuery = new Neo4jQuery(this.neo4jGraph);
+		neo4jQuery.findShortestPaths();
+	}
+
+	@Override
+	public void neighborsOfAllNodesQuery() {
+		Query neo4jQuery = new Neo4jQuery(this.neo4jGraph);
+		neo4jQuery.findNeighborsOfAllNodes();
+	}
+
+	@Override
+	public void nodesOfAllEdgesQuery() {
+		Query neo4jQuery = new Neo4jQuery(this.neo4jGraph);
+		neo4jQuery.findNodesOfAllEdges();
 	}
 	
 	@Override
@@ -481,5 +501,6 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 		}
 		return communities;
 	}
+
 	
 }

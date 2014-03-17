@@ -38,7 +38,7 @@ public class TitanMassiveInsertion implements Insertion {
 			int lineCounter = 1;
 			Vertex srcVertex, dstVertex;
 			while((line = reader.readLine()) != null) {
-				if(lineCounter > 4) {
+//				if(lineCounter > 4) {
 					String[] parts = line.split("\t");
 					
 					srcVertex = getOrCreate(parts[0]);
@@ -47,7 +47,7 @@ public class TitanMassiveInsertion implements Insertion {
 					srcVertex.addEdge("similar", dstVertex);
 				}
 				lineCounter++;
-			}
+//			}
 			reader.close();
 		}
 		catch(IOException ioe) {

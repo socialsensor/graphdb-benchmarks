@@ -1,5 +1,7 @@
 package eu.socialsensor.main;
 
+import java.util.concurrent.ExecutionException;
+
 import com.thinkaurelius.titan.core.TitanFactory;
 import com.thinkaurelius.titan.core.TitanGraph;
 import com.tinkerpop.blueprints.Vertex;
@@ -20,11 +22,20 @@ public class GraphDatabaseBenchmark {
 	public final static String YOUTUBE_DATASET = "data/youtubeEdges.txt";
 	public final static String LIVEJOURNAL_DATASET = "data/livejournalEdges.txt";
 	
+	public final static String TITAN_ENRON = "data/titanEnron";
+	public final static String ORIENT_ENRON = "data/orientEnron";
+	public final static String NEO4J_ENRON = "data/neo4jEnron";
+	
+	public final static String TITAN_SYNTHETIC_GRAPH = "data/titanSyntheticGraph";
+	public final static String ORIENT_SYNTHETIC_GRAPH = "data/orientSyntheticGraph";
+	public final static String NEO4J_SYNTHETIC_GRAPH = "data/neo4jSyntheticGraph";
+	
 	/**
 	 * This is the main function. Before you run the project un-comment
 	 * lines that correspond to the benchmark you want to run.
+	 * @throws ExecutionException 
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws ExecutionException {
 		
 //		MassiveInsertionBenchmark test = new MassiveInsertionBenchmark(ENRON_DATASET);
 //		test.startMassiveInsertionBenchmark();
@@ -32,13 +43,13 @@ public class GraphDatabaseBenchmark {
 //		SingleInsertionBenchmark test = new SingleInsertionBenchmark(ENRON_DATASET);
 //		test.startBenchmark();
 		
-//		ClusteringBenchmark clusteringBenchmark = new ClusteringBenchmark(ENRON_DATASET);
+//		ClusteringBenchmark clusteringBenchmark = new ClusteringBenchmark();
 //		clusteringBenchmark.startBenchmark();
 		
-		GraphDatabase titanGraphDatabase = new TitanGraphDatabase();
-		titanGraphDatabase.createGraphForMassiveLoad("data/titan");
-		titanGraphDatabase.massiveModeLoading("data/network.dat");
-		titanGraphDatabase.shutdownMassiveGraph();
+//		GraphDatabase titanGraphDatabase = new TitanGraphDatabase();
+//		titanGraphDatabase.createGraphForMassiveLoad("data/titan");
+//		titanGraphDatabase.massiveModeLoading("data/network.dat");
+//		titanGraphDatabase.shutdownMassiveGraph();
 		
 //		titanGraphDatabase.createGraphForSingleLoad("data/titan");
 //		titanGraphDatabase.singleModeLoading(ENRON_DATASET);
@@ -47,10 +58,10 @@ public class GraphDatabaseBenchmark {
 //		titanGraphDatabase.open("data/titan");
 		
 		
-		GraphDatabase orientGraphDatabase = new OrientGraphDatabase();
-		orientGraphDatabase.createGraphForMassiveLoad("data/orient");
-		orientGraphDatabase.massiveModeLoading("data/network.dat");
-		orientGraphDatabase.shutdownMassiveGraph();
+//		GraphDatabase orientGraphDatabase = new OrientGraphDatabase();
+//		orientGraphDatabase.createGraphForMassiveLoad("data/orient");
+//		orientGraphDatabase.massiveModeLoading("data/network.dat");
+//		orientGraphDatabase.shutdownMassiveGraph();
 		
 //		orientGraphDatabase.createGraphForSingleLoad("data/orient1");
 //		orientGraphDatabase.singleModeLoading("data/network.dat");

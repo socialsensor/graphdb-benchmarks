@@ -30,23 +30,46 @@ public class LouvainMethodCache {
     public static int CACHE_SIZE = 1000;
         
 	public static void main(String args[]) throws ExecutionException {
-		GraphDatabase titanDatabase= new TitanGraphDatabase();
-		titanDatabase.open("data/titan");
-		LouvainMethodCache lm1 = new LouvainMethodCache(titanDatabase, 500, false); 
-		lm1.computeModularity();
-		lm1.test(titanDatabase);
-		
-		GraphDatabase orieDatabase = new OrientGraphDatabase();
-		orieDatabase.open("data/orient");
-		LouvainMethodCache lm2 = new LouvainMethodCache(orieDatabase, 500, false); 
-		lm2.computeModularity();
-		lm2.test(orieDatabase);
+//		GraphDatabase titanDatabase= new TitanGraphDatabase();
+//		titanDatabase.open("data/titan");
+//
+//		LouvainMethodCache lm1 = new LouvainMethodCache(titanDatabase, 50, false); 
+//		long start = System.currentTimeMillis();
+//		lm1.computeModularity();
+//		long time = System.currentTimeMillis() - start;
+//		System.out.println(time / 1000.0);
+//		lm1.test(titanDatabase);
+//		
+//		LouvainMethodCache lm2 = new LouvainMethodCache(titanDatabase, 50, false); 
+//		start = System.currentTimeMillis();
+//		lm2.computeModularity();
+//		time = System.currentTimeMillis() - start;
+//		System.out.println(time / 1000.0);
+//		lm2.test(titanDatabase);
+//		
+//		GraphDatabase orieDatabase = new OrientGraphDatabase();
+//		orieDatabase.open("data/orient");
+//		LouvainMethodCache lm2 = new LouvainMethodCache(orieDatabase, 500, false); 
+//		lm2.computeModularity();
+//		lm2.test(orieDatabase);
 		
 		GraphDatabase neo4jDatabase = new Neo4jGraphDatabase();
 		neo4jDatabase.open("data/neo4j");
-		LouvainMethodCache lm3 = new LouvainMethodCache(neo4jDatabase, 500, false); 
+		
+		LouvainMethodCache lm3 = new LouvainMethodCache(neo4jDatabase, 1000, false); 
+		long start = System.currentTimeMillis();
 		lm3.computeModularity();
+		long time = System.currentTimeMillis() - start;
+		System.out.println(time / 1000.0);
 		lm3.test(neo4jDatabase);
+		
+		LouvainMethodCache lm4 = new LouvainMethodCache(neo4jDatabase, 1000, false); 
+		start = System.currentTimeMillis();
+		lm4.computeModularity();
+		time = System.currentTimeMillis() - start;
+		System.out.println(time / 1000.0);
+		lm4.test(neo4jDatabase);
+		
 	}
 	
 	
@@ -59,7 +82,7 @@ public class LouvainMethodCache {
 		Map<Integer, List<Integer>> communities = graphDatabase.mapCommunities(this.N);
 
 	    Metrics metrics = new Metrics();
-	    double nmi = metrics.normalizedMutualInformation(1000, communities, actualCommunities);
+	    double nmi = metrics.normalizedMutualInformation(10000, communities, actualCommunities);
 	    System.out.println(nmi);
 	  
 	}

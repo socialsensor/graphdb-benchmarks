@@ -25,6 +25,8 @@ import com.tinkerpop.gremlin.java.GremlinPipeline;
 import eu.socialsensor.insert.Insertion;
 import eu.socialsensor.insert.OrientMassiveInsertion;
 import eu.socialsensor.insert.OrientSingleInsertion;
+import eu.socialsensor.query.OrientQuery;
+import eu.socialsensor.query.Query;
 
 public class OrientGraphDatabase implements GraphDatabase{
 
@@ -114,6 +116,25 @@ public class OrientGraphDatabase implements GraphDatabase{
 			orientGraphNoTx = null;
 			vetrices = null;
 		}
+	}
+	
+	@Override
+	public void shorestPathQuery() {
+		Query orientQuery = new OrientQuery(this.orientGraph);
+		orientQuery.findShortestPaths();
+		
+	}
+
+	@Override
+	public void neighborsOfAllNodesQuery() {
+		Query orientQuery = new OrientQuery(this.orientGraph);
+		orientQuery.findNeighborsOfAllNodes();
+	}
+
+	@Override
+	public void nodesOfAllEdgesQuery() {
+		Query orientQuery = new OrientQuery(this.orientGraph);
+		orientQuery.findNodesOfAllEdges();
 	}
 
 	@Override
@@ -369,5 +390,6 @@ public class OrientGraphDatabase implements GraphDatabase{
 		}
 		return communities;
 	}
+
 	
 }

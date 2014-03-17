@@ -21,6 +21,12 @@ public interface GraphDatabase {
 	public void shutdown();
 	
 	public void shutdownMassiveGraph();
+	
+	public void shorestPathQuery();
+	
+	public void neighborsOfAllNodesQuery();
+	
+	public void nodesOfAllEdgesQuery();
 		
 	public int getNodeCount();
 		
@@ -44,13 +50,9 @@ public interface GraphDatabase {
 	
 	public void moveNode(int from, int to);
 	
-//	public int getNumberOfCommunities();
-	
 	public double getGraphWeightSum();
 	
 	public void testCommunities();
-	
-//	public void reInitializeCommunities(Set<Integer> communityIds);
 	
 	public int reInitializeCommunities2();
 	
@@ -61,8 +63,6 @@ public interface GraphDatabase {
 	public int getCommunity(int nodeCommunity);
 	
 	public int getCommunitySize(int community);
-	
-//	public Set<Integer> getCommunityIds();
 	
 	public Map<Integer, List<Integer>> mapCommunities(int numberOfCommunities);
 	

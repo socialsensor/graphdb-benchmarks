@@ -27,6 +27,8 @@ import eu.socialsensor.clustering.LouvainMethodCache;
 import eu.socialsensor.insert.Insertion;
 import eu.socialsensor.insert.TitanMassiveInsertion;
 import eu.socialsensor.insert.TitanSingleInsertion;
+import eu.socialsensor.query.Query;
+import eu.socialsensor.query.TitanQuery;
 
 public class TitanGraphDatabase implements GraphDatabase{
 	
@@ -169,13 +171,26 @@ public class TitanGraphDatabase implements GraphDatabase{
 	}
 	
 	@Override
+	public void shorestPathQuery() {
+		Query titanQuery = new TitanQuery(this.titanGraph);
+		titanQuery.findShortestPaths();
+	}
+
+	@Override
+	public void neighborsOfAllNodesQuery() {
+		Query titanQuery = new TitanQuery(this.titanGraph);
+		titanQuery.findNeighborsOfAllNodes();
+	}
+
+	@Override
+	public void nodesOfAllEdgesQuery() {
+		Query titanQuery = new TitanQuery(this.titanGraph);
+		titanQuery.findNodesOfAllEdges();
+	}
+	
+	@Override
 	public int getNodeCount() {
 		long nodeCount = new GremlinPipeline<Object, Object>(titanGraph).V().count();
-//		int nodeCount = 0;
-//		for(Vertex v : titanGraph.getVertices()) {
-//			nodeCount++;
-//		}
-		 
 		return (int)nodeCount;
 	}
 	
@@ -424,6 +439,7 @@ public class TitanGraphDatabase implements GraphDatabase{
 			communities.put(i, vertices);
 		}
 		return communities;
-	}	
+	}
+	
 
 }

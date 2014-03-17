@@ -36,7 +36,7 @@ public class OrientMassiveInsertion implements Insertion {
 			OrientVertex srcVertex, dstVertex;
 			Iterable<OrientVertex> cache;
 			while((line = reader.readLine()) != null) {
-				if(lineCounter > 4) {
+//				if(lineCounter > 4) {
 					String[] parts = line.split("\t");
 					cache = vetrices.get("nodeId", parts[0]);
 					if(cache.iterator().hasNext()) {
@@ -61,7 +61,7 @@ public class OrientMassiveInsertion implements Insertion {
 					}
 					
 					orientGraph.addEdge(null, srcVertex, dstVertex, "similar");
-				}
+//				}
 				lineCounter++;
 			}			
 			reader.close();

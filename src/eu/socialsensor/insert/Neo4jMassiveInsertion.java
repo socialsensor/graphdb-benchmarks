@@ -49,14 +49,14 @@ public class Neo4jMassiveInsertion implements Insertion {
 //			IndexHits<Long> cache;
 			long srcNode, dstNode;
 			while((line = reader.readLine()) != null) {
-				if(lineCounter > 4) {
+//				if(lineCounter > 4) {
 					String[] parts = line.split("\t");
 					
 					srcNode = getOrCreate(parts[0]);
 					dstNode = getOrCreate(parts[1]);
 					
 					inserter.createRelationship(srcNode, dstNode, Neo4jGraphDatabase.RelTypes.SIMILAR, null);
-				}
+//				}
 				lineCounter++;
 			}
 			reader.close();
