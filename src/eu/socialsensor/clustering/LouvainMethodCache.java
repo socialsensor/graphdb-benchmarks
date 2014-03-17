@@ -56,14 +56,14 @@ public class LouvainMethodCache {
 		GraphDatabase neo4jDatabase = new Neo4jGraphDatabase();
 		neo4jDatabase.open("data/neo4j");
 		
-		LouvainMethodCache lm3 = new LouvainMethodCache(neo4jDatabase, 1000, false); 
+		LouvainMethodCache lm3 = new LouvainMethodCache(neo4jDatabase, 100, false); 
 		long start = System.currentTimeMillis();
 		lm3.computeModularity();
 		long time = System.currentTimeMillis() - start;
 		System.out.println(time / 1000.0);
 		lm3.test(neo4jDatabase);
 		
-		LouvainMethodCache lm4 = new LouvainMethodCache(neo4jDatabase, 1000, false); 
+		LouvainMethodCache lm4 = new LouvainMethodCache(neo4jDatabase, 100, false); 
 		start = System.currentTimeMillis();
 		lm4.computeModularity();
 		time = System.currentTimeMillis() - start;
