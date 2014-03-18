@@ -26,9 +26,9 @@ public class GraphDatabaseBenchmark {
 	public final static String ORIENT_ENRON = "data/orientEnron";
 	public final static String NEO4J_ENRON = "data/neo4jEnron";
 	
-	public final static String TITAN_SYNTHETIC_GRAPH = "data/titanSyntheticGraph";
-	public final static String ORIENT_SYNTHETIC_GRAPH = "data/orientSyntheticGraph";
-	public final static String NEO4J_SYNTHETIC_GRAPH = "data/neo4jSyntheticGraph";
+	public final static String TITAN_SYNTHETIC_GRAPH = "data/titan";
+	public final static String ORIENT_SYNTHETIC_GRAPH = "data/orient";
+	public final static String NEO4J_SYNTHETIC_GRAPH = "data/neo4j";
 	
 	/**
 	 * This is the main function. Before you run the project un-comment
@@ -37,8 +37,8 @@ public class GraphDatabaseBenchmark {
 	 */
 	public static void main(String[] args) throws ExecutionException {
 				
-//		ClusteringBenchmark clusteringBenchmark = new ClusteringBenchmark();
-//		clusteringBenchmark.startBenchmark();
+		ClusteringBenchmark clusteringBenchmark = new ClusteringBenchmark();
+		clusteringBenchmark.startBenchmark();
 		
 //		GraphDatabase titanGraphDatabase = new TitanGraphDatabase();
 //		titanGraphDatabase.createGraphForMassiveLoad("data/titan");

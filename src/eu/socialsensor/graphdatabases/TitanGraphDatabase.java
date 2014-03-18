@@ -86,20 +86,12 @@ public class TitanGraphDatabase implements GraphDatabase{
 	@Override
 	public void open(String dbPath) {
 		System.out.println("Opening Titan Graph Database . . . .");
-//		logger.info("Opening Titan Graph Database . . . .");
 		BaseConfiguration config = new BaseConfiguration();
         Configuration storage = config.subset(GraphDatabaseConfiguration.STORAGE_NAMESPACE);
         storage.setProperty(GraphDatabaseConfiguration.STORAGE_BACKEND_KEY, STORAGE_BACKEND);
         storage.setProperty(GraphDatabaseConfiguration.STORAGE_DIRECTORY_KEY, dbPath);
         storage.setProperty(GraphDatabaseConfiguration.STORAGE_TRANSACTIONAL_KEY, false);
 		titanGraph = TitanFactory.open(config);
-		
-//		int counter = 0;
-//		for(Vertex v : titanGraph.getVertices()) {
-//			System.out.println(v);
-//			counter++;
-//		}
-//		System.out.println(counter);
 	}
 	
 	@Override

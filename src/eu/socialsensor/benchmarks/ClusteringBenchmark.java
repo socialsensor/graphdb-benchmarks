@@ -24,7 +24,7 @@ public class ClusteringBenchmark {
 	public ClusteringBenchmark() {
 		
 		cacheSizes = new ArrayList<Integer>(
-				Arrays.asList(25, 50, 75, 100, 125, 150));
+				Arrays.asList(400, 500));
 		
 	}
 	
@@ -47,13 +47,18 @@ public class ClusteringBenchmark {
 	public void titanClusteringBenchmark(String dbPAth) throws ExecutionException {
 		GraphDatabase titanGraphDatabase = new TitanGraphDatabase();
 		titanGraphDatabase.open(dbPAth);
+		int runs = 1;
+		int numberOfLoops = 2;
 		for(int i = 0; i < cacheSizes.size(); i++) {
 			System.out.println("Cache size is set to "+cacheSizes.get(i));
-			System.out.println("GRAPHDATABASE: Neo4j");
 			System.out.println("DATASET:"+SYNTH_DATASET);
+			System.out.println("GRAPHDATABASE: Titan");
 			System.out.println("CACHE: "+cacheSizes.get(i));
 			System.out.println();
-			for(int j = 0; j < 2; j++) {
+			if(runs > 1) {
+				numberOfLoops = 1;
+			}
+			for(int j = 0; j < numberOfLoops; j++) {
 				System.out.println("Loop "+(j+1));
 				long start = System.currentTimeMillis();
 				LouvainMethodCache louvainMethodCache = new LouvainMethodCache(titanGraphDatabase, cacheSizes.get(i), IS_RANDOMIZED);
@@ -64,19 +69,25 @@ public class ClusteringBenchmark {
 			}
 			System.out.println("=======================================================");
 			System.out.println();
+			runs++;
 		}
 	}
 	
 	public void orientClusteringBenchmark(String dbPAth) throws ExecutionException {
 		GraphDatabase orientGraphDatabase = new OrientGraphDatabase();
 		orientGraphDatabase.open(dbPAth);
+		int runs = 1;
+		int numberOfLoops = 2;
 		for(int i = 0; i < cacheSizes.size(); i++) {
 			System.out.println("Cache size is set to "+cacheSizes.get(i));
 			System.out.println("GRAPHDATABASE: OrientDB");
 			System.out.println("DATASET:"+SYNTH_DATASET);
 			System.out.println("CACHE: "+cacheSizes.get(i));
 			System.out.println();
-			for(int j = 0; j < 2; j++) {
+			if(runs > 1) {
+				numberOfLoops = 1;
+			}
+			for(int j = 0; j < numberOfLoops; j++) {
 				System.out.println("Loop "+(j+1));
 				long start = System.currentTimeMillis();
 				LouvainMethodCache louvainMethodCache = new LouvainMethodCache(orientGraphDatabase, cacheSizes.get(i), IS_RANDOMIZED);
@@ -85,6 +96,7 @@ public class ClusteringBenchmark {
 				System.out.println("TIME: "+orientTime / 1000.0);
 				System.out.println();
 			}
+			runs++;
 			System.out.println("=======================================================");
 			System.out.println();
 		}
@@ -95,13 +107,18 @@ public class ClusteringBenchmark {
 	public void neo4jClusteringBenchmark(String dbPAth) throws ExecutionException {
 		GraphDatabase neo4jGraphDatabase = new Neo4jGraphDatabase();
 		neo4jGraphDatabase.open(dbPAth);
+		int runs = 1;
+		int numberOfLoops = 2;
 		for(int i = 0; i < cacheSizes.size(); i++) {
 			System.out.println("Cache size is set to "+cacheSizes.get(i));
 			System.out.println("GRAPHDATABASE: Neo4j");
 			System.out.println("DATASET:"+SYNTH_DATASET);
 			System.out.println("CACHE: "+cacheSizes.get(i));
 			System.out.println();
-			for(int j = 0; j < 2; j ++) {
+			if(runs > 1) {
+				numberOfLoops = 1;
+			}
+			for(int j = 0; j < numberOfLoops; j ++) {
 				System.out.println("Loop "+(j+1));
 				long start = System.currentTimeMillis();
 				LouvainMethodCache louvainMethodCache = new LouvainMethodCache(neo4jGraphDatabase, cacheSizes.get(i), IS_RANDOMIZED);
@@ -110,6 +127,7 @@ public class ClusteringBenchmark {
 				System.out.println("TIME: "+neo4jTime / 1000.0);
 				System.out.println();
 			}
+			runs++;
 			System.out.println("=======================================================");
 			System.out.println();
 		}

@@ -49,7 +49,7 @@ public class LouvainMethodCache {
 //		
 //		GraphDatabase orieDatabase = new OrientGraphDatabase();
 //		orieDatabase.open("data/orient");
-//		LouvainMethodCache lm2 = new LouvainMethodCache(orieDatabase, 500, false); 
+//		LouvainMethodCache lm2 = new LouvainMethodCache(orieDatabase, 100, false); 
 //		lm2.computeModularity();
 //		lm2.test(orieDatabase);
 		
@@ -62,13 +62,13 @@ public class LouvainMethodCache {
 		long time = System.currentTimeMillis() - start;
 		System.out.println(time / 1000.0);
 		lm3.test(neo4jDatabase);
-		
-		LouvainMethodCache lm4 = new LouvainMethodCache(neo4jDatabase, 100, false); 
-		start = System.currentTimeMillis();
-		lm4.computeModularity();
-		time = System.currentTimeMillis() - start;
-		System.out.println(time / 1000.0);
-		lm4.test(neo4jDatabase);
+//		
+//		LouvainMethodCache lm4 = new LouvainMethodCache(neo4jDatabase, 100, false); 
+//		start = System.currentTimeMillis();
+//		lm4.computeModularity();
+//		time = System.currentTimeMillis() - start;
+//		System.out.println(time / 1000.0);
+//		lm4.test(neo4jDatabase);
 		
 	}
 	
