@@ -1,19 +1,14 @@
 package eu.socialsensor.benchmarks;
 
-import java.io.File;
-
 import eu.socialsensor.graphdatabases.GraphDatabase;
 import eu.socialsensor.graphdatabases.Neo4jGraphDatabase;
 import eu.socialsensor.graphdatabases.OrientGraphDatabase;
 import eu.socialsensor.graphdatabases.TitanGraphDatabase;
+import eu.socialsensor.main.GraphDatabaseBenchmark;
 import eu.socialsensor.utils.Utils;
 
 public class MassiveInsertionBenchmark {
-	
-	private final static String orientDBDir = "data/OrientDB";
-	private final static String titanDBDir = "data/TitanDB";
-	private final static String neo4jDBDir = "data/Neo4jDB";
-	
+		
 	private String datasetDir;
 	
 	public MassiveInsertionBenchmark(String datasetDir) {
@@ -92,58 +87,34 @@ public class MassiveInsertionBenchmark {
 	
 	public double orientMassiveInsertionBenchmark() {
 		GraphDatabase orientGraphDatabase = new OrientGraphDatabase();
-		orientGraphDatabase.createGraphForMassiveLoad(orientDBDir);
+		orientGraphDatabase.createGraphForMassiveLoad(GraphDatabaseBenchmark.ORIENTDB_PATH);
 		long start = System.currentTimeMillis();
 		orientGraphDatabase.massiveModeLoading(datasetDir);
 		long orientTime = System.currentTimeMillis() - start;
 		orientGraphDatabase.shutdownMassiveGraph();
-		//wait for some time before try to delete files
-		try {
-			Thread.sleep(6000);
-		} 
-		catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		Utils utils = new Utils();
-		utils.deleteRecursively(new File(orientDBDir));
+		orientGraphDatabase.delete(GraphDatabaseBenchmark.ORIENTDB_PATH);
 		return orientTime/1000.0;
 	}
 	
 	public double titanMassiveInsertionBenchmark() {
 		GraphDatabase titanGraphDatabase = new TitanGraphDatabase();
-		titanGraphDatabase.createGraphForMassiveLoad(titanDBDir);
-		titanGraphDatabase.massiveModeLoading(datasetDir);
+		titanGraphDatabase.createGraphForMassiveLoad(GraphDatabaseBenchmark.TITANDB_PATH);
 		long start = System.currentTimeMillis();
-		titanGraphDatabase.shutdownMassiveGraph();
+		titanGraphDatabase.massiveModeLoading(datasetDir);
 		long titanTime = System.currentTimeMillis() - start;
-//		wait for some time before try to delete files
-		try {
-			Thread.sleep(6000);
-		} 
-		catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		Utils utils = new Utils();
-		utils.deleteRecursively(new File(titanDBDir));
+		titanGraphDatabase.shutdownMassiveGraph();
+		titanGraphDatabase.delete(GraphDatabaseBenchmark.TITANDB_PATH);
 		return titanTime/1000.0;
 	}
 	
 	public double neo4jMassiveInsertionBenchmark() {
 		GraphDatabase neo4jGraphDatabase = new Neo4jGraphDatabase();
-		neo4jGraphDatabase.createGraphForMassiveLoad(neo4jDBDir);
-		neo4jGraphDatabase.massiveModeLoading(datasetDir);
+		neo4jGraphDatabase.createGraphForMassiveLoad(GraphDatabaseBenchmark.NEO4JDB_PATH);
 		long start = System.currentTimeMillis();
-		neo4jGraphDatabase.shutdownMassiveGraph();
+		neo4jGraphDatabase.massiveModeLoading(datasetDir);
 		long neo4jTime = System.currentTimeMillis() - start;
-//		wait for some time before try to delete files
-		try {
-			Thread.sleep(6000);
-		} 
-		catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		Utils utils = new Utils();
-		utils.deleteRecursively(new File(neo4jDBDir));
+		neo4jGraphDatabase.shutdownMassiveGraph();
+		neo4jGraphDatabase.delete(GraphDatabaseBenchmark.NEO4JDB_PATH);
 		return neo4jTime/1000.0;
 	}
 	

@@ -1,25 +1,35 @@
 package eu.socialsensor.benchmarks;
 
+import java.util.HashSet;
+import java.util.Random;
+import java.util.Set;
+
 import eu.socialsensor.graphdatabases.GraphDatabase;
 import eu.socialsensor.graphdatabases.Neo4jGraphDatabase;
 import eu.socialsensor.graphdatabases.OrientGraphDatabase;
 import eu.socialsensor.graphdatabases.TitanGraphDatabase;
-import eu.socialsensor.query.Neo4jQuery;
-import eu.socialsensor.query.OrientQuery;
-import eu.socialsensor.query.TitanQuery;
+import eu.socialsensor.main.GraphDatabaseBenchmark;
 import eu.socialsensor.utils.Utils;
 
 public class FindShortestPathBenchmark {
-	
-	private final static String orientDBDir = "data/OrientDB";
-	private final static String titanDBDir = "data/TitanDB";
-	private final static String neo4jDBDir = "data/Neo4jDB";
+		
+	public static Set<Integer> generatedNodes;
 		
 	public void startBenchmark() {
 		
 		System.out.println("###########################################################");
 		System.out.println("############ Starting Find Shortest Path Benchmark ############");
 		System.out.println("###########################################################");
+		
+		Random rand = new Random();
+		generatedNodes = new HashSet<Integer>();
+		int max = 30000;
+		int min = 2;
+		int numberOfGeneratedNodes = 100;
+		while(generatedNodes.size() < numberOfGeneratedNodes) {
+			int randomNum = rand.nextInt((max - min) +1) + min;
+			generatedNodes.add(randomNum);
+		}
 		
 		double[] orientTimes = new double[6];
 		double[] titanTimes = new double[6];
@@ -82,16 +92,17 @@ public class FindShortestPathBenchmark {
 	
 	public double orientFindShortestPathBenchmark() {
 		GraphDatabase orientGraphDatabase = new OrientGraphDatabase();
-		orientGraphDatabase.open(orientDBDir);
+		orientGraphDatabase.open(GraphDatabaseBenchmark.ORIENTDB_PATH);
 		long start = System.currentTimeMillis();
 		orientGraphDatabase.shorestPathQuery();
 		long orientTime = System.currentTimeMillis() - start;
 		orientGraphDatabase.shutdown();
-		return orientTime/1000.0;	}
+		return orientTime/1000.0;	
+	}
 	
 	public double titanFindShortestPathBenchmark() {
 		GraphDatabase titanGraphDatabase = new TitanGraphDatabase();
-		titanGraphDatabase.open(titanDBDir);
+		titanGraphDatabase.open(GraphDatabaseBenchmark.TITANDB_PATH);
 		long start = System.currentTimeMillis();
 		titanGraphDatabase.shorestPathQuery();
 		long titanTime = System.currentTimeMillis() - start;
@@ -101,9 +112,9 @@ public class FindShortestPathBenchmark {
 	
 	public double neo4jFindShortestPathBenchmark() {
 		GraphDatabase neo4jGraphDatabase = new Neo4jGraphDatabase();
-		neo4jGraphDatabase.open(neo4jDBDir);
+		neo4jGraphDatabase.open(GraphDatabaseBenchmark.NEO4JDB_PATH);
 		long start = System.currentTimeMillis();
-		neo4jGraphDatabase.neighborsOfAllNodesQuery();
+		neo4jGraphDatabase.shorestPathQuery();
 		long neo4jTime = System.currentTimeMillis() - start;
 		neo4jGraphDatabase.shutdown();
 		return neo4jTime/1000.0;	}

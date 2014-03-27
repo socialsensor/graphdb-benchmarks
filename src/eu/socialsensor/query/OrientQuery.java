@@ -9,27 +9,15 @@ import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.gremlin.java.GremlinPipeline;
 
+import eu.socialsensor.benchmarks.FindShortestPathBenchmark;
+
 public class OrientQuery  implements Query {
 	
 	private OrientGraph orientGraph = null;
 	
-//	public static void main(String args[]) {
-//		OrientQuery test = new OrientQuery();
-//		test.openDB("data/orientDB");
-//		test.findShortestPath();
-//		test.shutdown();
-//	}
+	public static void main(String args[]) {
+	}
 	
-//	public void openDB(String orientDBDir) {
-//		System.out.println("The Orient database is now opening . . . .");
-//		orientGraph = new OrientGraph("plocal:"+orientDBDir);	
-//	}
-//	
-//	public void shutdown() {
-//		System.out.println("The Orient database is now shutting down . . . .");
-//		orientGraph.shutdown();
-//		orientGraph = null;
-//	}
 	
 	public OrientQuery(OrientGraph orientGraph) {
 		this.orientGraph = orientGraph;
@@ -37,6 +25,7 @@ public class OrientQuery  implements Query {
 	
 	public void findNeighborsOfAllNodes() {
 		for(Vertex v : orientGraph.getVertices()) {
+			@SuppressWarnings("unused")
 			GremlinPipeline<String, Vertex> getNeighboursPipe = new GremlinPipeline<String, Vertex>(v).both("similar");
 		}
 	}
@@ -45,24 +34,24 @@ public class OrientQuery  implements Query {
 		for(Vertex v : orientGraph.getVertices()) {
 			for(Edge e : v.getEdges(Direction.BOTH)) {
 				GremlinPipeline<String, Vertex> getNodesPipe = new GremlinPipeline<String, Vertex>(e).bothV();
+				Iterator<Vertex> vertexIter = getNodesPipe.iterator();
+				@SuppressWarnings("unused")
+				Vertex startNode = vertexIter.next();
+				@SuppressWarnings("unused")
+				Vertex endNode = vertexIter.next();
 			}
 		}
 	}
 	
 	public void findShortestPaths() {
-		Iterable<Vertex> vertices = orientGraph.getVertices();
-		Iterator<Vertex> vertexIter = vertices.iterator();
-		Vertex v1 = vertexIter.next();
-		int iterations = 0;
-		while(iterations < 5) {
-			Vertex v2 = vertexIter.next();
-			double start = System.currentTimeMillis() / 1000.0;
+		Vertex v1 = orientGraph.getVertices("nodeId", "1").iterator().next();
+		for(int i : FindShortestPathBenchmark.generatedNodes) {
+			Vertex v2 = orientGraph.getVertices("nodeId", String.valueOf(i)).iterator().next();
 			Iterable<Object> spath = orientGraph.getRawGraph().command(new OSQLSynchQuery<Object>( 
-					"select shortestPath("+v1.getId()+","+v2.getId()+",'BOTH')"));
-			System.out.println(spath.iterator().next());
-			double end = System.currentTimeMillis() / 1000.0;
-			System.out.println(end - start);
-			iterations++;
+					"select shortestPath("+v1.getId()+","+v2.getId()+",'OUT')"));
+			@SuppressWarnings("unused")
+			Object length = spath.iterator().next();
 		}
+		
 	}
 }

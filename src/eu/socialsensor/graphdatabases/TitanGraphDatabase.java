@@ -1,5 +1,6 @@
 package eu.socialsensor.graphdatabases;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -7,7 +8,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 
 import org.apache.commons.configuration.BaseConfiguration;
 import org.apache.commons.configuration.Configuration;
@@ -16,6 +16,7 @@ import org.apache.log4j.Logger;
 import com.google.common.collect.Iterables;
 import com.thinkaurelius.titan.core.TitanFactory;
 import com.thinkaurelius.titan.core.TitanGraph;
+import com.thinkaurelius.titan.core.util.TitanCleanup;
 import com.thinkaurelius.titan.graphdb.configuration.GraphDatabaseConfiguration;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
@@ -23,12 +24,12 @@ import com.tinkerpop.blueprints.util.wrappers.batch.BatchGraph;
 import com.tinkerpop.blueprints.util.wrappers.batch.VertexIDType;
 import com.tinkerpop.gremlin.java.GremlinPipeline;
 
-import eu.socialsensor.clustering.LouvainMethodCache;
 import eu.socialsensor.insert.Insertion;
 import eu.socialsensor.insert.TitanMassiveInsertion;
 import eu.socialsensor.insert.TitanSingleInsertion;
 import eu.socialsensor.query.Query;
 import eu.socialsensor.query.TitanQuery;
+import eu.socialsensor.utils.Utils;
 
 public class TitanGraphDatabase implements GraphDatabase{
 	
@@ -39,50 +40,11 @@ public class TitanGraphDatabase implements GraphDatabase{
 	
 	public TitanGraph titanGraph;
 	public BatchGraph<TitanGraph> batchGraph; 
-//	private Map<Integer, Long> nodes = new HashMap<Integer, Long>();
 	Logger logger = Logger.getLogger(TitanGraphDatabase.class);
 	
 	public static void main(String args[]) {
-		TitanGraphDatabase test = new TitanGraphDatabase();
-		test.open("data/titanEnron");
-//		test.initCommunityProperty();
-		System.out.println(test.getEdgesInsideCommunity(1, 57));
-//		test.testCommunities();
-		test.shutdown();
 	}
-	
-	public void testCommunities() {
-		System.out.println("======================================");
-		int counter = 0;
-		for(Vertex v : titanGraph.getVertices()) {
-			System.out.println("Node "+v.getProperty("nodeId")+
-					"==> nodeCommunity "+v.getProperty("nodeCommunity")+
-					" ==> Community "+v.getProperty("community"));
-			counter++;
-			if(counter == 50) {
-				break;
-			}
-		}
-		System.out.println("======================================");
-	}
-	
-	public void test() {
-		int counter = 0;
-		for(Vertex v: titanGraph.getVertices()) {
-			if(counter < 4) {
-				v.setProperty("community", 1);
-			}
-			else if(counter < 6){
-				v.setProperty("community", 2);
-			}
-			else {
-				v.setProperty("community", 3);
-			}
-			counter++;
-		}
 		
-	}
-	
 	@Override
 	public void open(String dbPath) {
 		System.out.println("Opening Titan Graph Database . . . .");
@@ -97,7 +59,6 @@ public class TitanGraphDatabase implements GraphDatabase{
 	@Override
 	public void createGraphForSingleLoad(String dbPath) {
 		System.out.println("Creating Titan Graph Database for single load . . . .");
-//		logger.info("Creating Titan Graph Database for single load . . . .");
 		BaseConfiguration config = new BaseConfiguration();
         Configuration storage = config.subset(GraphDatabaseConfiguration.STORAGE_NAMESPACE);
         storage.setProperty(GraphDatabaseConfiguration.STORAGE_BACKEND_KEY, STORAGE_BACKEND);
@@ -112,7 +73,6 @@ public class TitanGraphDatabase implements GraphDatabase{
 	@Override
 	public void createGraphForMassiveLoad(String dbPath) {
 		System.out.println("Creating Titan Graph Database for massive load . . . .");
-//		logger.info("Creating Titan Graph Database for massive load . . . .");
 		BaseConfiguration config = new BaseConfiguration();
         Configuration storage = config.subset(GraphDatabaseConfiguration.STORAGE_NAMESPACE);
         storage.setProperty(GraphDatabaseConfiguration.STORAGE_BACKEND_KEY, "local");
@@ -142,18 +102,31 @@ public class TitanGraphDatabase implements GraphDatabase{
 	@Override
 	public void shutdown() {
 		System.out.println("The Titan database is now shuting down . . . .");
-//		logger.info("The Titan database is now shuting down . . . .");
 		if(titanGraph != null) {
 			titanGraph.shutdown();
 			titanGraph = null;
 		}
+	}
+	
+	@Override
+	public void delete(String dbPath) {
+		titanGraph = TitanFactory.open(dbPath);
+		titanGraph.shutdown();
+		TitanCleanup.clear(titanGraph);
+		try {
+			Thread.sleep(6000);
+		} 
+		catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		Utils utils = new Utils();
+		utils.deleteRecursively(new File(dbPath));
 	}
 
 
 	@Override
 	public void shutdownMassiveGraph() {
 		System.out.println("Massive Graph is shutting down . . . .");
-//		logger.info("Massive Graph is shutting down . . . .");
 		if(titanGraph != null) {
 			batchGraph.shutdown();
 			titanGraph.shutdown();
@@ -314,41 +287,14 @@ public class TitanGraphDatabase implements GraphDatabase{
 		
 	}
 
-//	@Override
-//	public int getNumberOfCommunities() {
-//		Set<Integer> communities = new HashSet<Integer>();
-//		for(Vertex v : titanGraph.getVertices()) {
-//			int community = v.getProperty("community");
-//			if(!communities.contains(community)) {
-//				communities.add(community);
-//			}
-//		}
-//		return communities.size();
-//	}
-
 	@Override
 	public double getGraphWeightSum() {
 		Iterable<Edge> edges = titanGraph.getEdges();
 		return (double)Iterables.size(edges);
-//		return (double)new GremlinPipeline<Object, Object>(titanGraph).E().count();
 	}
-	
-//	@Override
-//	public void reInitializeCommunities(Set<Integer> communityIds) {
-//		int communityCounter = 0;
-//		TreeSet<Integer> communityIdsOrdered = new TreeSet<Integer>(communityIds);
-//		for(int communityId : communityIdsOrdered) {
-//			Iterable<Vertex> vertices = titanGraph.getVertices("community", communityId);
-//			for(Vertex v : vertices) {
-//				v.setProperty("community", communityCounter);
-//				v.setProperty("nodeCommunity", communityCounter);
-//			}
-//			communityCounter++;
-//		}
-//	}
-	
+		
 	@Override
-	public int reInitializeCommunities2() {
+	public int reInitializeCommunities() {
 		Map<Integer, Integer> initCommunities = new HashMap<Integer, Integer>();
 		int communityCounter = 0;
 		for(Vertex v : titanGraph.getVertices()) {
@@ -362,24 +308,6 @@ public class TitanGraphDatabase implements GraphDatabase{
 			v.setProperty("nodeCommunity", newCommunityId);
 		}
 		return communityCounter;
-	}
-
-	@Override
-	public void printCommunities() {
-//		int nodes =  32;
-		for(int i = 0; i < 32; i++) {
-			List<String> verticesId = new ArrayList<String>();
-			Iterable<Vertex> vertices = titanGraph.getVertices("community", i);
-			if(Iterables.size(vertices) != 0) {
-				for(Vertex v : vertices) {
-					String nodeId = v.getProperty("nodeId");
-					verticesId.add(nodeId);
-				}
-				System.out.println("Community "+i);
-				System.out.println(verticesId);
-			}
-			
-		}
 	}
 	
 	@Override
@@ -406,18 +334,6 @@ public class TitanGraphDatabase implements GraphDatabase{
 		return nodeCommunities.size();
 	}
 
-//	@Override
-//	public Set<Integer> getCommunityIds() {
-//		Set<Integer> communityIds = new HashSet<Integer>();
-//		for(Vertex v : titanGraph.getVertices()) {
-//			int communityId = v.getProperty("community");
-//			if(!communityIds.contains(communityId)) {
-//				communityIds.add(communityId);
-//			}
-//		}
-//		return communityIds;
-//	}
-	
 	@Override
 	public Map<Integer, List<Integer>> mapCommunities(int numberOfCommunities) {
 		Map<Integer, List<Integer>> communities = new HashMap<Integer, List<Integer>>();

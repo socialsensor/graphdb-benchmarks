@@ -7,21 +7,9 @@ import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.neo4j.graphdb.DynamicLabel;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Label;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.RelationshipType;
-import org.neo4j.graphdb.Transaction;
-import org.neo4j.graphdb.factory.GraphDatabaseFactory;
-import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.helpers.collection.MapUtil;
-import org.neo4j.index.lucene.unsafe.batchinsert.LuceneBatchInserterIndexProvider;
-import org.neo4j.tooling.GlobalGraphOperations;
 import org.neo4j.unsafe.batchinsert.BatchInserter;
 import org.neo4j.unsafe.batchinsert.BatchInserterIndex;
-import org.neo4j.unsafe.batchinsert.BatchInserterIndexProvider;
-import org.neo4j.unsafe.batchinsert.BatchInserters;
 
 import eu.socialsensor.graphdatabases.Neo4jGraphDatabase;
 
@@ -29,7 +17,6 @@ import eu.socialsensor.graphdatabases.Neo4jGraphDatabase;
 public class Neo4jMassiveInsertion implements Insertion {
 	
 	private BatchInserter inserter = null;
-//	private BatchInserterIndexProvider indexProvider = null;
 	private BatchInserterIndex nodes = null;
 	Map<Long, Long> cache = new HashMap<Long, Long>();
 	
@@ -45,18 +32,16 @@ public class Neo4jMassiveInsertion implements Insertion {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(datasetDir)));
 			String line;
 			int lineCounter = 1;
-//			Map<String, Object> properties;
-//			IndexHits<Long> cache;
 			long srcNode, dstNode;
 			while((line = reader.readLine()) != null) {
-//				if(lineCounter > 4) {
+				if(lineCounter > 4) {
 					String[] parts = line.split("\t");
 					
 					srcNode = getOrCreate(parts[0]);
 					dstNode = getOrCreate(parts[1]);
 					
 					inserter.createRelationship(srcNode, dstNode, Neo4jGraphDatabase.RelTypes.SIMILAR, null);
-//				}
+				}
 				lineCounter++;
 			}
 			reader.close();

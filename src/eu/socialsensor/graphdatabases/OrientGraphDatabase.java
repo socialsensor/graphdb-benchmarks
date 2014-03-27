@@ -1,5 +1,6 @@
 package eu.socialsensor.graphdatabases;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -7,14 +8,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
-
-import org.apache.log4j.Logger;
 
 import com.google.common.collect.Iterables;
 import com.orientechnologies.orient.core.config.OGlobalConfiguration;
 import com.tinkerpop.blueprints.Direction;
-import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Index;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
@@ -27,6 +24,7 @@ import eu.socialsensor.insert.OrientMassiveInsertion;
 import eu.socialsensor.insert.OrientSingleInsertion;
 import eu.socialsensor.query.OrientQuery;
 import eu.socialsensor.query.Query;
+import eu.socialsensor.utils.Utils;
 
 public class OrientGraphDatabase implements GraphDatabase{
 
@@ -34,31 +32,13 @@ public class OrientGraphDatabase implements GraphDatabase{
 	private OrientGraphNoTx orientGraphNoTx = null;
 	private Index<OrientVertex> vetrices = null;
 	
-	private Logger logger = Logger.getLogger(OrientGraphDatabase.class);
 	
 	public static void main(String args[]) {
-		OrientGraphDatabase test = new OrientGraphDatabase();
-		test.open("data/orientAmazon");
-		System.out.println(test.getGraphWeightSum());
-		test.shutdown();
-	}
-	
-	@Override
-	public void testCommunities() {
-		System.out.println("======================================");
-		for(Vertex v : orientGraph.getVertices()) {
-			System.out.println("Node "+v.getProperty("nodeId")+
-					"==> nodeCommunity "+v.getProperty("nodeCommunity")+
-					" ==> Community "+v.getProperty("community"));
-		}
-		System.out.println("======================================");
-		
-	}
+	}	
 	
 	@Override
 	public void open(String dbPAth) {
 		System.out.println("Opening OrientDB Graph Database . . . .");
-//		logger.info("Opening OrientDB Graph Database . . . .");
 		orientGraph = new OrientGraph("plocal:"+dbPAth);
 		vetrices = orientGraph.getIndex("nodeId", OrientVertex.class);
 	}
@@ -66,7 +46,6 @@ public class OrientGraphDatabase implements GraphDatabase{
 	@Override
 	public void createGraphForSingleLoad(String dbPath) {
 		System.out.println("Creating OrientDB Graph Database for single load . . . .");
-		OGlobalConfiguration.DISK_CACHE_SIZE.setValue(5120); //this value depends of the installed memory
 		orientGraph = new OrientGraph("plocal:"+dbPath);
 		orientGraph.createIndex("nodeId", OrientVertex.class);
 	    vetrices = orientGraph.getIndex("nodeId", OrientVertex.class);
@@ -75,7 +54,6 @@ public class OrientGraphDatabase implements GraphDatabase{
 	@Override
 	public void createGraphForMassiveLoad(String dbPath) {
 		System.out.println("Creating OrientDB Graph Database for massive load . . . .");
-//		logger.info("Creating OrientDB Graph Database for massive load . . . .");
 		OGlobalConfiguration.STORAGE_KEEP_OPEN.setValue(false);
 	    OGlobalConfiguration.TX_USE_LOG.setValue(false);
 	    OGlobalConfiguration.ENVIRONMENT_CONCURRENT.setValue(false);
@@ -100,7 +78,6 @@ public class OrientGraphDatabase implements GraphDatabase{
 	public void shutdown() {
 		System.out.println("The OrientDB database is now shuting down . . . .");
 		if(orientGraph != null) {
-//			orientGraph.drop();
 			orientGraph.shutdown();
 			orientGraph = null;
 			vetrices = null;
@@ -108,9 +85,23 @@ public class OrientGraphDatabase implements GraphDatabase{
 	}
 	
 	@Override
+	public void delete(String dbPath) {
+		orientGraph = new OrientGraph("plocal:"+dbPath);
+//		orientGraph.shutdown();
+		orientGraph.drop();
+		try {
+			Thread.sleep(6000);
+		} 
+		catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		Utils utils = new Utils();
+		utils.deleteRecursively(new File(dbPath));
+	}
+	
+	@Override
 	public void shutdownMassiveGraph() {
 		System.out.println("Shutting down OrientDB Graph Database for massive load");
-//		logger.info("Shutting down OrientDB Graph Database for massive load");
 		if(orientGraphNoTx != null) {
 			orientGraphNoTx.shutdown();
 			orientGraphNoTx = null;
@@ -267,19 +258,7 @@ public class OrientGraphDatabase implements GraphDatabase{
 			vertex.setProperty("community", toCommunity);
 		}
 	}
-	
-//	@Override
-//	public int getNumberOfCommunities() {
-//		Set<Integer> communities = new HashSet<Integer>();
-//		for(Vertex v : orientGraph.getVertices()) {
-//			int community = v.getProperty("community");
-//			if(!communities.contains(community)) {
-//				communities.add(community);
-//			}
-//		}
-//		return communities.size();
-//	}
-	
+		
 	@Override
 	public double getGraphWeightSum() {
 		long edges = 0;
@@ -288,23 +267,9 @@ public class OrientGraphDatabase implements GraphDatabase{
 		}
 		return (double)edges;
 	}
-	
-//	@Override
-//	public void reInitializeCommunities(Set<Integer> communityIds) {
-//		int communityCounter = 0;
-//		TreeSet<Integer> communityIdsOrdered = new TreeSet<Integer>(communityIds);
-//		for(int communityId : communityIdsOrdered) {
-//			Iterable<Vertex> vertices = orientGraph.getVertices("community", communityId);
-//			for(Vertex v : vertices) {
-//				v.setProperty("community", communityCounter);
-//				v.setProperty("nodeCommunity", communityCounter);
-//			}
-//			communityCounter++;
-//		}
-//	}
-	
+		
 	@Override
-	public int reInitializeCommunities2() {
+	public int reInitializeCommunities() {
 		Map<Integer, Integer> initCommunities = new HashMap<Integer, Integer>();
 		int communityCounter = 0;
 		for(Vertex v : orientGraph.getVertices()) {
@@ -318,24 +283,6 @@ public class OrientGraphDatabase implements GraphDatabase{
 			v.setProperty("nodeCommunity", newCommunityId);
 		}
 		return communityCounter;
-	}
-	
-	@Override
-	public void printCommunities() {
-		for(int i = 0; i < 32; i++) {
-			List<String> verticesId = new ArrayList<String>();
-			Iterable<Vertex> vertices = orientGraph.getVertices("community", i);
-			if(Iterables.size(vertices) != 0) {
-				for(Vertex v : vertices) {
-					String nodeId = v.getProperty("nodeId");
-					verticesId.add(nodeId);
-				}
-				System.out.println("Community "+i);
-				System.out.println(verticesId);
-			}
-			
-		}
-		
 	}
 	
 	@Override
@@ -363,19 +310,7 @@ public class OrientGraphDatabase implements GraphDatabase{
 		}
 		return nodeCommunities.size();
 	}
-	
-//	@Override
-//	public Set<Integer> getCommunityIds() {
-//		Set<Integer> communityIds = new HashSet<Integer>();
-//		for(Vertex v : orientGraph.getVertices()) {
-//			int communityId = v.getProperty("community");
-//			if(!communityIds.contains(communityId)) {
-//				communityIds.add(communityId);
-//			}
-//		}
-//		return communityIds;
-//	}
-	
+		
 	@Override
 	public Map<Integer, List<Integer>> mapCommunities(int numberOfCommunities) {
 		Map<Integer, List<Integer>> communities = new HashMap<Integer, List<Integer>>();

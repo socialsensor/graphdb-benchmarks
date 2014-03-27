@@ -2,17 +2,11 @@ package eu.socialsensor.clustering;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import eu.socialsensor.graphdatabases.GraphDatabase;
-import eu.socialsensor.graphdatabases.Neo4jGraphDatabase;
-import eu.socialsensor.graphdatabases.OrientGraphDatabase;
-import eu.socialsensor.graphdatabases.TitanGraphDatabase;
-import eu.socialsensor.utils.Metrics;
-import eu.socialsensor.utils.Utils;
 
 public class LouvainMethodCache {
 	
@@ -30,62 +24,20 @@ public class LouvainMethodCache {
     public static int CACHE_SIZE = 1000;
         
 	public static void main(String args[]) throws ExecutionException {
-//		GraphDatabase titanDatabase= new TitanGraphDatabase();
-//		titanDatabase.open("data/titan");
+		
+	}
+	
+//	public void test(GraphDatabase graphDatabase) {
+//				
+//		Utils utils = new Utils();
+//		Map<Integer, List<Integer>> actualCommunities = utils.mapNodesToCommunities("data/community.dat");
+//		Map<Integer, List<Integer>> communities = graphDatabase.mapCommunities(this.N);
 //
-//		LouvainMethodCache lm1 = new LouvainMethodCache(titanDatabase, 50, false); 
-//		long start = System.currentTimeMillis();
-//		lm1.computeModularity();
-//		long time = System.currentTimeMillis() - start;
-//		System.out.println(time / 1000.0);
-//		lm1.test(titanDatabase);
-//		
-//		LouvainMethodCache lm2 = new LouvainMethodCache(titanDatabase, 50, false); 
-//		start = System.currentTimeMillis();
-//		lm2.computeModularity();
-//		time = System.currentTimeMillis() - start;
-//		System.out.println(time / 1000.0);
-//		lm2.test(titanDatabase);
-//		
-//		GraphDatabase orieDatabase = new OrientGraphDatabase();
-//		orieDatabase.open("data/orient");
-//		LouvainMethodCache lm2 = new LouvainMethodCache(orieDatabase, 100, false); 
-//		lm2.computeModularity();
-//		lm2.test(orieDatabase);
-		
-		GraphDatabase neo4jDatabase = new Neo4jGraphDatabase();
-		neo4jDatabase.open("data/neo4j");
-		
-		LouvainMethodCache lm3 = new LouvainMethodCache(neo4jDatabase, 100, false); 
-		long start = System.currentTimeMillis();
-		lm3.computeModularity();
-		long time = System.currentTimeMillis() - start;
-		System.out.println(time / 1000.0);
-		lm3.test(neo4jDatabase);
-//		
-//		LouvainMethodCache lm4 = new LouvainMethodCache(neo4jDatabase, 100, false); 
-//		start = System.currentTimeMillis();
-//		lm4.computeModularity();
-//		time = System.currentTimeMillis() - start;
-//		System.out.println(time / 1000.0);
-//		lm4.test(neo4jDatabase);
-		
-	}
-	
-	
-	
-	public void test(GraphDatabase graphDatabase) {
-		
-				
-		Utils utils = new Utils();
-		Map<Integer, List<Integer>> actualCommunities = utils.mapNodesToCommunities("data/community.dat");
-		Map<Integer, List<Integer>> communities = graphDatabase.mapCommunities(this.N);
-
-	    Metrics metrics = new Metrics();
-	    double nmi = metrics.normalizedMutualInformation(10000, communities, actualCommunities);
-	    System.out.println(nmi);
-	  
-	}
+//	    Metrics metrics = new Metrics();
+//	    double nmi = metrics.normalizedMutualInformation(10000, communities, actualCommunities);
+//	    System.out.println(nmi);
+//	  
+//	}
 	
 	public LouvainMethodCache(GraphDatabase graphDatabase, int cacheSize, boolean isRandomized) throws ExecutionException {
 		this.graphDatabase = graphDatabase;
@@ -107,11 +59,9 @@ public class LouvainMethodCache {
 		this.graphDatabase.initCommunityProperty();		
 	}
 	
-	
 	public void computeModularity() throws ExecutionException {
 		System.out.println("Computing communities . . . .");
 		Random rand = new Random();
-//		graphDatabase.testCommunities();
 		boolean someChange = true;
 		while(someChange) {
 			someChange = false;
@@ -136,24 +86,14 @@ public class LouvainMethodCache {
 						bestCommunityWeight += cache.getNodeCommunityWeight(i);					
 						this.communityWeights.set(bestCommunity, bestCommunityWeight);
 						localChange = true;
-//						graphDatabase.testCommunities();
-//						graphDatabase.printCommunities();
-//						System.out.println();
 					}
 					
 					this.communityUpdate = false;
-//					System.out.println();
 				}
-//				graphDatabase.printCommunities();
 				someChange = localChange || someChange;
 			}
 			if(someChange) {
 				zoomOut();
-//				System.out.println("=====");
-//				graphDatabase.printCommunities();
-//				System.out.println("=====");
-//				graphDatabase.testCommunities();
-//				System.out.println();
 			}
 		}
 	}
@@ -173,9 +113,6 @@ public class LouvainMethodCache {
 		return bestCommunity;
 	}
 
-	
-	
-	
 	private double q(int nodeCommunity, int community) throws ExecutionException {
 		double edgesInCommunity = this.cache.getEdgesInsideCommunity(nodeCommunity, community);	
 		double communityWeight = this.communityWeights.get(community);
@@ -194,7 +131,7 @@ public class LouvainMethodCache {
 	}
 	
 	public void zoomOut() {		
-		this.N = this.graphDatabase.reInitializeCommunities2();
+		this.N = this.graphDatabase.reInitializeCommunities();
 		this.cache.reInitializeCommunities();
 		this.communityWeights = new ArrayList<Double>(this.N);
 		for(int i = 0; i < this.N; i++) {

@@ -1,15 +1,13 @@
 package eu.socialsensor.graphdatabases;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.neo4j.cypher.javacompat.ExecutionResult;
-import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicLabel;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -18,17 +16,13 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.ResourceIterable;
-import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 import org.neo4j.graphdb.index.Index;
-import org.neo4j.graphdb.traversal.Evaluators;
-import org.neo4j.graphdb.traversal.Traverser;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.helpers.collection.MapUtil;
 import org.neo4j.index.lucene.unsafe.batchinsert.LuceneBatchInserterIndexProvider;
 import org.neo4j.kernel.GraphDatabaseAPI;
-import org.neo4j.kernel.Traversal;
 import org.neo4j.tooling.GlobalGraphOperations;
 import org.neo4j.unsafe.batchinsert.BatchInserter;
 import org.neo4j.unsafe.batchinsert.BatchInserterIndex;
@@ -36,7 +30,6 @@ import org.neo4j.unsafe.batchinsert.BatchInserterIndexProvider;
 import org.neo4j.unsafe.batchinsert.BatchInserters;
 
 import com.google.common.collect.Iterables;
-import com.tinkerpop.blueprints.Vertex;
 
 import eu.socialsensor.clustering.LouvainMethodCache;
 import eu.socialsensor.insert.Insertion;
@@ -44,7 +37,9 @@ import eu.socialsensor.insert.Neo4jMassiveInsertion;
 import eu.socialsensor.insert.Neo4jSingleInsertion;
 import eu.socialsensor.query.Neo4jQuery;
 import eu.socialsensor.query.Query;
+import eu.socialsensor.utils.Utils;
 
+@SuppressWarnings("deprecation")
 public class Neo4jGraphDatabase implements GraphDatabase {
 
 	GraphDatabaseService neo4jGraph = null;
@@ -61,57 +56,6 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 	public static Label NODE_LABEL = DynamicLabel.label("node");
 	
 	public static void main(String args[]) {
-		Neo4jGraphDatabase test = new Neo4jGraphDatabase();
-		test.open("data/neo4jEnron");
-//		test.initCommunityProperty();
-		System.out.println(test.getEdgesInsideCommunity(1, 57));
-//		test.test();
-//		test.testCommunities();
-		test.shutdown();
-	}
-	
-	@Override
-	public void testCommunities() {
-//		int counter = 0;
-		Transaction tx = neo4jGraph.beginTx();
-		for(Node n : GlobalGraphOperations.at(neo4jGraph).getAllNodes()) {
-			System.out.println("Node: "+n.getProperty("nodeId")+
-					" ==> nodeCommunity: "+n.getProperty("nodeCommunity")+
-					" ==> community: "+n.getProperty("community"));
-//			counter++;
-//			if(counter == 70) {
-//				break;
-//			}
-		}
-		tx.success();
-		tx.close();
-	}
-	public void test() {
-		Transaction tx = neo4jGraph.beginTx();
-		Node n = nodeIndex.get("nodeId", 4).getSingle();
-		System.out.println(n.getLabels().iterator().next());
-//		ResourceIterable<Node> iter = neo4jGraph.findNodesByLabelAndProperty(NODE_LABEL, "nodeCommunity", 1);
-//		Node n = iter.iterator().next();
-//		System.out.println("Node: "+n.getProperty("nodeId")+
-//					" ==> nodeCommunity: "+n.getProperty("nodeCommunity")+
-//					" ==> community: "+n.getProperty("community"));
-//		for(Node n : GlobalGraphOperations.at(neo4jGraph).getAllNodes()) {
-//			System.out.println("Node: "+n.getProperty("nodeId")+
-//					" ==> nodeCommunity: "+n.getProperty("nodeCommunity")+
-//					" ==> community: "+n.getProperty("community"));
-//		}
-//		Label label = DynamicLabel.label("node");
-//		Node n = nodeIndex.get("nodeId", 1).getSingle();
-//		System.out.println(n.getProperty("community"));
-//		for(Label l : n.getLabels()) {
-//			System.out.println(l.name());
-//		}
-//		ResourceIterable<Node> nodes = neo4jGraph.findNodesByLabelAndProperty(label, "community", 1);
-//		for(Node n : nodes) {
-//			System.out.println(n.getProperty("nodeId"));
-//		}
-		tx.success();
-		tx.close();
 	}
 	
 	@Override
@@ -171,6 +115,18 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 			neo4jGraph.shutdown();
 			nodeIndex = null;
 		}
+	}
+	
+	@Override
+	public void delete(String dbPath) {
+		try {
+			Thread.sleep(6000);
+		} 
+		catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		Utils utils = new Utils();
+		utils.deleteRecursively(new File(dbPath));
 	}
 	
 	@Override
@@ -387,12 +343,6 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 		}		
 	}
 
-//	@Override
-//	public int getNumberOfCommunities() {
-//		// TODO Auto-generated method stub
-//		return 0;
-//	}
-
 	@Override
 	public double getGraphWeightSum() {
 		int edgeCount;
@@ -404,14 +354,8 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 		return (double)edgeCount;
 	}
 	
-	
-//	@Override
-//	public void reInitializeCommunities(Set<Integer> communityIds) {
-//				
-//	}
-	
 	@Override
-	public int reInitializeCommunities2() {
+	public int reInitializeCommunities() {
 		Map<Integer, Integer> initCommunities = new HashMap<Integer, Integer>();
 		int communityCounter = 0;
 		try(Transaction tx = neo4jGraph.beginTx()) {
@@ -430,12 +374,6 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 		}
 		
 		return communityCounter;
-	}
-
-	@Override
-	public void printCommunities() {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
@@ -476,12 +414,6 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 		}
 		return nodeCommunities.size();
 	}
-
-//	@Override
-//	public Set<Integer> getCommunityIds() {
-//		// TODO Auto-generated method stub
-//		return null;
-//	}
 
 	@Override
 	public Map<Integer, List<Integer>> mapCommunities(int numberOfCommunities) {

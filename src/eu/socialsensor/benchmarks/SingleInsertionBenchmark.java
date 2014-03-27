@@ -1,6 +1,5 @@
 package eu.socialsensor.benchmarks;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,15 +10,12 @@ import eu.socialsensor.graphdatabases.TitanGraphDatabase;
 import eu.socialsensor.insert.Neo4jSingleInsertion;
 import eu.socialsensor.insert.OrientSingleInsertion;
 import eu.socialsensor.insert.TitanSingleInsertion;
+import eu.socialsensor.main.GraphDatabaseBenchmark;
 import eu.socialsensor.utils.Utils;
 
 public class SingleInsertionBenchmark {
 	
 	public static int SCENARIOS = 6;
-	
-	private final static String ORIENTDB_PATH = "data/OrientDB";
-	private final static String TITANDB_PATH = "data/TitanDB";
-	private final static String NEO4JDB_PATH = "data/Neo4jDB";
 	
 	private String DATASET_PATH;
 	
@@ -98,47 +94,26 @@ public class SingleInsertionBenchmark {
 	
 	public void titanSingleInsertionBenchmark() {
 		GraphDatabase titanGraphDatabase = new TitanGraphDatabase();
-		titanGraphDatabase.createGraphForSingleLoad(TITANDB_PATH);
+		titanGraphDatabase.createGraphForSingleLoad(GraphDatabaseBenchmark.TITANDB_PATH);
 		titanGraphDatabase.singleModeLoading(DATASET_PATH);
 		titanGraphDatabase.shutdown();
-		try {
-			Thread.sleep(6000);
-		} 
-		catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		Utils utils = new Utils();
-		utils.deleteRecursively(new File(SingleInsertionBenchmark.TITANDB_PATH));
+		titanGraphDatabase.delete(GraphDatabaseBenchmark.TITANDB_PATH);
 	}
 		
 	public void orientSingleInsertionBenchmark() {
 		GraphDatabase orientGraphDatabase = new OrientGraphDatabase();
-		orientGraphDatabase.createGraphForSingleLoad(ORIENTDB_PATH);
+		orientGraphDatabase.createGraphForSingleLoad(GraphDatabaseBenchmark.ORIENTDB_PATH);
 		orientGraphDatabase.singleModeLoading(DATASET_PATH);
 		orientGraphDatabase.shutdown();
-		try {
-			Thread.sleep(6000);
-		} 
-		catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		Utils utils = new Utils();
-		utils.deleteRecursively(new File(SingleInsertionBenchmark.ORIENTDB_PATH));
+		orientGraphDatabase.delete(GraphDatabaseBenchmark.ORIENTDB_PATH);
 	}
 	
 	public void neo4jSinglesInsertionBenchmark() {
 		GraphDatabase neo4jGraphDatabase = new Neo4jGraphDatabase();
-		neo4jGraphDatabase.createGraphForSingleLoad(NEO4JDB_PATH);
+		neo4jGraphDatabase.createGraphForSingleLoad(GraphDatabaseBenchmark.NEO4JDB_PATH);
 		neo4jGraphDatabase.singleModeLoading(DATASET_PATH);
 		neo4jGraphDatabase.shutdown();
-		try {
-			Thread.sleep(6000);
-		} 
-		catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		Utils utils = new Utils();
-		utils.deleteRecursively(new File(SingleInsertionBenchmark.NEO4JDB_PATH));
+		neo4jGraphDatabase.delete(GraphDatabaseBenchmark.NEO4JDB_PATH);
 	}
 
 }

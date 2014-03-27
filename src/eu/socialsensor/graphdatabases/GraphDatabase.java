@@ -4,8 +4,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.tinkerpop.blueprints.Vertex;
-
 public interface GraphDatabase {
 	
 	public void open(String dbPath);
@@ -19,6 +17,8 @@ public interface GraphDatabase {
 	public void createGraphForMassiveLoad(String dbPath);
 		
 	public void shutdown();
+	
+	public void delete(String dbPath);
 	
 	public void shutdownMassiveGraph();
 	
@@ -52,12 +52,8 @@ public interface GraphDatabase {
 	
 	public double getGraphWeightSum();
 	
-	public void testCommunities();
-	
-	public int reInitializeCommunities2();
-	
-	public void printCommunities();
-	
+	public int reInitializeCommunities();
+		
 	public int getCommunityFromNode(int nodeId);
 	
 	public int getCommunity(int nodeCommunity);

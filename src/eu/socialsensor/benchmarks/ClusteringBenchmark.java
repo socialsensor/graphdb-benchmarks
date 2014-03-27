@@ -16,16 +16,12 @@ import eu.socialsensor.main.GraphDatabaseBenchmark;
 public class ClusteringBenchmark {
 	
 	private final List<Integer> cacheSizes;
-		
 	public final static boolean IS_RANDOMIZED = false;
-	
 	public static final String SYNTH_DATASET = "SynthGraph500";
 	
 	public ClusteringBenchmark() {
-		
 		cacheSizes = new ArrayList<Integer>(
 				Arrays.asList(400, 500));
-		
 	}
 	
 	public void startBenchmark() throws ExecutionException {
@@ -34,9 +30,9 @@ public class ClusteringBenchmark {
 		System.out.println("############## Starting Clustering Benchmark ##############");
 		System.out.println("###########################################################");
 		
-		neo4jClusteringBenchmark(GraphDatabaseBenchmark.NEO4J_SYNTHETIC_GRAPH);
-		orientClusteringBenchmark(GraphDatabaseBenchmark.ORIENT_SYNTHETIC_GRAPH);
-		titanClusteringBenchmark(GraphDatabaseBenchmark.TITAN_SYNTHETIC_GRAPH);
+		neo4jClusteringBenchmark(GraphDatabaseBenchmark.NEO4JDB_PATH);
+		orientClusteringBenchmark(GraphDatabaseBenchmark.ORIENTDB_PATH);
+		titanClusteringBenchmark(GraphDatabaseBenchmark.TITANDB_PATH);
 		
 		System.out.println("###########################################################");
 		System.out.println("############## Clustering Benchmark Finished ##############");
@@ -100,8 +96,6 @@ public class ClusteringBenchmark {
 			System.out.println("=======================================================");
 			System.out.println();
 		}
-		
-		
 	}
 	
 	public void neo4jClusteringBenchmark(String dbPAth) throws ExecutionException {
@@ -131,7 +125,6 @@ public class ClusteringBenchmark {
 			System.out.println("=======================================================");
 			System.out.println();
 		}
-		
-		
 	}
+	
 }

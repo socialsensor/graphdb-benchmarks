@@ -3,48 +3,22 @@ package eu.socialsensor.query;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.commons.configuration.BaseConfiguration;
-import org.apache.commons.configuration.Configuration;
-
-import com.thinkaurelius.titan.core.TitanFactory;
 import com.thinkaurelius.titan.core.TitanGraph;
-import com.thinkaurelius.titan.graphdb.configuration.GraphDatabaseConfiguration;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.gremlin.java.GremlinPipeline;
 import com.tinkerpop.pipes.PipeFunction;
 import com.tinkerpop.pipes.branch.LoopPipe.LoopBundle;
 
+import eu.socialsensor.benchmarks.FindShortestPathBenchmark;
+
 public class TitanQuery implements Query {
 	
 	private TitanGraph titanGraph = null;
 	
 	public static void main(String args[]) {
-//		TitanQuery test = new TitanQuery();
-//		test.openDB("data/titanDB");
-////		test.findNodesOfAllEdges();
-////		test.findNeighboursOfAllNodes();
-//		test.findShortestPath();
-//		test.shutdown();
-		
 	}
 	
-	public void shutdown() {
-		System.out.println("The Titan database is now shuting down . . . .");
-		if(titanGraph != null) {
-			titanGraph.shutdown();
-			titanGraph = null;
-		}
-	}
-	
-	public void openDB(String titanDBDir) {
-		System.out.println("The Titan database is now starting . . . .");
-		BaseConfiguration config = new BaseConfiguration();
-        Configuration storage = config.subset(GraphDatabaseConfiguration.STORAGE_NAMESPACE);
-        storage.setProperty(GraphDatabaseConfiguration.STORAGE_BACKEND_KEY, "local");
-        storage.setProperty(GraphDatabaseConfiguration.STORAGE_DIRECTORY_KEY, titanDBDir);
-		titanGraph = TitanFactory.open(config);
-	}
 	
 	public TitanQuery(TitanGraph titanGraph) {
 		this.titanGraph = titanGraph;
@@ -52,6 +26,7 @@ public class TitanQuery implements Query {
 	
 	public void findNeighborsOfAllNodes() {
 		for(Vertex v : titanGraph.getVertices()) {
+			@SuppressWarnings("unused")
 			GremlinPipeline<String, Vertex> pipe = new GremlinPipeline<String, Vertex>(v).both("similar");
 		}
 	}
@@ -59,16 +34,19 @@ public class TitanQuery implements Query {
 	public void findNodesOfAllEdges() {
 		for(Edge e : titanGraph.getEdges()) {
 			GremlinPipeline<String, Vertex> getNodesPipe = new GremlinPipeline<String, Vertex>(e).bothV();
+			Iterator<Vertex> vertexIter = getNodesPipe.iterator();
+			@SuppressWarnings("unused")
+			Vertex startNode = vertexIter.next();
+			@SuppressWarnings("unused")
+			Vertex endNode = vertexIter.next();
 		}
 	}
 	
 	public void findShortestPaths() {
-		Iterable<Vertex> vertices = titanGraph.getVertices();
-		Iterator<Vertex> vertexIter = vertices.iterator();
-		final Vertex v1 = vertexIter.next();
-		int iterations = 0;
-		while(iterations < 5) {
-			final Vertex v2 = vertexIter.next();
+		Vertex v1 = titanGraph.getVertices("nodeId", 1).iterator().next();
+		for(int i : FindShortestPathBenchmark.generatedNodes) {
+			final Vertex v2 = titanGraph.getVertices("nodeId", i).iterator().next();
+			@SuppressWarnings("rawtypes")
 			final GremlinPipeline<String, List> pathPipe = new GremlinPipeline<String, List>(v1)
 					.as("similar")
 					.both("similar")
@@ -79,9 +57,8 @@ public class TitanQuery implements Query {
 						}
 					})
 					.path();
-			int length = pathPipe.iterator().next().size() - 1;
-			System.out.println(v1.getProperty("nodeId")+" and "+v2.getProperty("nodeId")+" has length: "+length);
-			iterations++;
+			@SuppressWarnings("unused")
+			int length = pathPipe.iterator().next().size();
 		}
 	}
 	

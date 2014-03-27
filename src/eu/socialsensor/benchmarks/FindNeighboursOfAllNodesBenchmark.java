@@ -5,17 +5,10 @@ import eu.socialsensor.graphdatabases.Neo4jGraphDatabase;
 import eu.socialsensor.graphdatabases.OrientGraphDatabase;
 import eu.socialsensor.graphdatabases.TitanGraphDatabase;
 import eu.socialsensor.main.GraphDatabaseBenchmark;
-import eu.socialsensor.query.Neo4jQuery;
-import eu.socialsensor.query.OrientQuery;
-import eu.socialsensor.query.TitanQuery;
 import eu.socialsensor.utils.Utils;
 
 public class FindNeighboursOfAllNodesBenchmark {
-	
-	private final static String orientDBDir = "data/OrientDB";
-	private final static String titanDBDir = "data/TitanDB";
-	private final static String neo4jDBDir = "data/Neo4jDB";
-		
+			
 	public void startBenchmark() {
 		System.out.println("#########################################################################");
 		System.out.println("############ Starting Find Neighbours of Each Node Benchmark ############");
@@ -83,7 +76,7 @@ public class FindNeighboursOfAllNodesBenchmark {
 	
 	public double orientFindNeighboursOfAllNodesBenchmark() {
 		GraphDatabase orientGraphDatabase = new OrientGraphDatabase();
-		orientGraphDatabase.open(orientDBDir);
+		orientGraphDatabase.open(GraphDatabaseBenchmark.ORIENTDB_PATH);
 		long start = System.currentTimeMillis();
 		orientGraphDatabase.neighborsOfAllNodesQuery();
 		long orientTime = System.currentTimeMillis() - start;
@@ -93,7 +86,7 @@ public class FindNeighboursOfAllNodesBenchmark {
 	
 	public double titanFindNeighboursOfAllNodesBenchmark() {
 		GraphDatabase titanGraphDatabase = new TitanGraphDatabase();
-		titanGraphDatabase.open(titanDBDir);
+		titanGraphDatabase.open(GraphDatabaseBenchmark.TITANDB_PATH);
 		long start = System.currentTimeMillis();
 		titanGraphDatabase.neighborsOfAllNodesQuery();
 		long titanTime = System.currentTimeMillis() - start;
@@ -103,7 +96,7 @@ public class FindNeighboursOfAllNodesBenchmark {
 	
 	public double neo4jFindNeighboursOfAllNodesBenchmark() {
 		GraphDatabase neo4jGraphDatabase = new Neo4jGraphDatabase();
-		neo4jGraphDatabase.open(neo4jDBDir);
+		neo4jGraphDatabase.open(GraphDatabaseBenchmark.NEO4JDB_PATH);
 		long start = System.currentTimeMillis();
 		neo4jGraphDatabase.neighborsOfAllNodesQuery();
 		long neo4jTime = System.currentTimeMillis() - start;

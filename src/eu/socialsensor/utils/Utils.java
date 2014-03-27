@@ -20,9 +20,6 @@ import eu.socialsensor.benchmarks.SingleInsertionBenchmark;
 public class Utils {
 	
 	static public void main(String args[]) {
-		Utils utils = new Utils();
-		Map<Integer, List<Integer>> map = utils.mapNodesToCommunities("data/synthetic data/community.dat");
-		System.out.println();
 	}
 	
 	public void getDocumentsAs2dList(List<List<Double>> data, String docPath) {
@@ -144,6 +141,7 @@ public class Utils {
 					communities.get(community).add(node);
 				}
 			}
+			reader.close();
 		}
 		catch (FileNotFoundException e) {
 			e.printStackTrace();

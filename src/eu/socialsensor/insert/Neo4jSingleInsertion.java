@@ -9,19 +9,15 @@ import java.util.List;
 
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.graphdb.config.Setting;
-import org.neo4j.graphdb.factory.GraphDatabaseFactory;
-import org.neo4j.graphdb.factory.GraphDatabaseSettings;
 import org.neo4j.graphdb.index.Index;
-//import org.neo4j.kernel.GraphDatabaseAPI;
 
 import org.neo4j.kernel.GraphDatabaseAPI;
 
 import eu.socialsensor.graphdatabases.Neo4jGraphDatabase;
 import eu.socialsensor.utils.Utils;
 
+@SuppressWarnings("deprecation")
 public class Neo4jSingleInsertion implements Insertion {
 
 	public static String INSERTION_TIMES_OUTPUT_PATH = "data/neo4j.insertion.times";
@@ -45,18 +41,14 @@ public class Neo4jSingleInsertion implements Insertion {
 			String line;
 			int nodesCounter = 0;
 			int lineCounter = 1;
-			//Transaction tx = null;
 			long start = System.currentTimeMillis();
 			long duration;
 			Node srcNode, dstNode;
-			int blocksCounter = 0;
 			while((line = reader.readLine()) != null) {
 				if(lineCounter > 4) {
 					String[] parts = line.split("\t");
-//					System.out.println(parts[0]);
 					
 					try (Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
-//					try (Transaction tx = neo4jGraph.beginTx()) {
 						srcNode = nodeIndex.get("nodeId", parts[0]).getSingle();
 						if(srcNode == null) {
 							srcNode = neo4jGraph.createNode(Neo4jGraphDatabase.NODE_LABEL);
@@ -74,12 +66,9 @@ public class Neo4jSingleInsertion implements Insertion {
 						insertionTimes.add((double) duration);
 						nodesCounter = 0;
 						start = System.currentTimeMillis();
-						blocksCounter++;
-						System.out.println(blocksCounter);
 					}
 					
 					try (Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
-//						try (Transaction tx = neo4jGraph.beginTx()) {
 						dstNode = nodeIndex.get("nodeId", parts[1]).getSingle();
 						if(dstNode == null) {
 							dstNode = neo4jGraph.createNode(Neo4jGraphDatabase.NODE_LABEL);
@@ -93,21 +82,16 @@ public class Neo4jSingleInsertion implements Insertion {
 					
 					
 					try (Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
-//					try (Transaction tx = neo4jGraph.beginTx()) {
 						srcNode.createRelationshipTo(dstNode, Neo4jGraphDatabase.RelTypes.SIMILAR);
 						tx.success();
 						tx.close();
 					}
-					
-//					tx.finish();
 					
 					if(nodesCounter == 1000) {
 						duration = System.currentTimeMillis() - start;
 						insertionTimes.add((double) duration);
 						nodesCounter = 0;
 						start = System.currentTimeMillis();
-						blocksCounter++;
-						System.out.println(blocksCounter);
 					}
 				}
 				lineCounter++;
