@@ -31,8 +31,8 @@ public class ClusteringBenchmark {
 		System.out.println("###########################################################");
 		
 		neo4jClusteringBenchmark(GraphDatabaseBenchmark.NEO4JDB_PATH);
-		orientClusteringBenchmark(GraphDatabaseBenchmark.ORIENTDB_PATH);
-		titanClusteringBenchmark(GraphDatabaseBenchmark.TITANDB_PATH);
+//		orientClusteringBenchmark(GraphDatabaseBenchmark.ORIENTDB_PATH);
+//		titanClusteringBenchmark(GraphDatabaseBenchmark.TITANDB_PATH);
 		
 		System.out.println("###########################################################");
 		System.out.println("############## Clustering Benchmark Finished ##############");

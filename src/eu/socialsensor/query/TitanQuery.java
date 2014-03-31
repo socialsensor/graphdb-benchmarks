@@ -49,11 +49,11 @@ public class TitanQuery implements Query {
 			@SuppressWarnings("rawtypes")
 			final GremlinPipeline<String, List> pathPipe = new GremlinPipeline<String, List>(v1)
 					.as("similar")
-					.both("similar")
+					.out("similar")
 					.loop("similar", new PipeFunction<LoopBundle<Vertex>, Boolean>() {
 						//@Override
 						public Boolean compute(LoopBundle<Vertex> bundle) {
-							return bundle.getLoops() < 5 && bundle.getObject() != v2;
+							return bundle.getLoops() < 5 && !bundle.getObject().equals(v2);
 						}
 					})
 					.path();

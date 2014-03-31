@@ -213,20 +213,21 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 		int communityCounter = 0;
 		int transactionCounter = 0;
 		Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin();
-			for(Node n : GlobalGraphOperations.at(neo4jGraph).getAllNodes()) {
-				n.setProperty("nodeCommunity", communityCounter);
-				n.setProperty("community", communityCounter);
-				communityCounter++;
-				transactionCounter++;
-				if(transactionCounter == LouvainMethodCache.CACHE_SIZE) {
-					transactionCounter = 0;
-					tx.success();
-					tx.close();
-					tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin();
-				}
+		for(Node n : GlobalGraphOperations.at(neo4jGraph).getAllNodes()) {
+			n.setProperty("nodeCommunity", communityCounter);
+			n.setProperty("community", communityCounter);
+			communityCounter++;
+			transactionCounter++;
+			if(transactionCounter == LouvainMethodCache.CACHE_SIZE) {
+				transactionCounter = 0;
+				tx.success();
+				tx.close();
+				tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin();
 			}
-			tx.success();
-			tx.close();
+		}
+		tx.success();
+		tx.close();
+		
 	}
 
 	@Override
@@ -333,7 +334,7 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 
 	@Override
 	public void moveNode(int nodeCommunity, int toCommunity) {
-		try(Transaction tx = neo4jGraph.beginTx()) {
+		try(Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
 			ResourceIterable<Node> fromIter = neo4jGraph.findNodesByLabelAndProperty(NODE_LABEL, "nodeCommunity", nodeCommunity);
 			for(Node node : fromIter) {
 				node.setProperty("community", toCommunity);
@@ -358,7 +359,7 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 	public int reInitializeCommunities() {
 		Map<Integer, Integer> initCommunities = new HashMap<Integer, Integer>();
 		int communityCounter = 0;
-		try(Transaction tx = neo4jGraph.beginTx()) {
+		try(Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
 			for(Node n : GlobalGraphOperations.at(neo4jGraph).getAllNodes()) {
 				int communityId = (int)(n.getProperty("community"));
 				if(!initCommunities.containsKey(communityId)) {

@@ -1,6 +1,14 @@
 package eu.socialsensor.main;
 
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
+
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.factory.GraphDatabaseFactory;
+import org.neo4j.tooling.GlobalGraphOperations;
 
 import eu.socialsensor.benchmarks.ClusteringBenchmark;
 import eu.socialsensor.benchmarks.FindNeighboursOfAllNodesBenchmark;
@@ -8,10 +16,14 @@ import eu.socialsensor.benchmarks.FindNodesOfAllEdgesBenchmark;
 import eu.socialsensor.benchmarks.FindShortestPathBenchmark;
 import eu.socialsensor.benchmarks.MassiveInsertionBenchmark;
 import eu.socialsensor.benchmarks.SingleInsertionBenchmark;
+import eu.socialsensor.clustering.LouvainMethodCache;
+import eu.socialsensor.clustering.LouvainMethodCache2;
 import eu.socialsensor.graphdatabases.GraphDatabase;
 import eu.socialsensor.graphdatabases.Neo4jGraphDatabase;
 import eu.socialsensor.graphdatabases.OrientGraphDatabase;
 import eu.socialsensor.graphdatabases.TitanGraphDatabase;
+import eu.socialsensor.utils.Metrics;
+import eu.socialsensor.utils.Utils;
 
 @SuppressWarnings("unused")
 public class GraphDatabaseBenchmark {
@@ -36,34 +48,34 @@ public class GraphDatabaseBenchmark {
 		/**
 		 * MIW: Uncomment, choose dataset and run
 		 */
-		MassiveInsertionBenchmark massiveInsertionBenchmark = new MassiveInsertionBenchmark(SYNTHETIC_GRAPH);
-		massiveInsertionBenchmark.startMassiveInsertionBenchmark();
+//		MassiveInsertionBenchmark massiveInsertionBenchmark = new MassiveInsertionBenchmark(SYNTHETIC_GRAPH);
+//		massiveInsertionBenchmark.startMassiveInsertionBenchmark();
 		
 		
 		/**
 		 * SIW: Uncomment, choose dataset and run
 		 */
-		SingleInsertionBenchmark singleInsertionBenchmark = new SingleInsertionBenchmark(ENRON_DATASET);
-		singleInsertionBenchmark.startBenchmark();
+//		SingleInsertionBenchmark singleInsertionBenchmark = new SingleInsertionBenchmark(ENRON_DATASET);
+//		singleInsertionBenchmark.startBenchmark();
 		
 		
 		/*
 		 * For the other workloads you need to creat the graph database firstly.
 		 * Uncoment, choose dataset and run.
 		 */
-//		GraphDatabase titanGraphDatabase = new TitanGraphDatabase();
-//		titanGraphDatabase.createGraphForMassiveLoad(TITANDB_PATH);
-//		titanGraphDatabase.massiveModeLoading(SYNTHETIC_GRAPH);
-//		titanGraphDatabase.shutdown();
-//		GraphDatabase orientGraphDatabase = new OrientGraphDatabase();
-//		orientGraphDatabase.createGraphForMassiveLoad(ORIENTDB_PATH);
-//		orientGraphDatabase.massiveModeLoading(SYNTHETIC_GRAPH);
-//		orientGraphDatabase.shutdown();
-//		GraphDatabase neo4jGraphDatabase = new Neo4jGraphDatabase();
-//		neo4jGraphDatabase.createGraphForMassiveLoad(ORIENTDB_PATH);
-//		neo4jGraphDatabase.massiveModeLoading(SYNTHETIC_GRAPH);
-//		neo4jGraphDatabase.shutdown();
-//		
+//		GraphDatabase titanGraphDatabaSE = NEW TITANGRAPHDATABASE();
+//		TITANGRAPHDATABASE.CREATEGRAPHFORMASSIVELOAD(TITANDB_PATH);
+//		TITANGRAPHDATABASE.MASSIVEMODELOADING(SYNTHETIC_GRAPH);
+//		TITANGRAPHDATABASE.SHUTDOWN();
+//		GRAPHDATABASE ORIENTGRAPHDATABASE = NEW ORIENTGRAPHDATABASE();
+//		ORIENTGRAPHDATABASE.CREATEGRAPHFORMASSIVELOAD(ORIENTDB_PATH);
+//		ORIENTGRAPHDATABASE.MASSIVEMODELOADING(SYNTHETIC_GRAPH);
+//		ORIENTGRAPHDATABASE.SHUTDOWN();
+//		GRAPHDATABASE NEO4JGRAPHDATABASE = NEW NEO4JGRAPHDATABASE();
+//		NEO4JGRAPHDATABASE.CREATEGRAPHFORMASSIVELOAD(NEO4JDB_PATH);
+//		NEO4JGRAPHDATABASE.MASSIVEMODELOADING(SYNTHETIC_GRAPH);
+//		NEO4JGRAPHDATABASE.SHUTDOWNMASSIVEGRAPh();
+		
 		
 		/**
 		 * QW: If you have created the databases, just uncomment and run

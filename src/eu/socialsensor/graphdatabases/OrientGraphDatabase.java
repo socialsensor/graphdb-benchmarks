@@ -41,6 +41,7 @@ public class OrientGraphDatabase implements GraphDatabase{
 		System.out.println("Opening OrientDB Graph Database . . . .");
 		orientGraph = new OrientGraph("plocal:"+dbPAth);
 		vetrices = orientGraph.getIndex("nodeId", OrientVertex.class);
+		
 	}
 	
 	@Override

@@ -34,12 +34,12 @@ public class Metrics {
 		
 		Map<Integer, List<Integer>> map2 = new HashMap<Integer, List<Integer>>();
 		List<Integer> list3 = new ArrayList<Integer>();
-		list3.add(5);
+		list3.add(1);
 		list3.add(2);
 		list3.add(3);
 		list3.add(4);
 		List<Integer> list4 = new ArrayList<Integer>();
-		list4.add(1);
+		list4.add(5);
 		list4.add(6);
 		list4.add(7);
 		list4.add(8);

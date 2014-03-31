@@ -138,5 +138,9 @@ public class LouvainMethodCache {
 			this.communityWeights.add(graphDatabase.getCommunityWeight(i));
 		}
 	}
+	
+	public int getN() {
+		return this.N;
+	}
 
 }

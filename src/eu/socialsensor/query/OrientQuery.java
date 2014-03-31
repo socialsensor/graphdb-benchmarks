@@ -1,13 +1,15 @@
 package eu.socialsensor.query;
 
 import java.util.Iterator;
+import java.util.List;
 
-import com.orientechnologies.orient.core.sql.query.OSQLSynchQuery;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.gremlin.java.GremlinPipeline;
+import com.tinkerpop.pipes.PipeFunction;
+import com.tinkerpop.pipes.branch.LoopPipe.LoopBundle;
 
 import eu.socialsensor.benchmarks.FindShortestPathBenchmark;
 
@@ -46,11 +48,20 @@ public class OrientQuery  implements Query {
 	public void findShortestPaths() {
 		Vertex v1 = orientGraph.getVertices("nodeId", "1").iterator().next();
 		for(int i : FindShortestPathBenchmark.generatedNodes) {
-			Vertex v2 = orientGraph.getVertices("nodeId", String.valueOf(i)).iterator().next();
-			Iterable<Object> spath = orientGraph.getRawGraph().command(new OSQLSynchQuery<Object>( 
-					"select shortestPath("+v1.getId()+","+v2.getId()+",'OUT')"));
+			final Vertex v2 = orientGraph.getVertices("nodeId", String.valueOf(i)).iterator().next();
+			@SuppressWarnings("rawtypes")
+			final GremlinPipeline<String, List> pathPipe = new GremlinPipeline<String, List>(v1)
+					.as("similar")
+					.out("similar")
+					.loop("similar", new PipeFunction<LoopBundle<Vertex>, Boolean>() {
+						//@Override
+						public Boolean compute(LoopBundle<Vertex> bundle) {
+							return bundle.getLoops() < 5 && !bundle.getObject().equals(v2);
+						}
+					})
+					.path();
 			@SuppressWarnings("unused")
-			Object length = spath.iterator().next();
+			int length = pathPipe.iterator().next().size();
 		}
 		
 	}

@@ -16,12 +16,14 @@ public class Cache {
 	LoadingCache<Integer, Set<Integer>> communitiesMap; //key=community value=nodeIds contained  in community
 	LoadingCache<Integer, Integer> nodeCommunitiesToCommunities; //key=nodeCommunity value=community
 	LoadingCache<Integer, Set<Integer>> nodeNeighbours; //key=nodeId value=nodeId neighbors
-	LoadingCache<Integer, Double> nodeWeights; //key=nodeId value=weight
 	LoadingCache<Integer, Integer> nodeToCommunityMap; //key=nodeId value=communityId
-	LoadingCache<Integer, Integer> communitySize; //number of nodeCommunities per community
 		
+	int cacheSize;
+	
 	public Cache(final GraphDatabase graphDatabase, int cacheSize) throws ExecutionException {
 		
+		this.cacheSize = cacheSize;
+		
 		nodeNeighbours = CacheBuilder.newBuilder()
 				.maximumSize(cacheSize)
 				.build(
@@ -30,26 +32,7 @@ public class Cache {
 								return graphDatabase.getNeighborsIds(nodeId);
 							}
 						});
-		
-		nodeWeights = CacheBuilder.newBuilder()
-				.maximumSize(cacheSize)
-				.build(
-						new CacheLoader<Integer, Double>() {
-							public Double load(Integer nodeId) {
-								return graphDatabase.getNodeWeight(nodeId);
-							}
-						});
-			
-					
-		nodeNeighbours = CacheBuilder.newBuilder()
-				.maximumSize(cacheSize)
-				.build(
-						new CacheLoader<Integer, Set<Integer>>() {
-							public Set<Integer> load(Integer nodeId) {
-								return graphDatabase.getNeighborsIds(nodeId);
-							}
-						});
-		
+							
 		nodeCommunitiesMap = CacheBuilder.newBuilder()
 				.maximumSize(cacheSize)
 				.build(
@@ -76,16 +59,7 @@ public class Cache {
 								return graphDatabase.getCommunityFromNode(nodeId);
 							}
 						});
-		
-		communitySize = CacheBuilder.newBuilder()
-				.maximumSize(cacheSize)
-				.build(
-						new CacheLoader<Integer, Integer>() {
-							public Integer load(Integer communityId) {
-								return graphDatabase.getCommunitySize(communityId);
-							}
-						});
-				
+						
 		nodeCommunitiesToCommunities = CacheBuilder.newBuilder()
 				.maximumSize(cacheSize)
 				.build(
@@ -107,7 +81,7 @@ public class Cache {
 		}
 		return communities;
 	}
-	
+		
 	public void moveNodeCommunity(int nodeCommunity, int toCommunity) throws ExecutionException {
 		int fromCommunity = nodeCommunitiesToCommunities.get(nodeCommunity);
 		nodeCommunitiesToCommunities.put(nodeCommunity, toCommunity);
@@ -118,15 +92,13 @@ public class Cache {
 		for(int nodeFromCommunity : nodesFromNodeCommunity) {
 			nodeToCommunityMap.put(nodeFromCommunity, toCommunity);
 		}
-		communitySize.put(fromCommunity, communitySize.get(fromCommunity) - 1);
-		communitySize.put(toCommunity, communitySize.get(toCommunity) + 1);
 	}
 	
 	public double getNodeCommunityWeight(int nodeCommunity) throws ExecutionException {
 		Set<Integer> nodes = nodeCommunitiesMap.get(nodeCommunity);
 		double weight = 0;
 		for(int node : nodes) {
-			weight += nodeWeights.get(node);
+			weight += nodeNeighbours.get(node).size();
 		}
 		return weight;
 	}
@@ -136,7 +108,7 @@ public class Cache {
 	}
 	
 	public int getCommunitySize(int community) throws ExecutionException {
-		return communitySize.get(community);
+		return communitiesMap.get(community).size();
 	}
 	
 	public double getEdgesInsideCommunity(int nodeCommunity, int community) throws ExecutionException {
@@ -152,12 +124,11 @@ public class Cache {
 		}
 		return edges;
 	}
-	
+		
 	public void reInitializeCommunities() {
 		nodeCommunitiesMap.invalidateAll();
 		communitiesMap.invalidateAll();
 		nodeToCommunityMap.invalidateAll();
-		communitySize.invalidateAll();
 		nodeCommunitiesToCommunities.invalidateAll();
 	}
 	
