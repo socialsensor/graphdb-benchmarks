@@ -12,6 +12,12 @@ import com.tinkerpop.pipes.branch.LoopPipe.LoopBundle;
 
 import eu.socialsensor.benchmarks.FindShortestPathBenchmark;
 
+/**
+ * Query implementation for Titan graph database
+ * 
+ * @author sotbeis
+ * @email sotbeis@iti.gr
+ */
 public class TitanQuery implements Query {
 	
 	private TitanGraph titanGraph = null;
@@ -19,11 +25,11 @@ public class TitanQuery implements Query {
 	public static void main(String args[]) {
 	}
 	
-	
 	public TitanQuery(TitanGraph titanGraph) {
 		this.titanGraph = titanGraph;
 	}
 	
+	@Override
 	public void findNeighborsOfAllNodes() {
 		for(Vertex v : titanGraph.getVertices()) {
 			@SuppressWarnings("unused")
@@ -31,6 +37,7 @@ public class TitanQuery implements Query {
 		}
 	}
 	
+	@Override
 	public void findNodesOfAllEdges() {
 		for(Edge e : titanGraph.getEdges()) {
 			GremlinPipeline<String, Vertex> getNodesPipe = new GremlinPipeline<String, Vertex>(e).bothV();
@@ -42,6 +49,7 @@ public class TitanQuery implements Query {
 		}
 	}
 	
+	@Override
 	public void findShortestPaths() {
 		Vertex v1 = titanGraph.getVertices("nodeId", 1).iterator().next();
 		for(int i : FindShortestPathBenchmark.generatedNodes) {

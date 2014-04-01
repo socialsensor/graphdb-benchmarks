@@ -11,12 +11,19 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.index.Index;
-
 import org.neo4j.kernel.GraphDatabaseAPI;
 
 import eu.socialsensor.graphdatabases.Neo4jGraphDatabase;
 import eu.socialsensor.utils.Utils;
 
+/**
+ * Implementation of single Insertion in Neo4j
+ * graph database
+ * 
+ * @author sotbeis
+ * @email sotbeis@iti.gr
+ * 
+ */
 @SuppressWarnings("deprecation")
 public class Neo4jSingleInsertion implements Insertion {
 
@@ -32,6 +39,7 @@ public class Neo4jSingleInsertion implements Insertion {
 		this.nodeIndex = nodeIndex;
 	}
 	
+	@Override
 	public void createGraph(String datasetDir) {
 		count++;
 		System.out.println("Loading data in single mode in Neo4j database . . . .");

@@ -13,7 +13,13 @@ import eu.socialsensor.insert.TitanSingleInsertion;
 import eu.socialsensor.main.GraphDatabaseBenchmark;
 import eu.socialsensor.utils.Utils;
 
-public class SingleInsertionBenchmark {
+/**
+ * SingleInsertionBenchmak implementation
+ * 
+ * @author sotbeis
+ * @email sotbeis@iti.gr
+ */
+public class SingleInsertionBenchmark implements Benchmark {
 	
 	public static int SCENARIOS = 6;
 	
@@ -23,6 +29,7 @@ public class SingleInsertionBenchmark {
 		this.DATASET_PATH = datasetPath;
 	}
 	
+	@Override
 	public void startBenchmark() {
 		System.out.println("###########################################################");
 		System.out.println("############ Starting Single Insertion Benchmark ############");
@@ -92,7 +99,7 @@ public class SingleInsertionBenchmark {
 		System.out.println("#############################################################");
 	}
 	
-	public void titanSingleInsertionBenchmark() {
+	private void titanSingleInsertionBenchmark() {
 		GraphDatabase titanGraphDatabase = new TitanGraphDatabase();
 		titanGraphDatabase.createGraphForSingleLoad(GraphDatabaseBenchmark.TITANDB_PATH);
 		titanGraphDatabase.singleModeLoading(DATASET_PATH);
@@ -100,7 +107,7 @@ public class SingleInsertionBenchmark {
 		titanGraphDatabase.delete(GraphDatabaseBenchmark.TITANDB_PATH);
 	}
 		
-	public void orientSingleInsertionBenchmark() {
+	private void orientSingleInsertionBenchmark() {
 		GraphDatabase orientGraphDatabase = new OrientGraphDatabase();
 		orientGraphDatabase.createGraphForSingleLoad(GraphDatabaseBenchmark.ORIENTDB_PATH);
 		orientGraphDatabase.singleModeLoading(DATASET_PATH);
@@ -108,7 +115,7 @@ public class SingleInsertionBenchmark {
 		orientGraphDatabase.delete(GraphDatabaseBenchmark.ORIENTDB_PATH);
 	}
 	
-	public void neo4jSinglesInsertionBenchmark() {
+	private void neo4jSinglesInsertionBenchmark() {
 		GraphDatabase neo4jGraphDatabase = new Neo4jGraphDatabase();
 		neo4jGraphDatabase.createGraphForSingleLoad(GraphDatabaseBenchmark.NEO4JDB_PATH);
 		neo4jGraphDatabase.singleModeLoading(DATASET_PATH);

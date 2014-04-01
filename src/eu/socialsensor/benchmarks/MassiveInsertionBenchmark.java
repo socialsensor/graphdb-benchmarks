@@ -7,7 +7,12 @@ import eu.socialsensor.graphdatabases.TitanGraphDatabase;
 import eu.socialsensor.main.GraphDatabaseBenchmark;
 import eu.socialsensor.utils.Utils;
 
-public class MassiveInsertionBenchmark {
+/**
+ * MassiveInsertionBenchmark implementation
+ * @author sotbeis
+ * @email sotbeis@iti.gr
+ */
+public class MassiveInsertionBenchmark implements Benchmark{
 		
 	private String datasetDir;
 	
@@ -15,7 +20,8 @@ public class MassiveInsertionBenchmark {
 		this.datasetDir = datasetDir;
 	}
 	
-	public void startMassiveInsertionBenchmark() {
+	@Override
+	public void startBenchmark() {
 		System.out.println("###########################################################");
 		System.out.println("############ Starting Massive Insertion Benchmark ############");
 		System.out.println("###########################################################");
@@ -85,7 +91,7 @@ public class MassiveInsertionBenchmark {
 		
 	}
 	
-	public double orientMassiveInsertionBenchmark() {
+	private double orientMassiveInsertionBenchmark() {
 		GraphDatabase orientGraphDatabase = new OrientGraphDatabase();
 		orientGraphDatabase.createGraphForMassiveLoad(GraphDatabaseBenchmark.ORIENTDB_PATH);
 		long start = System.currentTimeMillis();
@@ -96,7 +102,7 @@ public class MassiveInsertionBenchmark {
 		return orientTime/1000.0;
 	}
 	
-	public double titanMassiveInsertionBenchmark() {
+	private double titanMassiveInsertionBenchmark() {
 		GraphDatabase titanGraphDatabase = new TitanGraphDatabase();
 		titanGraphDatabase.createGraphForMassiveLoad(GraphDatabaseBenchmark.TITANDB_PATH);
 		long start = System.currentTimeMillis();
@@ -107,7 +113,7 @@ public class MassiveInsertionBenchmark {
 		return titanTime/1000.0;
 	}
 	
-	public double neo4jMassiveInsertionBenchmark() {
+	private double neo4jMassiveInsertionBenchmark() {
 		GraphDatabase neo4jGraphDatabase = new Neo4jGraphDatabase();
 		neo4jGraphDatabase.createGraphForMassiveLoad(GraphDatabaseBenchmark.NEO4JDB_PATH);
 		long start = System.currentTimeMillis();

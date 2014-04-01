@@ -26,6 +26,12 @@ import eu.socialsensor.query.OrientQuery;
 import eu.socialsensor.query.Query;
 import eu.socialsensor.utils.Utils;
 
+/**
+ * OrientDB graph database implementation
+ * 
+ * @author sotbeis
+ * @email sotbeis@iti.gr
+ */
 public class OrientGraphDatabase implements GraphDatabase{
 
 	private OrientGraph orientGraph = null;

@@ -15,8 +15,14 @@ import java.util.Map;
 
 import eu.socialsensor.benchmarks.SingleInsertionBenchmark;
 
-//import eu.socialsensor.benchmarks.SingleInsertionBenchmark;
-
+/**
+ * This class contains all the required utility 
+ * functions for the benchmark
+ * 
+ * @author sotbeis
+ * @email sotbeis@iti.gr
+ * 
+ */
 public class Utils {
 	
 	static public void main(String args[]) {

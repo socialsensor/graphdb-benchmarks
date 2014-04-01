@@ -8,7 +8,14 @@ import java.util.concurrent.ExecutionException;
 
 import eu.socialsensor.graphdatabases.GraphDatabase;
 
-public class LouvainMethodCache {
+/**
+ * Implementation of Louvain Method on top of graph databases. Gephi Toolkit (https://gephi.org/toolkit/) 
+ * java implementation was used as guide. 
+ * 
+ * @author sotbeis
+ * @email sotbeis@iti.gr
+ */
+public class LouvainMethod {
 	
     boolean isRandomized;
     private double resolution = 1.0;
@@ -39,7 +46,7 @@ public class LouvainMethodCache {
 //	  
 //	}
 	
-	public LouvainMethodCache(GraphDatabase graphDatabase, int cacheSize, boolean isRandomized) throws ExecutionException {
+	public LouvainMethod(GraphDatabase graphDatabase, int cacheSize, boolean isRandomized) throws ExecutionException {
 		this.graphDatabase = graphDatabase;
 		this.isRandomized = isRandomized;
 		CACHE_SIZE = cacheSize;

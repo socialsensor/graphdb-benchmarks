@@ -10,6 +10,14 @@ import com.tinkerpop.blueprints.Index;
 import com.tinkerpop.blueprints.impls.orient.OrientGraphNoTx;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 
+/**
+ * Implementation of massive Insertion in OrientDB
+ * graph database
+ * 
+ * @author sotbeis
+ * @email sotbeis@iti.gr
+ * 
+ */
 public class OrientMassiveInsertion implements Insertion {
 	
 	private OrientGraphNoTx orientGraph = null;
@@ -20,6 +28,7 @@ public class OrientMassiveInsertion implements Insertion {
 		this.vetrices = vertices;
 	}
 	
+	@Override
 	public void createGraph(String datasetDir) {
 		System.out.println("Loading data in massive mode in OrientDB database");
 		orientGraph.getRawGraph().declareIntent(new OIntentMassiveInsert());

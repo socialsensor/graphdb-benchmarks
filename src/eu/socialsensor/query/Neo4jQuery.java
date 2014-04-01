@@ -14,7 +14,12 @@ import org.neo4j.tooling.GlobalGraphOperations;
 import eu.socialsensor.benchmarks.FindShortestPathBenchmark;
 import eu.socialsensor.graphdatabases.Neo4jGraphDatabase;
 
-
+/**
+ * Query implementation for Neo4j graph database
+ * 
+ * @author sotbeis
+ * @email sotbeis@iti.gr
+ */
 @SuppressWarnings("deprecation")
 public class Neo4jQuery implements Query {
 	
@@ -27,6 +32,7 @@ public class Neo4jQuery implements Query {
 		this.neo4jGraph = neo4jGraph;
 	}
 	
+	@Override
 	public void findNeighborsOfAllNodes() {
 		try(Transaction tx = neo4jGraph.beginTx()) {
 			for(Node n : GlobalGraphOperations.at(neo4jGraph).getAllNodes()) {
@@ -40,6 +46,7 @@ public class Neo4jQuery implements Query {
 		
 	}
 	
+	@Override
 	public void findNodesOfAllEdges() {
 		try(Transaction tx = neo4jGraph.beginTx()) {
 			for(Relationship r : GlobalGraphOperations.at(neo4jGraph).getAllRelationships()) {
@@ -51,6 +58,7 @@ public class Neo4jQuery implements Query {
 		}
 	}	
 	
+	@Override
 	public void findShortestPaths() {
 		try(Transaction tx = neo4jGraph.beginTx()) {
 			PathFinder<Path> finder = GraphAlgoFactory.shortestPath(Traversal.expanderForTypes(Neo4jGraphDatabase.RelTypes.SIMILAR),20);

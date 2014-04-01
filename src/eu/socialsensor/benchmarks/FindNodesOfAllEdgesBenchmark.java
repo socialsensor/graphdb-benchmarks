@@ -7,8 +7,14 @@ import eu.socialsensor.graphdatabases.TitanGraphDatabase;
 import eu.socialsensor.main.GraphDatabaseBenchmark;
 import eu.socialsensor.utils.Utils;
 
-public class FindNodesOfAllEdgesBenchmark {
-	 
+/**
+ * FindNodesOfAllEdgesBenchmark implementation
+ * @author sotbeis
+ * @email sotbeis@iti.gr
+ */
+public class FindNodesOfAllEdgesBenchmark implements Benchmark {
+	
+	@Override
 	public void startBenchmark() {
 		System.out.println("###########################################################");
 		System.out.println("############ Starting Find Nodes of Each Edge Benchmark ############");
@@ -73,7 +79,7 @@ public class FindNodesOfAllEdgesBenchmark {
 		
 	}
 	
-	public double orientFindNodesOfAllEdgesBenchmark() {
+	private double orientFindNodesOfAllEdgesBenchmark() {
 		GraphDatabase orientGraphDatabase = new OrientGraphDatabase();
 		orientGraphDatabase.open(GraphDatabaseBenchmark.ORIENTDB_PATH);
 		long start = System.currentTimeMillis();
@@ -83,7 +89,7 @@ public class FindNodesOfAllEdgesBenchmark {
 		return orientTime/1000.0;	
 	}
 	
-	public double titanFindNodesOfAllEdgesBenchmark() {
+	private double titanFindNodesOfAllEdgesBenchmark() {
 		GraphDatabase titanGraphDatabase = new TitanGraphDatabase();
 		titanGraphDatabase.open(GraphDatabaseBenchmark.TITANDB_PATH);
 		long start = System.currentTimeMillis();
@@ -93,7 +99,7 @@ public class FindNodesOfAllEdgesBenchmark {
 		return titanTime/1000.0;
 	}
 	
-	public double neo4jFindNodesOfAllEdgesBenchmark() {
+	private double neo4jFindNodesOfAllEdgesBenchmark() {
 		GraphDatabase neo4jGraphDatabase = new Neo4jGraphDatabase();
 		neo4jGraphDatabase.open(GraphDatabaseBenchmark.NEO4JDB_PATH);
 		long start = System.currentTimeMillis();

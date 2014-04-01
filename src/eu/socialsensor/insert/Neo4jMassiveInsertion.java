@@ -13,7 +13,14 @@ import org.neo4j.unsafe.batchinsert.BatchInserterIndex;
 
 import eu.socialsensor.graphdatabases.Neo4jGraphDatabase;
 
-
+/**
+ * Implementation of massive Insertion in Neo4j
+ * graph database
+ * 
+ * @author sotbeis
+ * @email sotbeis@iti.gr
+ * 
+ */
 public class Neo4jMassiveInsertion implements Insertion {
 	
 	private BatchInserter inserter = null;
@@ -25,6 +32,7 @@ public class Neo4jMassiveInsertion implements Insertion {
 		this.nodes = index;
 	}
 	
+	@Override
 	public void createGraph(String datasetDir) {
 		System.out.println("Loading data in massive mode in Neo4j database . . . .");
 		inserter.createDeferredSchemaIndex(Neo4jGraphDatabase.NODE_LABEL).on("nodeId").create();

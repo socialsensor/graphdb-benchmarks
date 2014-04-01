@@ -1,7 +1,5 @@
 package eu.socialsensor.utils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -10,43 +8,13 @@ import java.util.Map;
  * of the predicted clustering. For now we use only the NMI
  * 
  * @author sbeis
- * @email sot.beis@gmail.com
+ * @email sotbeis@gmail.com
  *
  */
 public class Metrics {
 	
 	public static void main(String args[]) {
-		Metrics metrics = new Metrics();
-		Map<Integer, List<Integer>> map1 = new HashMap<Integer, List<Integer>>();
-		List<Integer> list1 = new ArrayList<Integer>();
-		list1.add(1);
-		list1.add(2);
-		list1.add(3);
-		list1.add(4);
-		List<Integer> list2 = new ArrayList<Integer>();
-		list2.add(5);
-		list2.add(6);
-		list2.add(7);
-		list2.add(8);
-		map1.put(1, list1);
-		map1.put(2, list2);
 		
-		
-		Map<Integer, List<Integer>> map2 = new HashMap<Integer, List<Integer>>();
-		List<Integer> list3 = new ArrayList<Integer>();
-		list3.add(1);
-		list3.add(2);
-		list3.add(3);
-		list3.add(4);
-		List<Integer> list4 = new ArrayList<Integer>();
-		list4.add(5);
-		list4.add(6);
-		list4.add(7);
-		list4.add(8);
-		map2.put(1, list3);
-		map2.put(2, list4);
-		
-		System.out.println(metrics.normalizedMutualInformation(8, map1, map2));
 	}
 	
 	public double normalizedMutualInformation(int numberOfNodes, Map<Integer, List<Integer>> actualPartitions, 

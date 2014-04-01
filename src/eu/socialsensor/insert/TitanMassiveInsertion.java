@@ -9,6 +9,14 @@ import com.thinkaurelius.titan.core.TitanGraph;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.util.wrappers.batch.BatchGraph;
 
+/**
+ * Implementation of massive Insertion in Titan
+ * graph database
+ * 
+ * @author sotbeis
+ * @email sotbeis@iti.gr
+ * 
+ */
 public class TitanMassiveInsertion implements Insertion {
 	
 	private BatchGraph<TitanGraph> batchGraph = null;
@@ -18,7 +26,7 @@ public class TitanMassiveInsertion implements Insertion {
 		this.batchGraph = batchGraph;
 	}
 	
-	
+	@Override
 	public void createGraph(String datasetDir) {
 		System.out.println("Loading data in massive mode in Titan database");
 		try {

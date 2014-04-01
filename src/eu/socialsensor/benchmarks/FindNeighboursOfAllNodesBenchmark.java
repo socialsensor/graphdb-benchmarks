@@ -7,8 +7,14 @@ import eu.socialsensor.graphdatabases.TitanGraphDatabase;
 import eu.socialsensor.main.GraphDatabaseBenchmark;
 import eu.socialsensor.utils.Utils;
 
-public class FindNeighboursOfAllNodesBenchmark {
-			
+/**
+ * FindNeighboursOfAllNodesBenchmark implementation
+ * @author sotbeis
+ * @email sotbeis@iti.gr
+ */
+public class FindNeighboursOfAllNodesBenchmark implements Benchmark {
+	
+	@Override
 	public void startBenchmark() {
 		System.out.println("#########################################################################");
 		System.out.println("############ Starting Find Neighbours of Each Node Benchmark ############");
@@ -74,7 +80,7 @@ public class FindNeighboursOfAllNodesBenchmark {
 		
 	}
 	
-	public double orientFindNeighboursOfAllNodesBenchmark() {
+	private double orientFindNeighboursOfAllNodesBenchmark() {
 		GraphDatabase orientGraphDatabase = new OrientGraphDatabase();
 		orientGraphDatabase.open(GraphDatabaseBenchmark.ORIENTDB_PATH);
 		long start = System.currentTimeMillis();
@@ -84,7 +90,7 @@ public class FindNeighboursOfAllNodesBenchmark {
 		return orientTime/1000.0;
 	}
 	
-	public double titanFindNeighboursOfAllNodesBenchmark() {
+	private double titanFindNeighboursOfAllNodesBenchmark() {
 		GraphDatabase titanGraphDatabase = new TitanGraphDatabase();
 		titanGraphDatabase.open(GraphDatabaseBenchmark.TITANDB_PATH);
 		long start = System.currentTimeMillis();
@@ -94,7 +100,7 @@ public class FindNeighboursOfAllNodesBenchmark {
 		return titanTime/1000.0;
 	}
 	
-	public double neo4jFindNeighboursOfAllNodesBenchmark() {
+	private double neo4jFindNeighboursOfAllNodesBenchmark() {
 		GraphDatabase neo4jGraphDatabase = new Neo4jGraphDatabase();
 		neo4jGraphDatabase.open(GraphDatabaseBenchmark.NEO4JDB_PATH);
 		long start = System.currentTimeMillis();

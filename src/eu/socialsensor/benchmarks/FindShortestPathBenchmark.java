@@ -11,10 +11,16 @@ import eu.socialsensor.graphdatabases.TitanGraphDatabase;
 import eu.socialsensor.main.GraphDatabaseBenchmark;
 import eu.socialsensor.utils.Utils;
 
-public class FindShortestPathBenchmark {
+/**
+ * FindShortestPathBenchmark implementation
+ * @author sotbeis
+ * @email sotbeis@iti.gr
+ */
+public class FindShortestPathBenchmark implements Benchmark {
 		
 	public static Set<Integer> generatedNodes;
-		
+	
+	@Override
 	public void startBenchmark() {
 		
 		System.out.println("###########################################################");
@@ -90,7 +96,7 @@ public class FindShortestPathBenchmark {
 		
 	}
 	
-	public double orientFindShortestPathBenchmark() {
+	private double orientFindShortestPathBenchmark() {
 		GraphDatabase orientGraphDatabase = new OrientGraphDatabase();
 		orientGraphDatabase.open(GraphDatabaseBenchmark.ORIENTDB_PATH);
 		long start = System.currentTimeMillis();
@@ -100,7 +106,7 @@ public class FindShortestPathBenchmark {
 		return orientTime/1000.0;	
 	}
 	
-	public double titanFindShortestPathBenchmark() {
+	private double titanFindShortestPathBenchmark() {
 		GraphDatabase titanGraphDatabase = new TitanGraphDatabase();
 		titanGraphDatabase.open(GraphDatabaseBenchmark.TITANDB_PATH);
 		long start = System.currentTimeMillis();
@@ -110,7 +116,7 @@ public class FindShortestPathBenchmark {
 		return titanTime/1000.0;
 	}
 	
-	public double neo4jFindShortestPathBenchmark() {
+	private double neo4jFindShortestPathBenchmark() {
 		GraphDatabase neo4jGraphDatabase = new Neo4jGraphDatabase();
 		neo4jGraphDatabase.open(GraphDatabaseBenchmark.NEO4JDB_PATH);
 		long start = System.currentTimeMillis();

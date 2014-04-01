@@ -31,7 +31,7 @@ import org.neo4j.unsafe.batchinsert.BatchInserters;
 
 import com.google.common.collect.Iterables;
 
-import eu.socialsensor.clustering.LouvainMethodCache;
+import eu.socialsensor.clustering.LouvainMethod;
 import eu.socialsensor.insert.Insertion;
 import eu.socialsensor.insert.Neo4jMassiveInsertion;
 import eu.socialsensor.insert.Neo4jSingleInsertion;
@@ -39,6 +39,12 @@ import eu.socialsensor.query.Neo4jQuery;
 import eu.socialsensor.query.Query;
 import eu.socialsensor.utils.Utils;
 
+/**
+ * Neo4j graph database implementation
+ * 
+ * @author sotbeis
+ * @email sotbeis@iti.gr
+ */
 @SuppressWarnings("deprecation")
 public class Neo4jGraphDatabase implements GraphDatabase {
 
@@ -218,7 +224,7 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 			n.setProperty("community", communityCounter);
 			communityCounter++;
 			transactionCounter++;
-			if(transactionCounter == LouvainMethodCache.CACHE_SIZE) {
+			if(transactionCounter == LouvainMethod.CACHE_SIZE) {
 				transactionCounter = 0;
 				tx.success();
 				tx.close();

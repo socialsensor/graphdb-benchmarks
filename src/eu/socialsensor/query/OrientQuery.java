@@ -13,6 +13,12 @@ import com.tinkerpop.pipes.branch.LoopPipe.LoopBundle;
 
 import eu.socialsensor.benchmarks.FindShortestPathBenchmark;
 
+/**
+ * Query implementation for OrientDB graph database
+ * 
+ * @author sotbeis
+ * @email sotbeis@iti.gr
+ */
 public class OrientQuery  implements Query {
 	
 	private OrientGraph orientGraph = null;
@@ -25,6 +31,7 @@ public class OrientQuery  implements Query {
 		this.orientGraph = orientGraph;
 	}
 	
+	@Override
 	public void findNeighborsOfAllNodes() {
 		for(Vertex v : orientGraph.getVertices()) {
 			@SuppressWarnings("unused")
@@ -32,6 +39,7 @@ public class OrientQuery  implements Query {
 		}
 	}
 	
+	@Override
 	public void findNodesOfAllEdges() {
 		for(Vertex v : orientGraph.getVertices()) {
 			for(Edge e : v.getEdges(Direction.BOTH)) {
@@ -45,6 +53,7 @@ public class OrientQuery  implements Query {
 		}
 	}
 	
+	@Override
 	public void findShortestPaths() {
 		Vertex v1 = orientGraph.getVertices("nodeId", "1").iterator().next();
 		for(int i : FindShortestPathBenchmark.generatedNodes) {

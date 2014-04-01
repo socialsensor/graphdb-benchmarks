@@ -13,6 +13,14 @@ import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 
 import eu.socialsensor.utils.Utils;
 
+/**
+ * Implementation of single Insertion in OrientDB
+ * graph database
+ * 
+ * @author sotbeis
+ * @email sotbeis@iti.gr
+ * 
+ */
 public class OrientSingleInsertion implements Insertion {
 	
 	public static String INSERTION_TIMES_OUTPUT_PATH = "data/orient.insertion.times";
@@ -27,6 +35,7 @@ public class OrientSingleInsertion implements Insertion {
 		this.vetrices = vertices;
 	}
 	
+	@Override
 	public void createGraph(String datasetDir) {
 		count++;
 		System.out.println("Incrementally creating the Orient database . . . .");

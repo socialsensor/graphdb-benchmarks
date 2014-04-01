@@ -10,6 +10,13 @@ import com.google.common.cache.LoadingCache;
 
 import eu.socialsensor.graphdatabases.GraphDatabase;
 
+/**
+ * Cache implementation for the temporary storage of required information
+ * of the graph databases in order to execute the Louvain Method
+ * 
+ * @author sotbeis
+ * @email sotbeis@iti.gr
+ */
 public class Cache {
 	
 	LoadingCache<Integer, Set<Integer>> nodeCommunitiesMap; //key=nodeCommunity value=nodeIds contained in nodeCommunityC

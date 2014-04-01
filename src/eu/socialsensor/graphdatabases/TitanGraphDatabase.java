@@ -31,6 +31,12 @@ import eu.socialsensor.query.Query;
 import eu.socialsensor.query.TitanQuery;
 import eu.socialsensor.utils.Utils;
 
+/**
+ * Titan graph database implementation
+ * 
+ * @author sotbeis
+ * @email sotbeis@iti.gr
+ */
 public class TitanGraphDatabase implements GraphDatabase{
 	
 	public static final String INSERTION_TIMES_OUTPUT_PATH = "data/titan.insertion.times";

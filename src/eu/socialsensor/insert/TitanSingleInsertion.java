@@ -13,6 +13,14 @@ import com.tinkerpop.blueprints.Vertex;
 
 import eu.socialsensor.utils.Utils;
 
+/**
+ * Implementation of single Insertion in Titan
+ * graph database
+ * 
+ * @author sotbeis
+ * @email sotbeis@iti.gr
+ * 
+ */
 public class TitanSingleInsertion implements Insertion {
 	
 	public static final String INSERTION_TIMES_OUTPUT_PATH = "data/titan.insertion.times";
@@ -26,6 +34,7 @@ public class TitanSingleInsertion implements Insertion {
 		this.titanGraph = titanGraph;
 	}
 	
+	@Override
 	public void createGraph(String datasetDir) {
 		count++;
 		System.out.println("Incrementally loading data in Titan database . . . .");
