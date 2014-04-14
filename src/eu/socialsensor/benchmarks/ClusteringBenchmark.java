@@ -1,9 +1,14 @@
 package eu.socialsensor.benchmarks;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 
 import eu.socialsensor.clustering.LouvainMethod;
 import eu.socialsensor.graphdatabases.GraphDatabase;
@@ -23,118 +28,137 @@ public class ClusteringBenchmark implements Benchmark {
 	public final static boolean IS_RANDOMIZED = false;
 	public static final String SYNTH_DATASET = "SynthGraph500";
 	
+	private final String resultFile = "CWResults.txt";
+	
+	BufferedWriter out;
+	
+	private Logger logger = Logger.getLogger(ClusteringBenchmark.class);
+	
 	public ClusteringBenchmark() {
-		cacheSizes = new ArrayList<Integer>(
-				Arrays.asList(400, 500));
+		String cacheProperty = GraphDatabaseBenchmark.inputPropertiesFile.getProperty("CACHE_VALUES");
+		String cacheProStringParts[] = cacheProperty.split(",");
+		cacheSizes = new ArrayList<Integer>(cacheProStringParts.length);
+		for(int i = 0; i < cacheProStringParts.length; i++) {
+			cacheSizes.add(Integer.valueOf(cacheProStringParts[i]));
+		}
 	}
 	
 	@Override
 	public void startBenchmark() {
 		
-		System.out.println("###########################################################");
-		System.out.println("############## Starting Clustering Benchmark ##############");
-		System.out.println("###########################################################");
-		
+		logger.setLevel(Level.INFO);
+		logger.info("Executing Clustering Benchmark . . . .");
+		String resultsFolder = GraphDatabaseBenchmark.inputPropertiesFile.getProperty("RESULTS_PATH");
+		String output = resultsFolder+resultFile;
 		try {
+			out = new BufferedWriter(new FileWriter(output));
+			out.write("###########################################################");
+			out.write("\n");
+			out.write("##### Clustering Benchmark with "+ SYNTH_DATASET +" Results #####");
+			out.write("\n");
+			out.write("###########################################################");
+			out.write("\n");
+			out.write("\n");
+			out.write("Neo4j execution time");
+			out.write("\n");
 			neo4jClusteringBenchmark(GraphDatabaseBenchmark.NEO4JDB_PATH);
+			out.write("\n");
+			out.write("\n");
+			out.write("OrientDB execution time");
+			out.write("\n");
 			orientClusteringBenchmark(GraphDatabaseBenchmark.ORIENTDB_PATH);
+			out.write("\n");
+			out.write("\n");
+			out.write("Titan execution time");
+			out.write("\n");
 			titanClusteringBenchmark(GraphDatabaseBenchmark.TITANDB_PATH);
+			out.flush();
+			out.close();
 		} 
 		catch (ExecutionException e) {
 			e.printStackTrace();
+		} 
+		catch (IOException e) {
+			e.printStackTrace();
 		}
-		
-		System.out.println("###########################################################");
-		System.out.println("############## Clustering Benchmark Finished ##############");
-		System.out.println("###########################################################");
+		logger.info("Clustering Benchmark finished");
 		
 	}
 	
-	private void titanClusteringBenchmark(String dbPAth) throws ExecutionException {
+	private void titanClusteringBenchmark(String dbPAth) throws ExecutionException, IOException {
 		GraphDatabase titanGraphDatabase = new TitanGraphDatabase();
 		titanGraphDatabase.open(dbPAth);
 		int runs = 1;
 		int numberOfLoops = 2;
+		out.write("Cache Size,Time(sec)");
+		out.write("\n");
 		for(int i = 0; i < cacheSizes.size(); i++) {
-			System.out.println("Cache size is set to "+cacheSizes.get(i));
-			System.out.println("DATASET:"+SYNTH_DATASET);
-			System.out.println("GRAPHDATABASE: Titan");
-			System.out.println("CACHE: "+cacheSizes.get(i));
-			System.out.println();
 			if(runs > 1) {
 				numberOfLoops = 1;
 			}
 			for(int j = 0; j < numberOfLoops; j++) {
-				System.out.println("Loop "+(j+1));
-				long start = System.currentTimeMillis();
-				LouvainMethod louvainMethodCache = new LouvainMethod(titanGraphDatabase, cacheSizes.get(i), IS_RANDOMIZED);
+				int cacheSize = cacheSizes.get(i);
+				logger.info("Graph Database = Titat, Dataset = "+SYNTH_DATASET+", Cache Size = "+cacheSize);				long start = System.currentTimeMillis();
+				LouvainMethod louvainMethodCache = new LouvainMethod(titanGraphDatabase, cacheSize, IS_RANDOMIZED);
 				louvainMethodCache.computeModularity();
-				long titanTime = System.currentTimeMillis() - start;
-				System.out.println("TIME: "+titanTime / 1000.0);
-				System.out.println();
+				double titanTime = (System.currentTimeMillis() - start) / 1000.0;
+				out.write(cacheSize + ","+titanTime);
+				out.write("\n");
 			}
-			System.out.println("=======================================================");
-			System.out.println();
 			runs++;
 		}
+		titanGraphDatabase.shutdown();
 	}
 	
-	private void orientClusteringBenchmark(String dbPAth) throws ExecutionException {
+	private void orientClusteringBenchmark(String dbPAth) throws ExecutionException, IOException {
 		GraphDatabase orientGraphDatabase = new OrientGraphDatabase();
 		orientGraphDatabase.open(dbPAth);
 		int runs = 1;
 		int numberOfLoops = 2;
+		out.write("Cache Size,Time(sec)");
+		out.write("\n");
 		for(int i = 0; i < cacheSizes.size(); i++) {
-			System.out.println("Cache size is set to "+cacheSizes.get(i));
-			System.out.println("GRAPHDATABASE: OrientDB");
-			System.out.println("DATASET:"+SYNTH_DATASET);
-			System.out.println("CACHE: "+cacheSizes.get(i));
-			System.out.println();
 			if(runs > 1) {
 				numberOfLoops = 1;
 			}
 			for(int j = 0; j < numberOfLoops; j++) {
-				System.out.println("Loop "+(j+1));
 				long start = System.currentTimeMillis();
-				LouvainMethod louvainMethodCache = new LouvainMethod(orientGraphDatabase, cacheSizes.get(i), IS_RANDOMIZED);
+				int cacheSize = cacheSizes.get(i);
+				logger.info("Graph Database = OrientDB, Dataset = "+SYNTH_DATASET+", Cache Size = "+cacheSize);
+				LouvainMethod louvainMethodCache = new LouvainMethod(orientGraphDatabase, cacheSize, IS_RANDOMIZED);
 				louvainMethodCache.computeModularity();
-				long orientTime = System.currentTimeMillis() - start;
-				System.out.println("TIME: "+orientTime / 1000.0);
-				System.out.println();
+				double orientTime = (System.currentTimeMillis() - start) / 1000.0;
+				out.write(cacheSize + ","+orientTime);
+				out.write("\n");
 			}
 			runs++;
-			System.out.println("=======================================================");
-			System.out.println();
 		}
+		orientGraphDatabase.shutdown();
 	}
 	
-	private void neo4jClusteringBenchmark(String dbPAth) throws ExecutionException {
+	private void neo4jClusteringBenchmark(String dbPAth) throws ExecutionException, IOException {
 		GraphDatabase neo4jGraphDatabase = new Neo4jGraphDatabase();
 		neo4jGraphDatabase.open(dbPAth);
 		int runs = 1;
 		int numberOfLoops = 2;
+		out.write("Cache Size,Time(sec)");
+		out.write("\n");
 		for(int i = 0; i < cacheSizes.size(); i++) {
-			System.out.println("Cache size is set to "+cacheSizes.get(i));
-			System.out.println("GRAPHDATABASE: Neo4j");
-			System.out.println("DATASET:"+SYNTH_DATASET);
-			System.out.println("CACHE: "+cacheSizes.get(i));
-			System.out.println();
 			if(runs > 1) {
 				numberOfLoops = 1;
 			}
 			for(int j = 0; j < numberOfLoops; j ++) {
-				System.out.println("Loop "+(j+1));
 				long start = System.currentTimeMillis();
-				LouvainMethod louvainMethodCache = new LouvainMethod(neo4jGraphDatabase, cacheSizes.get(i), IS_RANDOMIZED);
+				int cacheSize = cacheSizes.get(i);
+				logger.info("Graph Database = Neo4j, Dataset = "+SYNTH_DATASET+", Cache Size = "+cacheSize);				LouvainMethod louvainMethodCache = new LouvainMethod(neo4jGraphDatabase, cacheSize, IS_RANDOMIZED);
 				louvainMethodCache.computeModularity();
-				long neo4jTime = System.currentTimeMillis() - start;
-				System.out.println("TIME: "+neo4jTime / 1000.0);
-				System.out.println();
+				double neo4jTime = (System.currentTimeMillis() - start) / 1000.0;
+				out.write(cacheSize + ","+neo4jTime);
+				out.write("\n");
 			}
 			runs++;
-			System.out.println("=======================================================");
-			System.out.println();
 		}
+		neo4jGraphDatabase.shutdown();
 	}
 	
 }

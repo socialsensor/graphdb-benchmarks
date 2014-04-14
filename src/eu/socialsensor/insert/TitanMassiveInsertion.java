@@ -5,6 +5,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+
 import com.thinkaurelius.titan.core.TitanGraph;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.util.wrappers.batch.BatchGraph;
@@ -21,6 +24,7 @@ public class TitanMassiveInsertion implements Insertion {
 	
 	private BatchGraph<TitanGraph> batchGraph = null;
 	
+	private Logger logger = Logger.getLogger(TitanMassiveInsertion.class);
 	
 	public TitanMassiveInsertion(BatchGraph<TitanGraph> batchGraph) {
 		this.batchGraph = batchGraph;
@@ -28,7 +32,8 @@ public class TitanMassiveInsertion implements Insertion {
 	
 	@Override
 	public void createGraph(String datasetDir) {
-		System.out.println("Loading data in massive mode in Titan database");
+		logger.setLevel(Level.INFO);
+		logger.info("Loading data in massive mode in Titan database . . . .");
 		try {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(datasetDir)));
 			String line;

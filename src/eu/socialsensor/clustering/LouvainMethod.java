@@ -67,7 +67,6 @@ public class LouvainMethod {
 	}
 	
 	public void computeModularity() throws ExecutionException {
-		System.out.println("Computing communities . . . .");
 		Random rand = new Random();
 		boolean someChange = true;
 		while(someChange) {

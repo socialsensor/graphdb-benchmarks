@@ -13,7 +13,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
+
 import eu.socialsensor.benchmarks.SingleInsertionBenchmark;
+import eu.socialsensor.graphdatabases.GraphDatabase;
+import eu.socialsensor.graphdatabases.Neo4jGraphDatabase;
+import eu.socialsensor.graphdatabases.OrientGraphDatabase;
+import eu.socialsensor.graphdatabases.TitanGraphDatabase;
+import eu.socialsensor.main.GraphDatabaseBenchmark;
 
 /**
  * This class contains all the required utility 
@@ -24,6 +31,8 @@ import eu.socialsensor.benchmarks.SingleInsertionBenchmark;
  * 
  */
 public class Utils {
+	
+	private Logger logger = Logger.getLogger(Utils.class);
 	
 	static public void main(String args[]) {
 	}
@@ -168,4 +177,29 @@ public class Utils {
 		return key;
 	}
 
+	public void createDatabases(String dataset) {
+		logger.info("Creating graph databases before benchmark execution . . . .");
+		GraphDatabase titanGraphDatabase = new TitanGraphDatabase();
+		titanGraphDatabase.createGraphForMassiveLoad(GraphDatabaseBenchmark.TITANDB_PATH);
+		titanGraphDatabase.massiveModeLoading(dataset);
+		titanGraphDatabase.shutdownMassiveGraph();
+		GraphDatabase orientGraphDatabase = new OrientGraphDatabase();
+		orientGraphDatabase.createGraphForMassiveLoad(GraphDatabaseBenchmark.ORIENTDB_PATH);
+		orientGraphDatabase.massiveModeLoading(dataset);
+		orientGraphDatabase.shutdownMassiveGraph();
+		GraphDatabase neo4jGraphDatabase = new Neo4jGraphDatabase();
+		neo4jGraphDatabase.createGraphForMassiveLoad(GraphDatabaseBenchmark.NEO4JDB_PATH);
+		neo4jGraphDatabase.massiveModeLoading(dataset);
+		neo4jGraphDatabase.shutdownMassiveGraph();
+	}
+	
+	public void deleteDatabases() {
+		logger.info("Deleting graph databese . . . .");
+		GraphDatabase titanGraphDatabase = new TitanGraphDatabase();
+		titanGraphDatabase.delete(GraphDatabaseBenchmark.TITANDB_PATH);
+		GraphDatabase orientGraphDatabase = new OrientGraphDatabase();
+		orientGraphDatabase.delete(GraphDatabaseBenchmark.ORIENTDB_PATH);
+		GraphDatabase neo4jGraphDatabase = new Neo4jGraphDatabase();
+		neo4jGraphDatabase.delete(GraphDatabaseBenchmark.NEO4JDB_PATH);
+	}
 }

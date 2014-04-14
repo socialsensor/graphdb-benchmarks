@@ -7,6 +7,8 @@ import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import org.neo4j.helpers.collection.MapUtil;
 import org.neo4j.unsafe.batchinsert.BatchInserter;
 import org.neo4j.unsafe.batchinsert.BatchInserterIndex;
@@ -27,6 +29,8 @@ public class Neo4jMassiveInsertion implements Insertion {
 	private BatchInserterIndex nodes = null;
 	Map<Long, Long> cache = new HashMap<Long, Long>();
 	
+	private Logger logger = Logger.getLogger(Neo4jMassiveInsertion.class);
+	
 	public Neo4jMassiveInsertion(BatchInserter inserter, BatchInserterIndex index) {
 		this.inserter = inserter;
 		this.nodes = index;
@@ -34,7 +38,8 @@ public class Neo4jMassiveInsertion implements Insertion {
 	
 	@Override
 	public void createGraph(String datasetDir) {
-		System.out.println("Loading data in massive mode in Neo4j database . . . .");
+		logger.setLevel(Level.INFO);
+		logger.info("Loading data in massive mode in Neo4j database . . . .");
 		inserter.createDeferredSchemaIndex(Neo4jGraphDatabase.NODE_LABEL).on("nodeId").create();
 		try {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(datasetDir)));

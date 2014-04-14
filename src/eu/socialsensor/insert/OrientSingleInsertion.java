@@ -7,10 +7,14 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+
 import com.tinkerpop.blueprints.Index;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 
+import eu.socialsensor.benchmarks.SingleInsertionBenchmark;
 import eu.socialsensor.utils.Utils;
 
 /**
@@ -23,13 +27,15 @@ import eu.socialsensor.utils.Utils;
  */
 public class OrientSingleInsertion implements Insertion {
 	
-	public static String INSERTION_TIMES_OUTPUT_PATH = "data/orient.insertion.times";
-	
+	public static String INSERTION_TIMES_OUTPUT_PATH = null;
+
 	private static int count;
 	
 	private OrientGraph orientGraph = null;
 	Index<OrientVertex> vetrices = null;
-		
+	
+	private Logger logger = Logger.getLogger(OrientSingleInsertion.class);
+	
 	public OrientSingleInsertion(OrientGraph orientGraph, Index<OrientVertex> vertices) {
 		this.orientGraph = orientGraph;
 		this.vetrices = vertices;
@@ -37,8 +43,10 @@ public class OrientSingleInsertion implements Insertion {
 	
 	@Override
 	public void createGraph(String datasetDir) {
+		INSERTION_TIMES_OUTPUT_PATH = SingleInsertionBenchmark.INSERTION_TIMES_OUTPUT_PATH + ".orient";
+		logger.setLevel(Level.INFO);
 		count++;
-		System.out.println("Incrementally creating the Orient database . . . .");
+		logger.info("Incrementally creating the Orient database . . . .");
 		List<Double> insertionTimes = new ArrayList<Double>(); 
 		try {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(datasetDir)));

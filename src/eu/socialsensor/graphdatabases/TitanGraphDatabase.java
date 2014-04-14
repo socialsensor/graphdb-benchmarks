@@ -11,7 +11,6 @@ import java.util.Set;
 
 import org.apache.commons.configuration.BaseConfiguration;
 import org.apache.commons.configuration.Configuration;
-import org.apache.log4j.Logger;
 
 import com.google.common.collect.Iterables;
 import com.thinkaurelius.titan.core.TitanFactory;
@@ -45,15 +44,14 @@ public class TitanGraphDatabase implements GraphDatabase{
 	double totalWeight;
 	
 	public TitanGraph titanGraph;
-	public BatchGraph<TitanGraph> batchGraph; 
-	Logger logger = Logger.getLogger(TitanGraphDatabase.class);
+	public BatchGraph<TitanGraph> batchGraph;
+	
 	
 	public static void main(String args[]) {
 	}
 		
 	@Override
 	public void open(String dbPath) {
-		System.out.println("Opening Titan Graph Database . . . .");
 		BaseConfiguration config = new BaseConfiguration();
         Configuration storage = config.subset(GraphDatabaseConfiguration.STORAGE_NAMESPACE);
         storage.setProperty(GraphDatabaseConfiguration.STORAGE_BACKEND_KEY, STORAGE_BACKEND);
@@ -64,7 +62,6 @@ public class TitanGraphDatabase implements GraphDatabase{
 	
 	@Override
 	public void createGraphForSingleLoad(String dbPath) {
-		System.out.println("Creating Titan Graph Database for single load . . . .");
 		BaseConfiguration config = new BaseConfiguration();
         Configuration storage = config.subset(GraphDatabaseConfiguration.STORAGE_NAMESPACE);
         storage.setProperty(GraphDatabaseConfiguration.STORAGE_BACKEND_KEY, STORAGE_BACKEND);
@@ -78,7 +75,6 @@ public class TitanGraphDatabase implements GraphDatabase{
 	
 	@Override
 	public void createGraphForMassiveLoad(String dbPath) {
-		System.out.println("Creating Titan Graph Database for massive load . . . .");
 		BaseConfiguration config = new BaseConfiguration();
         Configuration storage = config.subset(GraphDatabaseConfiguration.STORAGE_NAMESPACE);
         storage.setProperty(GraphDatabaseConfiguration.STORAGE_BACKEND_KEY, "local");
@@ -107,7 +103,6 @@ public class TitanGraphDatabase implements GraphDatabase{
 	
 	@Override
 	public void shutdown() {
-		System.out.println("The Titan database is now shuting down . . . .");
 		if(titanGraph != null) {
 			titanGraph.shutdown();
 			titanGraph = null;
@@ -132,7 +127,6 @@ public class TitanGraphDatabase implements GraphDatabase{
 
 	@Override
 	public void shutdownMassiveGraph() {
-		System.out.println("Massive Graph is shutting down . . . .");
 		if(titanGraph != null) {
 			batchGraph.shutdown();
 			titanGraph.shutdown();

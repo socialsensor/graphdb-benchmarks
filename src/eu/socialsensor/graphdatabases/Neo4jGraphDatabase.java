@@ -66,7 +66,6 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 	
 	@Override
 	public void open(String dbPath) {
-		System.out.println("Opening Neo4j Graph Database . . . .");
 		neo4jGraph = new GraphDatabaseFactory().newEmbeddedDatabase(dbPath);
 		try(Transaction tx = neo4jGraph.beginTx()) {
 			nodeIndex = neo4jGraph.index().forNodes("nodes");
@@ -78,7 +77,6 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 
 	@Override
 	public void createGraphForSingleLoad(String dbPath) {
-		System.out.println("Creating Neo4j Graph Database for single load . . . .");
 		neo4jGraph = new GraphDatabaseFactory().newEmbeddedDatabase(dbPath);
 		try ( Transaction tx = neo4jGraph.beginTx() ) {
 			nodeIndex = neo4jGraph.index().forNodes("nodes");
@@ -89,7 +87,6 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 
 	@Override
 	public void createGraphForMassiveLoad(String dbPath) {
-		System.out.println("Creating Neo4j Graph Database for massive load . . . .");
 		Map<String, String> config = new HashMap<String, String>();
 		config.put("cache_type", "none");
 		config.put("use_memory_mapped_buffers", "true");
@@ -116,7 +113,6 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 	
 	@Override
 	public void shutdown() {
-		System.out.println("The Neo4j database is now shuting down . . . .");
 		if(neo4jGraph != null) {
 			neo4jGraph.shutdown();
 			nodeIndex = null;
@@ -137,7 +133,6 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 	
 	@Override
 	public void shutdownMassiveGraph() {
-		System.out.println("Shutting down Neo4j graph for massive load . . . .");
 		if(inserter != null) {
 			indexProvider.shutdown();
 			inserter.shutdown();

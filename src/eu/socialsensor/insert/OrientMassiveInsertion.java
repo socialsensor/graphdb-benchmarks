@@ -5,6 +5,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+
 import com.orientechnologies.orient.core.intent.OIntentMassiveInsert;
 import com.tinkerpop.blueprints.Index;
 import com.tinkerpop.blueprints.impls.orient.OrientGraphNoTx;
@@ -22,7 +25,9 @@ public class OrientMassiveInsertion implements Insertion {
 	
 	private OrientGraphNoTx orientGraph = null;
 	Index<OrientVertex> vetrices = null;
-			
+	
+	private Logger logger = Logger.getLogger(OrientMassiveInsertion.class);
+	
 	public OrientMassiveInsertion(OrientGraphNoTx orientGraph, Index<OrientVertex> vertices) {
 		this.orientGraph = orientGraph;
 		this.vetrices = vertices;
@@ -30,7 +35,8 @@ public class OrientMassiveInsertion implements Insertion {
 	
 	@Override
 	public void createGraph(String datasetDir) {
-		System.out.println("Loading data in massive mode in OrientDB database");
+		logger.setLevel(Level.INFO);
+		logger.info("Loading data in massive mode in OrientDB database . . . .");
 		orientGraph.getRawGraph().declareIntent(new OIntentMassiveInsert());
 		try {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(datasetDir)));

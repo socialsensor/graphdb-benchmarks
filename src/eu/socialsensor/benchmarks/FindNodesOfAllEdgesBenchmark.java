@@ -1,5 +1,12 @@
 package eu.socialsensor.benchmarks;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+
 import eu.socialsensor.graphdatabases.GraphDatabase;
 import eu.socialsensor.graphdatabases.Neo4jGraphDatabase;
 import eu.socialsensor.graphdatabases.OrientGraphDatabase;
@@ -14,45 +21,50 @@ import eu.socialsensor.utils.Utils;
  */
 public class FindNodesOfAllEdgesBenchmark implements Benchmark {
 	
+	private final String resultFile = "QW-FAResults.txt";
+	
+	private Logger logger = Logger.getLogger(FindNodesOfAllEdgesBenchmark.class);
+	
 	@Override
 	public void startBenchmark() {
-		System.out.println("###########################################################");
-		System.out.println("############ Starting Find Nodes of Each Edge Benchmark ############");
-		System.out.println("###########################################################");
+		logger.setLevel(Level.INFO);
+		logger.info("Find Adjacent Nodes of All Edges Benchmark. . . .");
 		
 		double[] orientTimes = new double[6];
 		double[] titanTimes = new double[6];
 		double[] neo4jTimes = new double[6];
 		
-		//Scenario 1
+		logger.info("Scenario 1");
 		orientTimes[0] = orientFindNodesOfAllEdgesBenchmark();
 		titanTimes[0] = titanFindNodesOfAllEdgesBenchmark();
 		neo4jTimes[0] = neo4jFindNodesOfAllEdgesBenchmark();
 		
-		//Scenario 2
+		logger.info("Scenario 2");
 		orientTimes[1] = orientFindNodesOfAllEdgesBenchmark();
 		neo4jTimes[1] = neo4jFindNodesOfAllEdgesBenchmark();
 		titanTimes[1] = titanFindNodesOfAllEdgesBenchmark();
 		
-		//Scenario 3
+		logger.info("Scenario 3");
 		neo4jTimes[2] = neo4jFindNodesOfAllEdgesBenchmark();
 		orientTimes[2] = orientFindNodesOfAllEdgesBenchmark();
 		titanTimes[2] = titanFindNodesOfAllEdgesBenchmark();
 		
-		//Scenario 4
+		logger.info("Scenario 4");
 		neo4jTimes[3] = neo4jFindNodesOfAllEdgesBenchmark();
 		titanTimes[3] = titanFindNodesOfAllEdgesBenchmark();
 		orientTimes[3] = orientFindNodesOfAllEdgesBenchmark();
 		
-		//Scenario 5
+		logger.info("Scenario 5");
 		titanTimes[4] = titanFindNodesOfAllEdgesBenchmark();
 		neo4jTimes[4] = neo4jFindNodesOfAllEdgesBenchmark();
 		orientTimes[4] = orientFindNodesOfAllEdgesBenchmark();
 		
-		//Scenario 6
+		logger.info("Scenario 6");
 		titanTimes[5] = titanFindNodesOfAllEdgesBenchmark();
 		orientTimes[5] = orientFindNodesOfAllEdgesBenchmark();
 		neo4jTimes[5] = neo4jFindNodesOfAllEdgesBenchmark();
+		
+		logger.info("Find Adjacent Nodes of All Edges Benchmark finished");
 		
 		Utils utils = new Utils();
 		
@@ -66,16 +78,44 @@ public class FindNodesOfAllEdgesBenchmark implements Benchmark {
 		double stdTitanTime = utils.calculateStdDeviation(varTitanTime);
 		double stdNeo4jTime = utils.calculateStdDeviation(varNeo4jTime);
 		
-		System.out.println("###########################################################");
-		System.out.println("############ Find Nodes of Each Edge Benchmark Finished ############");
-		System.out.println("######################### RESULTS #########################");
-		System.out.println("Orient mean execution time: "+meanOrientTime+" nanoseconds");
-		System.out.println("Orient std execution time: "+stdOrientTime);
-		System.out.println("Titan mean execution time: "+meanTitanTime+" nanoseconds");
-		System.out.println("Titan std execution time: "+stdTitanTime);
-		System.out.println("Neo4j mean execution time: "+meanNeo4jTime+" nanoseconds");
-		System.out.println("Neo4j std execution time: "+stdNeo4jTime);
-		System.out.println("###########################################################");
+		String resultsFolder = GraphDatabaseBenchmark.inputPropertiesFile.getProperty("RESULTS_PATH");
+		String output = resultsFolder+resultFile;
+		logger.info("Write results to "+output);
+		try {
+			BufferedWriter out = new BufferedWriter(new FileWriter(output));
+			out.write("##############################################################");
+			out.write("\n");
+			out.write("##### Find Adjacent Nodes of All Edges Benchmark Results #####");
+			out.write("\n");
+			out.write("##############################################################");
+			out.write("\n");
+			out.write("\n");
+			out.write("OrientDB execution time");
+			out.write("\n");
+			out.write("Mean Value: "+meanOrientTime);
+			out.write("\n");
+			out.write("STD Value: "+stdOrientTime);
+			out.write("\n");
+			out.write("\n");
+			out.write("Titan execution time");
+			out.write("\n");
+			out.write("Mean Value: "+meanTitanTime);
+			out.write("\n");
+			out.write("STD Value: "+stdTitanTime);
+			out.write("\n");
+			out.write("\n");
+			out.write("Neo4j execution time");
+			out.write("\n");
+			out.write("Mean Value: "+meanNeo4jTime);
+			out.write("\n");
+			out.write("STD Value: "+stdNeo4jTime);
+			
+			out.flush();
+			out.close();
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+		}
 		
 	}
 	

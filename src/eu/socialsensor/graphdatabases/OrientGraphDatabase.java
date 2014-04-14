@@ -38,13 +38,11 @@ public class OrientGraphDatabase implements GraphDatabase{
 	private OrientGraphNoTx orientGraphNoTx = null;
 	private Index<OrientVertex> vetrices = null;
 	
-	
 	public static void main(String args[]) {
 	}	
 	
 	@Override
 	public void open(String dbPAth) {
-		System.out.println("Opening OrientDB Graph Database . . . .");
 		orientGraph = new OrientGraph("plocal:"+dbPAth);
 		vetrices = orientGraph.getIndex("nodeId", OrientVertex.class);
 		
@@ -52,7 +50,6 @@ public class OrientGraphDatabase implements GraphDatabase{
 	
 	@Override
 	public void createGraphForSingleLoad(String dbPath) {
-		System.out.println("Creating OrientDB Graph Database for single load . . . .");
 		orientGraph = new OrientGraph("plocal:"+dbPath);
 		orientGraph.createIndex("nodeId", OrientVertex.class);
 	    vetrices = orientGraph.getIndex("nodeId", OrientVertex.class);
@@ -60,7 +57,6 @@ public class OrientGraphDatabase implements GraphDatabase{
 	
 	@Override
 	public void createGraphForMassiveLoad(String dbPath) {
-		System.out.println("Creating OrientDB Graph Database for massive load . . . .");
 		OGlobalConfiguration.STORAGE_KEEP_OPEN.setValue(false);
 	    OGlobalConfiguration.TX_USE_LOG.setValue(false);
 	    OGlobalConfiguration.ENVIRONMENT_CONCURRENT.setValue(false);
@@ -83,7 +79,6 @@ public class OrientGraphDatabase implements GraphDatabase{
 	
 	@Override
 	public void shutdown() {
-		System.out.println("The OrientDB database is now shuting down . . . .");
 		if(orientGraph != null) {
 			orientGraph.shutdown();
 			orientGraph = null;
@@ -94,7 +89,6 @@ public class OrientGraphDatabase implements GraphDatabase{
 	@Override
 	public void delete(String dbPath) {
 		orientGraph = new OrientGraph("plocal:"+dbPath);
-//		orientGraph.shutdown();
 		orientGraph.drop();
 		try {
 			Thread.sleep(6000);
@@ -108,7 +102,6 @@ public class OrientGraphDatabase implements GraphDatabase{
 	
 	@Override
 	public void shutdownMassiveGraph() {
-		System.out.println("Shutting down OrientDB Graph Database for massive load");
 		if(orientGraphNoTx != null) {
 			orientGraphNoTx.shutdown();
 			orientGraphNoTx = null;

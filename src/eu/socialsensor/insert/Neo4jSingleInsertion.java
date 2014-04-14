@@ -7,12 +7,15 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.kernel.GraphDatabaseAPI;
 
+import eu.socialsensor.benchmarks.SingleInsertionBenchmark;
 import eu.socialsensor.graphdatabases.Neo4jGraphDatabase;
 import eu.socialsensor.utils.Utils;
 
@@ -27,13 +30,15 @@ import eu.socialsensor.utils.Utils;
 @SuppressWarnings("deprecation")
 public class Neo4jSingleInsertion implements Insertion {
 
-	public static String INSERTION_TIMES_OUTPUT_PATH = "data/neo4j.insertion.times";
+	public static String INSERTION_TIMES_OUTPUT_PATH = null;
 	
 	private static int count;
 	
 	private GraphDatabaseService neo4jGraph = null;
 	private Index<Node> nodeIndex;
-		
+	
+	private Logger logger = Logger.getLogger(Neo4jSingleInsertion.class);
+	
 	public Neo4jSingleInsertion(GraphDatabaseService neo4jGraph, Index<Node> nodeIndex) {
 		this.neo4jGraph = neo4jGraph;
 		this.nodeIndex = nodeIndex;
@@ -41,8 +46,10 @@ public class Neo4jSingleInsertion implements Insertion {
 	
 	@Override
 	public void createGraph(String datasetDir) {
+		logger.setLevel(Level.INFO);
+		INSERTION_TIMES_OUTPUT_PATH = SingleInsertionBenchmark.INSERTION_TIMES_OUTPUT_PATH + ".neo4j";
 		count++;
-		System.out.println("Loading data in single mode in Neo4j database . . . .");
+		logger.info("Incrementally creating the Neo4j database . . . .");
 		List<Double> insertionTimes = new ArrayList<Double>();
 		try {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(datasetDir)));
@@ -87,7 +94,6 @@ public class Neo4jSingleInsertion implements Insertion {
 							nodesCounter++;
 						}
 					}
-					
 					
 					try (Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
 						srcNode.createRelationshipTo(dstNode, Neo4jGraphDatabase.RelTypes.SIMILAR);

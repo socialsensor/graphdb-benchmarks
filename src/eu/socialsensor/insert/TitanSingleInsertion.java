@@ -7,10 +7,14 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+
 import com.thinkaurelius.titan.core.TitanGraph;
 import com.tinkerpop.blueprints.Compare;
 import com.tinkerpop.blueprints.Vertex;
 
+import eu.socialsensor.benchmarks.SingleInsertionBenchmark;
 import eu.socialsensor.utils.Utils;
 
 /**
@@ -23,12 +27,13 @@ import eu.socialsensor.utils.Utils;
  */
 public class TitanSingleInsertion implements Insertion {
 	
-	public static final String INSERTION_TIMES_OUTPUT_PATH = "data/titan.insertion.times";
-	public static final String STORAGE_BACKEND = "local";
+	public static String INSERTION_TIMES_OUTPUT_PATH = null;
 	
 	private static int count;
 	
 	private TitanGraph titanGraph = null;
+	
+	private Logger logger = Logger.getLogger(TitanSingleInsertion.class);
 		
 	public TitanSingleInsertion(TitanGraph titanGraph) {
 		this.titanGraph = titanGraph;
@@ -36,8 +41,10 @@ public class TitanSingleInsertion implements Insertion {
 	
 	@Override
 	public void createGraph(String datasetDir) {
+		INSERTION_TIMES_OUTPUT_PATH = SingleInsertionBenchmark.INSERTION_TIMES_OUTPUT_PATH + ".titan";
+		logger.setLevel(Level.INFO);
 		count++;
-		System.out.println("Incrementally loading data in Titan database . . . .");
+		logger.info("Incrementally loading data in Titan database . . . .");
 		List<Double> insertionTimes = new ArrayList<Double>();
 		try {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(datasetDir)));
