@@ -110,8 +110,8 @@ public class Cache {
 		return weight;
 	}
 	
-	public int getCommunity(int nodeCommunity) throws ExecutionException {
-		return nodeCommunitiesToCommunities.get(nodeCommunity);
+	public int getCommunity(int community) throws ExecutionException {
+		return nodeCommunitiesToCommunities.get(community);
 	}
 	
 	public int getCommunitySize(int community) throws ExecutionException {

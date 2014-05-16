@@ -42,8 +42,7 @@ public class LouvainMethod {
 //
 //	    Metrics metrics = new Metrics();
 //	    double nmi = metrics.normalizedMutualInformation(10000, communities, actualCommunities);
-//	    System.out.println(nmi);
-//	  
+//	    System.out.println(nmi); 
 //	}
 	
 	public LouvainMethod(GraphDatabase graphDatabase, int cacheSize, boolean isRandomized) throws ExecutionException {

@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
 
@@ -167,14 +168,24 @@ public class Utils {
 		return communities;
 	}
 	
-	public long getKeyByValue(Map<Long, Integer> map, int value) {
-		long key = 0;
-		for(Map.Entry<Long, Integer> entry : map.entrySet()) {
-			if(value == entry.getValue()) {
-				key = entry.getKey();
-			}
-		}
-		return key;
+//	public long getKeyByValue(Map<Long, Integer> map, int value) {
+//		long key = 0;
+//		for(Map.Entry<Long, Integer> entry : map.entrySet()) {
+//			if(value == entry.getValue()) {
+//				key = entry.getKey();
+//				break;
+//			}
+//		}
+//		return key;
+//	}
+	
+	public <T, E> T getKeyByValue(Map<T, E> map, E value) {
+		for (Entry<T, E> entry : map.entrySet()) {
+	        if (value.equals(entry.getValue())) {
+	            return entry.getKey();
+	        }
+	    }
+	    return null;
 	}
 
 	public void createDatabases(String dataset) {
