@@ -64,9 +64,10 @@ public class OrientGraphDatabase implements GraphDatabase{
 		OGlobalConfiguration.STORAGE_KEEP_OPEN.setValue(false);
 	    OGlobalConfiguration.TX_USE_LOG.setValue(false);
 	    OGlobalConfiguration.ENVIRONMENT_CONCURRENT.setValue(false);
-	    orientGraphNoTx = new OrientGraphNoTx("plocal:"+dbPath);
-	    orientGraphNoTx.createIndex("nodeId", OrientVertex.class);
-	    vetrices = orientGraphNoTx.getIndex("nodeId", OrientVertex.class);
+		OrientGraphFactory orientGraphFactory = new OrientGraphFactory("plocal:"+dbPath);
+	    orientGraphNoTx = orientGraphFactory.getNoTx();
+		//maybe use keyIndex for unique ids?
+	    vetrices = orientGraphNoTx.createIndex("nodeId", OrientVertex.class);
 	}
 	
 	@Override
