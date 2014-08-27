@@ -15,6 +15,7 @@ import com.sparsity.sparksee.gdb.Sparksee;
 import com.sparsity.sparksee.gdb.SparkseeConfig;
 
 import eu.socialsensor.insert.Insertion;
+import eu.socialsensor.insert.SparkseeMassiveInsertion;
 import eu.socialsensor.insert.SparkseeSingleInsertion;
 import eu.socialsensor.utils.Utils;
 
@@ -33,8 +34,9 @@ public class SparkseeGraphDatabase implements GraphDatabase {
 	@Override
 	public void open(String dbPath) {
 		try {
-			database = sparksee.open(dbPath, true);
-		} 
+			database = sparksee.open(dbPath + "/SparkseeDB.gdb", true);
+			session = database.newSession();
+		}
 		catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
@@ -57,24 +59,34 @@ public class SparkseeGraphDatabase implements GraphDatabase {
 		}
 		
 	}
-
+	
+	@Override
+	public void createGraphForMassiveLoad(String dbPath) {
+		//maybe some more configuration?
+		try {
+			new File("data/SparkseeDB").mkdir();
+			database = sparksee.create(dbPath + "/SparkseeDB.gdb", "SparkseeDB");
+			session = database.newSession();
+			sparkseeGraph = session.getGraph();
+			int node = sparkseeGraph.newNodeType("node");
+			sparkseeGraph.newAttribute(node, "nodeId", DataType.String, AttributeKind.Unique);
+			sparkseeGraph.newEdgeType("similar", false, false);
+		} 
+		catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	@Override
 	public void massiveModeLoading(String dataPath) {
-		// TODO Auto-generated method stub
-		
+		Insertion sparkseeMassiveInsertion = new SparkseeMassiveInsertion(session);
+		sparkseeMassiveInsertion.createGraph(dataPath);
 	}
 
 	@Override
 	public void singleModeLoading(String dataPath) {
 		Insertion sparkseeSingleInsertion = new SparkseeSingleInsertion(this.session);
 		sparkseeSingleInsertion.createGraph(dataPath);
-		
-	}
-
-	@Override
-	public void createGraphForMassiveLoad(String dbPath) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
@@ -89,27 +101,24 @@ public class SparkseeGraphDatabase implements GraphDatabase {
 		}
 		
 	}
+	
+	@Override
+	public void shutdownMassiveGraph() {
+		shutdown();	
+	}
 
 	@Override
 	public void delete(String dbPath) {
-//		if(session.isClosed() && database.isClosed() && sparksee.isClosed()) {
-			try {
-				Thread.sleep(6000);
-			} 
-			catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			Utils utils = new Utils();
-			utils.deleteRecursively(new File(dbPath));
-//		}
-	
+		try {
+			Thread.sleep(6000);
+		} 
+		catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		Utils utils = new Utils();
+		utils.deleteRecursively(new File(dbPath));
 	}
 
-	@Override
-	public void shutdownMassiveGraph() {
-		// TODO Auto-generated method stub
-		
-	}
 
 	@Override
 	public void shorestPathQuery() {
