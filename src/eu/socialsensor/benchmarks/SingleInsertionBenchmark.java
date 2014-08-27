@@ -29,7 +29,7 @@ import eu.socialsensor.utils.Utils;
  */
 public class SingleInsertionBenchmark implements Benchmark {
 	
-	public static int SCENARIOS = 2;
+	public static int SCENARIOS = 24;
 	public static String INSERTION_TIMES_OUTPUT_PATH;
 	
 	private String INSERTION_TIMES_OUTPUT_FILE = "SIWResults";
@@ -66,9 +66,6 @@ public class SingleInsertionBenchmark implements Benchmark {
 						| InvocationTargetException e) {
 					e.printStackTrace();
 				}
-			}
-			if(cntPermutations == 3) {
-				break;
 			}
 		}
 		
