@@ -60,6 +60,7 @@ public class SparkseeSingleInsertion implements Insertion {
 					
 					srcNode = sparkseeGraph.findObject(nodeAttribute, value.setString(parts[0]));
 					if(srcNode == 0) {
+						session.begin();
 						srcNode = sparkseeGraph.newNode(nodeType);
 						sparkseeGraph.setAttribute(srcNode, nodeAttribute, value.setString(parts[0]));
 						session.commit();
@@ -75,6 +76,7 @@ public class SparkseeSingleInsertion implements Insertion {
 					
 					dstNode = sparkseeGraph.findObject(nodeAttribute, value.setString(parts[1]));
 					if(dstNode == 0) {
+						session.begin();
 						dstNode = sparkseeGraph.newNode(nodeType);
 						sparkseeGraph.setAttribute(dstNode, nodeAttribute, value.setString(parts[1]));
 						session.commit();
@@ -88,6 +90,7 @@ public class SparkseeSingleInsertion implements Insertion {
 						start = System.currentTimeMillis();
 					}
 					
+					session.begin();
 					sparkseeGraph.newEdge(edgeType, srcNode, dstNode);
 					session.commit();
 					
