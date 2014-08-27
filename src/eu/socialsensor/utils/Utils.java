@@ -8,6 +8,7 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -212,5 +213,15 @@ public class Utils {
 		orientGraphDatabase.delete(GraphDatabaseBenchmark.ORIENTDB_PATH);
 		GraphDatabase neo4jGraphDatabase = new Neo4jGraphDatabase();
 		neo4jGraphDatabase.delete(GraphDatabaseBenchmark.NEO4JDB_PATH);
+	}
+	
+	public Method[] filter(Method[] declaredMethods, String endsWith) {
+	    List<Method> filtered = new ArrayList<>();
+	    for(Method method : declaredMethods) {
+	    	if(method.getName().endsWith(endsWith)) {
+	    		filtered.add(method);
+	    	}
+	    }
+	    return filtered.toArray(new Method[filtered.size()]);
 	}
 }
