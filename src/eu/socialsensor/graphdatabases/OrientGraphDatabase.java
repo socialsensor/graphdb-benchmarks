@@ -15,6 +15,7 @@ import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Index;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+import com.tinkerpop.blueprints.impls.orient.OrientGraphFactory;
 import com.tinkerpop.blueprints.impls.orient.OrientGraphNoTx;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import com.tinkerpop.gremlin.java.GremlinPipeline;
@@ -50,9 +51,12 @@ public class OrientGraphDatabase implements GraphDatabase{
 	
 	@Override
 	public void createGraphForSingleLoad(String dbPath) {
-		orientGraph = new OrientGraph("plocal:"+dbPath);
-		orientGraph.createIndex("nodeId", OrientVertex.class);
-	    vetrices = orientGraph.getIndex("nodeId", OrientVertex.class);
+		OrientGraphFactory orientGraphFactory = new OrientGraphFactory("plocal:"+dbPath);
+		orientGraph = orientGraphFactory.getTx();
+		orientGraph.setWarnOnForceClosingTx(false);
+		//maybe use keyIndex for unique ids?
+		vetrices = orientGraph.createIndex("nodeId", OrientVertex.class);
+		orientGraph.setWarnOnForceClosingTx(false);
 	}
 	
 	@Override
