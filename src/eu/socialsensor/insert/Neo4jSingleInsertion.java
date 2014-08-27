@@ -49,7 +49,7 @@ public class Neo4jSingleInsertion implements Insertion {
 		logger.setLevel(Level.INFO);
 		INSERTION_TIMES_OUTPUT_PATH = SingleInsertionBenchmark.INSERTION_TIMES_OUTPUT_PATH + ".neo4j";
 		count++;
-		logger.info("Incrementally creating the Neo4j database . . . .");
+		logger.info("Incrementally loading data in Neo4j database . . . .");
 		List<Double> insertionTimes = new ArrayList<Double>();
 		try {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(datasetDir)));

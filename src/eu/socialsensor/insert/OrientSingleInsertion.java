@@ -46,7 +46,7 @@ public class OrientSingleInsertion implements Insertion {
 		INSERTION_TIMES_OUTPUT_PATH = SingleInsertionBenchmark.INSERTION_TIMES_OUTPUT_PATH + ".orient";
 		logger.setLevel(Level.INFO);
 		count++;
-		logger.info("Incrementally creating the Orient database . . . .");
+		logger.info("Incrementally loading data in Orient database . . . .");
 		List<Double> insertionTimes = new ArrayList<Double>(); 
 		try {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(datasetDir)));
