@@ -18,6 +18,7 @@ import eu.socialsensor.benchmarks.FindShortestPathBenchmark;
  * @author sotbeis
  * @email sotbeis@iti.gr
  */
+
 public class TitanQuery implements Query {
 	
 	private TitanGraph titanGraph = null;
