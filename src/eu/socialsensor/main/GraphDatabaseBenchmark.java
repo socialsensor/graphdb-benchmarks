@@ -23,7 +23,6 @@ import eu.socialsensor.utils.Utils;
  * @email sotbeis@iti.gr
  *
  */
-
 public class GraphDatabaseBenchmark {
 			
 	public final static String ORIENTDB_PATH = "data/OrientDB";
