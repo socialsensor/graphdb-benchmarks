@@ -15,12 +15,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import eu.socialsensor.benchmarks.SingleInsertionBenchmark;
 import eu.socialsensor.graphdatabases.GraphDatabase;
 import eu.socialsensor.graphdatabases.Neo4jGraphDatabase;
 import eu.socialsensor.graphdatabases.OrientGraphDatabase;
+import eu.socialsensor.graphdatabases.SparkseeGraphDatabase;
 import eu.socialsensor.graphdatabases.TitanGraphDatabase;
 import eu.socialsensor.main.GraphDatabaseBenchmark;
 
@@ -190,29 +192,47 @@ public class Utils {
 	}
 
 	public void createDatabases(String dataset) {
+		System.out.println("");
+		logger.setLevel(Level.INFO);
 		logger.info("Creating graph databases before benchmark execution . . . .");
+		
 		GraphDatabase titanGraphDatabase = new TitanGraphDatabase();
 		titanGraphDatabase.createGraphForMassiveLoad(GraphDatabaseBenchmark.TITANDB_PATH);
 		titanGraphDatabase.massiveModeLoading(dataset);
 		titanGraphDatabase.shutdownMassiveGraph();
+		
 		GraphDatabase orientGraphDatabase = new OrientGraphDatabase();
 		orientGraphDatabase.createGraphForMassiveLoad(GraphDatabaseBenchmark.ORIENTDB_PATH);
 		orientGraphDatabase.massiveModeLoading(dataset);
 		orientGraphDatabase.shutdownMassiveGraph();
+		
 		GraphDatabase neo4jGraphDatabase = new Neo4jGraphDatabase();
 		neo4jGraphDatabase.createGraphForMassiveLoad(GraphDatabaseBenchmark.NEO4JDB_PATH);
 		neo4jGraphDatabase.massiveModeLoading(dataset);
 		neo4jGraphDatabase.shutdownMassiveGraph();
+		
+		GraphDatabase sparkseeGraphDatabase = new SparkseeGraphDatabase();
+		sparkseeGraphDatabase.createGraphForMassiveLoad(GraphDatabaseBenchmark.SPARKSEEDB_PATH);
+		sparkseeGraphDatabase.massiveModeLoading(dataset);
+		sparkseeGraphDatabase.shutdownMassiveGraph();
 	}
 	
 	public void deleteDatabases() {
-		logger.info("Deleting graph databese . . . .");
+		System.out.println("");
+		logger.setLevel(Level.INFO);
+		logger.info("Deleting graph databases . . . .");
+		
 		GraphDatabase titanGraphDatabase = new TitanGraphDatabase();
 		titanGraphDatabase.delete(GraphDatabaseBenchmark.TITANDB_PATH);
+		
 		GraphDatabase orientGraphDatabase = new OrientGraphDatabase();
 		orientGraphDatabase.delete(GraphDatabaseBenchmark.ORIENTDB_PATH);
+		
 		GraphDatabase neo4jGraphDatabase = new Neo4jGraphDatabase();
 		neo4jGraphDatabase.delete(GraphDatabaseBenchmark.NEO4JDB_PATH);
+		
+		GraphDatabase sparkseeGraphDatabase = new SparkseeGraphDatabase();
+		sparkseeGraphDatabase.delete(GraphDatabaseBenchmark.SPARKSEEDB_PATH);
 	}
 	
 	public Method[] filter(Method[] declaredMethods, String endsWith) {
