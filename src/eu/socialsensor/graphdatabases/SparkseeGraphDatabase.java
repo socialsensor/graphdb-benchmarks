@@ -129,8 +129,8 @@ public class SparkseeGraphDatabase implements GraphDatabase {
 
 	@Override
 	public void shorestPathQuery() {
-		// TODO Auto-generated method stub
-		
+		Query sparkseeQuery = new SparkseeQuery(this.session);
+		sparkseeQuery.findShortestPaths();		
 	}
 
 	@Override
