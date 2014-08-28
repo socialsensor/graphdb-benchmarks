@@ -65,7 +65,6 @@ public class MassiveInsertionBenchmark implements Benchmark{
 					permutation.invoke(this, null);
 				} catch (IllegalAccessException | IllegalArgumentException
 						| InvocationTargetException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				
