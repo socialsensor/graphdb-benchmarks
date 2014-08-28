@@ -30,7 +30,7 @@ public class SparkseeQuery implements Query {
 	
 	@Override
 	public void findNeighborsOfAllNodes() {
-		int nodeType = sparkseeGraph.findType("nodeId");
+		int nodeType = sparkseeGraph.findType("node");
 		int edgeType = sparkseeGraph.findType("similar");
 		Objects objects = sparkseeGraph.select(nodeType);
 		ObjectsIterator iter = objects.iterator();
