@@ -27,7 +27,6 @@ import eu.socialsensor.utils.Utils;
  * @author sotbeis
  * @email sotbeis@iti.gr
  */
-
 public class SingleInsertionBenchmark implements Benchmark {
 	
 	public static int SCENARIOS = 24;
