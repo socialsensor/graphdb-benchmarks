@@ -23,6 +23,7 @@ import eu.socialsensor.utils.Utils;
  * @author sotbeis
  * @email sotbeis@iti.gr
  */
+
 public class MassiveInsertionBenchmark implements Benchmark{
 	
 	private static int SCENARIOS = 24;
@@ -151,7 +152,6 @@ public class MassiveInsertionBenchmark implements Benchmark{
 		orientGraphDatabase.delete(GraphDatabaseBenchmark.ORIENTDB_PATH);
 		orientTimes[orientScenarioCount] = orientTime / 1000.0;
 		orientScenarioCount++;
-		System.out.println("Orient " + orientScenarioCount + ": " + orientTime / 1000.0);
 	}
 
 	@SuppressWarnings("unused")
