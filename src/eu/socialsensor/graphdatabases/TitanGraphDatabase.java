@@ -36,6 +36,7 @@ import eu.socialsensor.utils.Utils;
  * @author sotbeis
  * @email sotbeis@iti.gr
  */
+
 public class TitanGraphDatabase implements GraphDatabase{
 	
 	public static final String INSERTION_TIMES_OUTPUT_PATH = "data/titan.insertion.times";

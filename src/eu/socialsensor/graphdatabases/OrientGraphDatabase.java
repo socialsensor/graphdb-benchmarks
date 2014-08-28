@@ -37,7 +37,7 @@ public class OrientGraphDatabase implements GraphDatabase{
 
 	private OrientGraph orientGraph = null;
 	private OrientGraphNoTx orientGraphNoTx = null;
-	private Index<OrientVertex> vetrices = null;
+	private Index<Vertex> vetrices = null;
 	
 	public static void main(String args[]) {
 	}	
@@ -45,7 +45,7 @@ public class OrientGraphDatabase implements GraphDatabase{
 	@Override
 	public void open(String dbPAth) {
 		orientGraph = new OrientGraph("plocal:"+dbPAth);
-		vetrices = orientGraph.getIndex("nodeId", OrientVertex.class);
+		vetrices = orientGraph.getIndex("nodeId", Vertex.class);
 		
 	}
 	
@@ -55,7 +55,7 @@ public class OrientGraphDatabase implements GraphDatabase{
 		orientGraph = orientGraphFactory.getTx();
 		orientGraph.setWarnOnForceClosingTx(false);
 		//maybe use keyIndex for unique ids?
-		vetrices = orientGraph.createIndex("nodeId", OrientVertex.class);
+		vetrices = orientGraph.createIndex("nodeId", Vertex.class);
 		orientGraph.setWarnOnForceClosingTx(false);
 	}
 	
@@ -67,7 +67,7 @@ public class OrientGraphDatabase implements GraphDatabase{
 		OrientGraphFactory orientGraphFactory = new OrientGraphFactory("plocal:"+dbPath);
 	    orientGraphNoTx = orientGraphFactory.getNoTx();
 		//maybe use keyIndex for unique ids?
-	    vetrices = orientGraphNoTx.createIndex("nodeId", OrientVertex.class);
+	    vetrices = orientGraphNoTx.createIndex("nodeId", Vertex.class);
 	}
 	
 	@Override
