@@ -59,7 +59,6 @@ public class FindNeighboursOfAllNodesBenchmark implements Benchmark {
 					permutation.invoke(this, null);
 				} catch (IllegalAccessException | IllegalArgumentException
 						| InvocationTargetException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				
@@ -145,7 +144,6 @@ public class FindNeighboursOfAllNodesBenchmark implements Benchmark {
 		orientGraphDatabase.shutdown();
 		orientTimes[orientScenarioCount] = orientTime / 1000.0;
 		orientScenarioCount++;
-		System.out.println("Orient " + orientScenarioCount + ": " + orientTime );
 	}
 	
 	@SuppressWarnings("unused")
@@ -158,7 +156,6 @@ public class FindNeighboursOfAllNodesBenchmark implements Benchmark {
 		titanGraphDatabase.shutdown();
 		titanTimes[titanScenarioCount] = titanTime / 1000.0;
 		titanScenarioCount++;
-		System.out.println("Titan " + titanScenarioCount + ": " + titanTime );
 	}
 	
 	@SuppressWarnings("unused")
@@ -171,7 +168,6 @@ public class FindNeighboursOfAllNodesBenchmark implements Benchmark {
 		neo4jGraphDatabase.shutdown();
 		neo4jTimes[neo4jScenarioCount] = neo4jTime / 1000.0;
 		neo4jScenarioCount++;
-		System.out.println("Neo4j " + neo4jScenarioCount + ": " + neo4jTime );
 	}
 	
 	@SuppressWarnings("unused")
@@ -184,7 +180,6 @@ public class FindNeighboursOfAllNodesBenchmark implements Benchmark {
 		sparkseeGraphDatabase.shutdown();
 		sparkseeTimes[sparkseeScenarioCount] = sparkseeTime / 1000.0;
 		sparkseeScenarioCount++;
-		System.out.println("Sparksee " + sparkseeScenarioCount + ": " + sparkseeTime);
 	}
 
 }
