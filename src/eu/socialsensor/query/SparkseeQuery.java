@@ -17,7 +17,6 @@ import eu.socialsensor.benchmarks.FindShortestPathBenchmark;
  * @author sotbeis
  * @email sotbeis@iti.gr
  */
-
 public class SparkseeQuery implements Query {
 	
 	private Session session;
