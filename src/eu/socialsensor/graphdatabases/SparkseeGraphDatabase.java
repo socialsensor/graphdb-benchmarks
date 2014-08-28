@@ -27,7 +27,6 @@ import eu.socialsensor.utils.Utils;
  * @author sotbeis
  * @email sotbeis@iti.gr
  */
-
 public class SparkseeGraphDatabase implements GraphDatabase {
 	
 	public static final String INSERTION_TIMES_OUTPUT_PATH = "data/sparksee.insertion.times";
@@ -142,8 +141,8 @@ public class SparkseeGraphDatabase implements GraphDatabase {
 
 	@Override
 	public void nodesOfAllEdgesQuery() {
-		// TODO Auto-generated method stub
-		
+		Query sparkseeQuery = new SparkseeQuery(this.session);
+		sparkseeQuery.findNodesOfAllEdges();
 	}
 
 	@Override
