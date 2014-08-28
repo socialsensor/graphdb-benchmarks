@@ -23,7 +23,6 @@ import eu.socialsensor.utils.Utils;
  * @author sotbeis
  * @email sotbeis@iti.gr
  */
-
 public class FindNeighboursOfAllNodesBenchmark implements Benchmark {
 	
 	private static int SCENARIOS = 24;
