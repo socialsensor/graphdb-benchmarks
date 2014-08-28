@@ -10,6 +10,7 @@ import org.apache.log4j.Logger;
 
 import com.orientechnologies.orient.core.intent.OIntentMassiveInsert;
 import com.tinkerpop.blueprints.Index;
+import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientGraphNoTx;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 
@@ -24,11 +25,11 @@ import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 public class OrientMassiveInsertion implements Insertion {
 	
 	private OrientGraphNoTx orientGraph = null;
-	Index<OrientVertex> vetrices = null;
+	Index<Vertex> vetrices = null;
 	
 	private Logger logger = Logger.getLogger(OrientMassiveInsertion.class);
 	
-	public OrientMassiveInsertion(OrientGraphNoTx orientGraph, Index<OrientVertex> vertices) {
+	public OrientMassiveInsertion(OrientGraphNoTx orientGraph, Index<Vertex> vertices) {
 		this.orientGraph = orientGraph;
 		this.vetrices = vertices;
 	}
@@ -42,8 +43,8 @@ public class OrientMassiveInsertion implements Insertion {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(datasetDir)));
 			String line;
 			int lineCounter = 1;
-			OrientVertex srcVertex, dstVertex;
-			Iterable<OrientVertex> cache;
+			Vertex srcVertex, dstVertex;
+			Iterable<Vertex> cache;
 			while((line = reader.readLine()) != null) {
 				if(lineCounter > 4) {
 					String[] parts = line.split("\t");

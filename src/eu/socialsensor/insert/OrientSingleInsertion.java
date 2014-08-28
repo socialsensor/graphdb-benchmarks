@@ -11,6 +11,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import com.tinkerpop.blueprints.Index;
+import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 
@@ -32,11 +33,11 @@ public class OrientSingleInsertion implements Insertion {
 	private static int count;
 	
 	private OrientGraph orientGraph = null;
-	Index<OrientVertex> vetrices = null;
+	Index<Vertex> vetrices = null;
 	
 	private Logger logger = Logger.getLogger(OrientSingleInsertion.class);
 	
-	public OrientSingleInsertion(OrientGraph orientGraph, Index<OrientVertex> vertices) {
+	public OrientSingleInsertion(OrientGraph orientGraph, Index<Vertex> vertices) {
 		this.orientGraph = orientGraph;
 		this.vetrices = vertices;
 	}
@@ -53,8 +54,8 @@ public class OrientSingleInsertion implements Insertion {
 			String line;
 			int lineCounter = 1;
 			int nodesCounter = 0;
-			OrientVertex srcVertex, dstVertex;
-			Iterable<OrientVertex> cache;
+			Vertex srcVertex, dstVertex;
+			Iterable<Vertex> cache;
 			long start = System.currentTimeMillis();
 			long duration;
 			while((line = reader.readLine()) != null) {
