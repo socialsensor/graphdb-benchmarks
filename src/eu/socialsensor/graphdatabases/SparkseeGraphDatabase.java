@@ -17,7 +17,16 @@ import com.sparsity.sparksee.gdb.SparkseeConfig;
 import eu.socialsensor.insert.Insertion;
 import eu.socialsensor.insert.SparkseeMassiveInsertion;
 import eu.socialsensor.insert.SparkseeSingleInsertion;
+import eu.socialsensor.query.Query;
+import eu.socialsensor.query.SparkseeQuery;
 import eu.socialsensor.utils.Utils;
+
+/**
+ * Sparksee graph database implementation
+ * 
+ * @author sotbeis
+ * @email sotbeis@iti.gr
+ */
 
 public class SparkseeGraphDatabase implements GraphDatabase {
 	
@@ -40,7 +49,6 @@ public class SparkseeGraphDatabase implements GraphDatabase {
 		catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
-		
 	}
 
 	@Override
@@ -128,8 +136,8 @@ public class SparkseeGraphDatabase implements GraphDatabase {
 
 	@Override
 	public void neighborsOfAllNodesQuery() {
-		// TODO Auto-generated method stub
-		
+		Query sparkseeQuery = new SparkseeQuery(this.session);
+		sparkseeQuery.findNeighborsOfAllNodes();
 	}
 
 	@Override
