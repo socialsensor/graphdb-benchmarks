@@ -34,17 +34,6 @@ public class LouvainMethod {
 		
 	}
 	
-//	public void test(GraphDatabase graphDatabase) {
-//				
-//		Utils utils = new Utils();
-//		Map<Integer, List<Integer>> actualCommunities = utils.mapNodesToCommunities("data/community.dat");
-//		Map<Integer, List<Integer>> communities = graphDatabase.mapCommunities(this.N);
-//
-//	    Metrics metrics = new Metrics();
-//	    double nmi = metrics.normalizedMutualInformation(10000, communities, actualCommunities);
-//	    System.out.println(nmi); 
-//	}
-	
 	public LouvainMethod(GraphDatabase graphDatabase, int cacheSize, boolean isRandomized) throws ExecutionException {
 		this.graphDatabase = graphDatabase;
 		this.isRandomized = isRandomized;
