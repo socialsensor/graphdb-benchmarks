@@ -2,7 +2,6 @@ package eu.socialsensor.graphdatabases;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -10,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.collect.Iterators;
 import com.sparsity.sparksee.gdb.AttributeKind;
 import com.sparsity.sparksee.gdb.Condition;
 import com.sparsity.sparksee.gdb.DataType;
@@ -23,13 +21,10 @@ import com.sparsity.sparksee.gdb.Session;
 import com.sparsity.sparksee.gdb.Sparksee;
 import com.sparsity.sparksee.gdb.SparkseeConfig;
 import com.sparsity.sparksee.gdb.Value;
-import com.tinkerpop.blueprints.Vertex;
-import com.tinkerpop.gremlin.java.GremlinPipeline;
 
 import eu.socialsensor.insert.Insertion;
 import eu.socialsensor.insert.SparkseeMassiveInsertion;
 import eu.socialsensor.insert.SparkseeSingleInsertion;
-import eu.socialsensor.main.GraphDatabaseBenchmark;
 import eu.socialsensor.query.Query;
 import eu.socialsensor.query.SparkseeQuery;
 import eu.socialsensor.utils.Utils;
@@ -65,19 +60,7 @@ public class SparkseeGraphDatabase implements GraphDatabase {
 	
 	Value value = new Value();
 	
-	public static void main(String args[]) throws FileNotFoundException {
-		Utils utils = new Utils();
-		utils.deleteDatabases();
-//		utils.createDatabases("./data/enronEdges.txt");
-		
-//		GraphDatabase sparkseeGraphDatabase = new SparkseeGraphDatabase();
-//		sparkseeGraphDatabase.open(GraphDatabaseBenchmark.SPARKSEEDB_PATH);		
-		
-//		PrintWriter writer = new PrintWriter("/home/sotbeis/Desktop/sparksee.txt");
-//		writer.println(sparkseeGraphDatabase.getNodeWeight(15237));
-//		writer.close();
-		
-//		sparkseeGraphDatabase.shutdown();
+	public static void main(String args[]) {
 	}
 	
 	@Override
@@ -99,27 +82,6 @@ public class SparkseeGraphDatabase implements GraphDatabase {
 		catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
-		
-//		Objects nodes = sparkseeGraph.select(nodeType);
-//		ObjectsIterator nodesIter = nodes.iterator();
-//		int communityAttribute = sparkseeGraph.findAttribute(nodeType, "community");
-//		int nodeCommunityAttribute = sparkseeGraph.findAttribute(nodeType, "nodeCommunity");
-//		try {
-//			PrintWriter writer = new PrintWriter("/home/sotbeis/Desktop/sparksee.txt");
-//			while(nodesIter.hasNext()) {
-//				long nodeID = nodesIter.next();
-//				Value userId =  sparkseeGraph.getAttribute(nodeID, nodeAttribute);
-//				Value community = sparkseeGraph.getAttribute(nodeID, communityAttribute);
-//				Value nodeCommunity = sparkseeGraph.getAttribute(nodeID, nodeCommunityAttribute);
-//				writer.println(userId.toString() + "\t" + community.toString() + "\t" + nodeCommunity.toString());
-//			}
-//		} catch (FileNotFoundException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//		nodesIter.close();
-//		nodes.close();
-		
 	}
 
 	@Override
