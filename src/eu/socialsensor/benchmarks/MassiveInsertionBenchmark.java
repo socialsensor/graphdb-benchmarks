@@ -26,7 +26,7 @@ import eu.socialsensor.utils.Utils;
 
 public class MassiveInsertionBenchmark implements Benchmark{
 	
-	private static int SCENARIOS = 1;
+	private static int SCENARIOS = 24;
 	private final String resultFile = "MIWResults.txt";
 	private String datasetDir;
 	
