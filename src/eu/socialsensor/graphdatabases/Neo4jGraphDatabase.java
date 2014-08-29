@@ -47,13 +47,15 @@ import eu.socialsensor.utils.Utils;
  */
 @SuppressWarnings("deprecation")
 public class Neo4jGraphDatabase implements GraphDatabase {
-
+	
 	GraphDatabaseService neo4jGraph = null;
 	private Index<Node> nodeIndex = null;
 	
 	private BatchInserter inserter = null;
 	private BatchInserterIndexProvider indexProvider = null;
 	private BatchInserterIndex nodes = null;
+	
+	private boolean clusteringWorkload = false;
 	
 	public static enum RelTypes implements RelationshipType {
 	    SIMILAR
@@ -435,6 +437,9 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 		}
 		return communities;
 	}
-
 	
+	@Override
+	public void setClusteringWorkload(boolean isClusteringWorkload) {
+		this.clusteringWorkload = isClusteringWorkload;
+	}
 }

@@ -1,6 +1,8 @@
 package eu.socialsensor.graphdatabases;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -26,6 +28,7 @@ import com.tinkerpop.gremlin.java.GremlinPipeline;
 import eu.socialsensor.insert.Insertion;
 import eu.socialsensor.insert.TitanMassiveInsertion;
 import eu.socialsensor.insert.TitanSingleInsertion;
+import eu.socialsensor.main.GraphDatabaseBenchmark;
 import eu.socialsensor.query.Query;
 import eu.socialsensor.query.TitanQuery;
 import eu.socialsensor.utils.Utils;
@@ -41,15 +44,27 @@ public class TitanGraphDatabase implements GraphDatabase{
 	public static final String INSERTION_TIMES_OUTPUT_PATH = "data/titan.insertion.times";
 	public static final String STORAGE_BACKEND = "local";
 	
+	private boolean clusteringWorkload = false;
+	
 	double totalWeight;
 	
 	public TitanGraph titanGraph;
 	public BatchGraph<TitanGraph> batchGraph;
 	
 	
-	public static void main(String args[]) {
-	}
+	public static void main(String args[]) throws FileNotFoundException {
+		GraphDatabase titanGraphDatabase = new TitanGraphDatabase();
+		titanGraphDatabase.open(GraphDatabaseBenchmark.TITANDB_PATH);
 		
+		titanGraphDatabase.initCommunityProperty();
+		
+		PrintWriter writer = new PrintWriter("/home/sotbeis/Desktop/titan.txt");
+		writer.println(titanGraphDatabase.getNodeWeight(15237));
+		writer.close();
+		
+		titanGraphDatabase.shutdown();
+	}
+	
 	@Override
 	public void open(String dbPath) {
 		BaseConfiguration config = new BaseConfiguration();
@@ -162,15 +177,15 @@ public class TitanGraphDatabase implements GraphDatabase{
 	
 	@Override
 	public Set<Integer> getNeighborsIds(int nodeId) {
-		Set<Integer> neighbours = new HashSet<Integer>();
+		Set<Integer> neighbors = new HashSet<Integer>();
 		Vertex vertex = titanGraph.getVertices("nodeId", String.valueOf(nodeId)).iterator().next();
 		GremlinPipeline<String, Vertex> pipe = new GremlinPipeline<String, Vertex>(vertex).out("similar");
 		Iterator<Vertex> iter = pipe.iterator();
 		while(iter.hasNext()) {
 			String neighborId = iter.next().getProperty("nodeId");
-			neighbours.add(Integer.valueOf(neighborId));
+			neighbors.add(Integer.valueOf(neighborId));
 		}
-		return neighbours;
+		return neighbors;
 	}
 	
 	
@@ -199,7 +214,6 @@ public class TitanGraphDatabase implements GraphDatabase{
 			v.setProperty("community", communityCounter);
 			communityCounter++;
 		}
-		
 	}
 
 	@Override
@@ -283,8 +297,7 @@ public class TitanGraphDatabase implements GraphDatabase{
 		Iterable<Vertex> fromIter = titanGraph.getVertices("nodeCommunity", nodeCommunity);
 		for(Vertex vertex : fromIter) {
 			vertex.setProperty("community", toCommunity);
-		}
-		
+		}	
 	}
 
 	@Override
@@ -348,6 +361,9 @@ public class TitanGraphDatabase implements GraphDatabase{
 		}
 		return communities;
 	}
-	
 
+	@Override
+	public void setClusteringWorkload(boolean isClusteringWorkload) {
+		this.clusteringWorkload = isClusteringWorkload;
+	}
 }

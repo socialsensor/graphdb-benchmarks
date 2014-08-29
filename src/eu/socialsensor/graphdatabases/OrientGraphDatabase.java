@@ -39,6 +39,8 @@ public class OrientGraphDatabase implements GraphDatabase{
 	private OrientGraphNoTx orientGraphNoTx = null;
 	private Index<Vertex> vetrices = null;
 	
+	private boolean clusteringWorkload = false;
+	
 	public static void main(String args[]) {
 	}	
 	
@@ -330,6 +332,9 @@ public class OrientGraphDatabase implements GraphDatabase{
 		}
 		return communities;
 	}
-
 	
+	@Override
+	public void setClusteringWorkload(boolean isClusteringWorkload) {
+		this.clusteringWorkload = isClusteringWorkload;
+	}
 }
