@@ -26,7 +26,7 @@ import eu.socialsensor.utils.Utils;
 
 public class MassiveInsertionBenchmark implements Benchmark{
 	
-	private static int SCENARIOS = 24;
+	private static int SCENARIOS = 1;
 	private final String resultFile = "MIWResults.txt";
 	private String datasetDir;
 	
@@ -72,7 +72,7 @@ public class MassiveInsertionBenchmark implements Benchmark{
 		}
 		
 		System.out.println("");
-		logger.info("Single Insertion Benchmark finished");
+		logger.info("Massive Insertion Benchmark finished");
 		
 		double meanOrientTime = utils.calculateMean(orientTimes);
 		double meanTitanTime = utils.calculateMean(titanTimes);
