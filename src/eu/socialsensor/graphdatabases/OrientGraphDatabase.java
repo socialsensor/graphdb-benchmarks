@@ -1,5 +1,23 @@
 package eu.socialsensor.graphdatabases;
 
+import com.google.common.collect.Iterables;
+import com.orientechnologies.common.collection.OMultiCollectionIterator;
+import com.orientechnologies.orient.core.config.OGlobalConfiguration;
+import com.orientechnologies.orient.core.index.OIndex;
+import com.tinkerpop.blueprints.Direction;
+import com.tinkerpop.blueprints.Parameter;
+import com.tinkerpop.blueprints.Vertex;
+import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
+import com.tinkerpop.blueprints.impls.orient.OrientGraphFactory;
+import com.tinkerpop.blueprints.impls.orient.OrientGraphNoTx;
+import com.tinkerpop.blueprints.impls.orient.OrientVertex;
+import eu.socialsensor.insert.Insertion;
+import eu.socialsensor.insert.OrientMassiveInsertion;
+import eu.socialsensor.insert.OrientSingleInsertion;
+import eu.socialsensor.query.OrientQuery;
+import eu.socialsensor.query.Query;
+import eu.socialsensor.utils.Utils;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,186 +27,173 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.collect.Iterables;
-import com.orientechnologies.orient.core.config.OGlobalConfiguration;
-import com.tinkerpop.blueprints.Direction;
-import com.tinkerpop.blueprints.Index;
-import com.tinkerpop.blueprints.Vertex;
-import com.tinkerpop.blueprints.impls.orient.OrientGraph;
-import com.tinkerpop.blueprints.impls.orient.OrientGraphFactory;
-import com.tinkerpop.blueprints.impls.orient.OrientGraphNoTx;
-import com.tinkerpop.blueprints.impls.orient.OrientVertex;
-import com.tinkerpop.gremlin.java.GremlinPipeline;
-
-import eu.socialsensor.insert.Insertion;
-import eu.socialsensor.insert.OrientMassiveInsertion;
-import eu.socialsensor.insert.OrientSingleInsertion;
-import eu.socialsensor.query.OrientQuery;
-import eu.socialsensor.query.Query;
-import eu.socialsensor.utils.Utils;
-
 /**
  * OrientDB graph database implementation
  * 
  * @author sotbeis
  * @email sotbeis@iti.gr
  */
-public class OrientGraphDatabase implements GraphDatabase{
+public class OrientGraphDatabase implements GraphDatabase {
 
-	private OrientGraph orientGraph = null;
-	private OrientGraphNoTx orientGraphNoTx = null;
-	private Index<Vertex> vetrices = null;
-	
-	private boolean clusteringWorkload = false;
-	
-	public static void main(String args[]) {
-	}	
-	
-	@Override
-	public void open(String dbPAth) {
-		orientGraph = new OrientGraph("plocal:"+dbPAth);
-		vetrices = orientGraph.getIndex("nodeId", Vertex.class);
-		
-	}
-	
-	@Override
-	public void createGraphForSingleLoad(String dbPath) {
-		OrientGraphFactory orientGraphFactory = new OrientGraphFactory("plocal:"+dbPath);
-		orientGraph = orientGraphFactory.getTx();
-		orientGraph.setWarnOnForceClosingTx(false);
-		//maybe use keyIndex for unique ids?
-		vetrices = orientGraph.createIndex("nodeId", Vertex.class);
-		orientGraph.setWarnOnForceClosingTx(false);
-	}
-	
-	@Override
-	public void createGraphForMassiveLoad(String dbPath) {
-		OGlobalConfiguration.STORAGE_KEEP_OPEN.setValue(false);
-	    OGlobalConfiguration.TX_USE_LOG.setValue(false);
-	    OGlobalConfiguration.ENVIRONMENT_CONCURRENT.setValue(false);
-		OrientGraphFactory orientGraphFactory = new OrientGraphFactory("plocal:"+dbPath);
-	    orientGraphNoTx = orientGraphFactory.getNoTx();
-		//maybe use keyIndex for unique ids?
-	    vetrices = orientGraphNoTx.createIndex("nodeId", Vertex.class);
-	}
-	
-	@Override
-	public void massiveModeLoading(String dataPath) {
-		Insertion orientMassiveInsertion = new OrientMassiveInsertion(this.orientGraphNoTx, this.vetrices);
-		orientMassiveInsertion.createGraph(dataPath);
-	}
-	
-	@Override
-	public void singleModeLoading(String dataPath) {
-		Insertion orientSingleInsertion = new OrientSingleInsertion(this.orientGraph, this.vetrices);
-		orientSingleInsertion.createGraph(dataPath);
-	}
-	
-	@Override
-	public void shutdown() {
-		if(orientGraph != null) {
-			orientGraph.shutdown();
-			orientGraph = null;
-			vetrices = null;
-		}
-	}
-	
-	@Override
-	public void delete(String dbPath) {
-		orientGraph = new OrientGraph("plocal:"+dbPath);
-		orientGraph.drop();
-		try {
-			Thread.sleep(6000);
-		} 
-		catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		Utils utils = new Utils();
-		utils.deleteRecursively(new File(dbPath));
-	}
-	
-	@Override
-	public void shutdownMassiveGraph() {
-		if(orientGraphNoTx != null) {
-			orientGraphNoTx.shutdown();
-			orientGraphNoTx = null;
-			vetrices = null;
-		}
-	}
-	
-	@Override
-	public void shorestPathQuery() {
-		Query orientQuery = new OrientQuery(this.orientGraph);
-		orientQuery.findShortestPaths();
-		
-	}
+  private OrientBaseGraph graph              = null;
+  private OIndex          vertices           = null;
 
-	@Override
-	public void neighborsOfAllNodesQuery() {
-		Query orientQuery = new OrientQuery(this.orientGraph);
-		orientQuery.findNeighborsOfAllNodes();
-	}
+  private boolean         clusteringWorkload = false;
 
-	@Override
-	public void nodesOfAllEdgesQuery() {
-		Query orientQuery = new OrientQuery(this.orientGraph);
-		orientQuery.findNodesOfAllEdges();
-	}
+  public OrientGraphDatabase() {
+    OGlobalConfiguration.USE_WAL.setValue(false);
+  }
 
-	@Override
-	public int getNodeCount() {
-		return (int)orientGraph.countVertices();
-	}
+  public static void main(String args[]) {
+  }
 
-	@Override
-	public Set<Integer> getNeighborsIds(int nodeId) {
-		Set<Integer> neighbours = new HashSet<Integer>();
-		Vertex vertex = orientGraph.getVertices("nodeId", String.valueOf(nodeId)).iterator().next();
-		GremlinPipeline<String, Vertex> pipe = new GremlinPipeline<String, Vertex>(vertex).in("similar");
-		Iterator<Vertex> iter = pipe.iterator();
-		while(iter.hasNext()) {
-			String neighborId = iter.next().getProperty("nodeId");
-			neighbours.add(Integer.valueOf(neighborId));
-		}
-		return neighbours;
-	}
+  @Override
+  public void open(String dbPath) {
+    graph = getGraph(dbPath);
+  }
 
-	@Override
-	public double getNodeWeight(int nodeId) {
-		Vertex vertex = orientGraph.getVertices("nodeId", String.valueOf(nodeId)).iterator().next();
-		double weight = getNodeOutDegree(vertex);
-		return weight;
-	}
-	
-	public double getNodeInDegree(Vertex vertex) {
-		GremlinPipeline<String, Vertex> pipe = new GremlinPipeline<String, Vertex>(vertex).in("similar");
-		return (double)pipe.count();
-	}
+  @Override
+  public void createGraphForSingleLoad(String dbPath) {
+    graph = getGraph(dbPath);
+    graph.setWarnOnForceClosingTx(true);
+    // maybe use keyIndex for unique ids?
 
-	public double getNodeOutDegree(Vertex vertex) {
-		GremlinPipeline<String, Vertex> pipe = new GremlinPipeline<String, Vertex>(vertex).out("similar");
-		return (double)pipe.count();
-	}
+    graph.createKeyIndex("community", Vertex.class, new Parameter("type", "NOTUNIQUE_HASH_INDEX"), new Parameter("keytype",
+        "INTEGER"));
+    graph.createKeyIndex("nodeCommunity", Vertex.class, new Parameter("type", "NOTUNIQUE_HASH_INDEX"), new Parameter("keytype",
+        "INTEGER"));
 
-	@Override
-	public void initCommunityProperty() {
-		int communityCounter = 0;
-		for(Vertex v: orientGraph.getVertices()) {
-			v.setProperty("nodeCommunity", communityCounter);
-			v.setProperty("community", communityCounter);
-			communityCounter++;
-		}
-	}
+    graph.createKeyIndex("nodeId", Vertex.class, new Parameter("type", "UNIQUE_HASH_INDEX"), new Parameter("keytype", "INTEGER"));
+    vertices = graph.getRawGraph().getMetadata().getIndexManager().getIndex("V.nodeId");
+    graph.setWarnOnForceClosingTx(true);
+  }
 
-	@Override
-	public Set<Integer> getCommunitiesConnectedToNodeCommunities(int nodeCommunities) {
-		Set<Integer> communities = new HashSet<>();
-		Iterable<Vertex> vertices = orientGraph.getVertices("nodeCommunity", nodeCommunities);
+  @Override
+  public void createGraphForMassiveLoad(String dbPath) {
+    OGlobalConfiguration.STORAGE_KEEP_OPEN.setValue(true);
+    OGlobalConfiguration.TX_USE_LOG.setValue(false);
+    OGlobalConfiguration.ENVIRONMENT_CONCURRENT.setValue(false);
+    graph = getGraph(dbPath);
+    // maybe use keyIndex for unique ids?
+    graph.createKeyIndex("community", Vertex.class, new Parameter("type", "NOTUNIQUE_HASH_INDEX"), new Parameter("keytype",
+        "INTEGER"));
+    graph.createKeyIndex("nodeCommunity", Vertex.class, new Parameter("type", "NOTUNIQUE_HASH_INDEX"), new Parameter("keytype",
+        "INTEGER"));
+    graph.createKeyIndex("nodeId", Vertex.class, new Parameter("type", "UNIQUE_HASH_INDEX"), new Parameter("keytype", "INTEGER"));
+    vertices = graph.getRawGraph().getMetadata().getIndexManager().getIndex("V.nodeId");
+  }
+
+  @Override
+  public void massiveModeLoading(String dataPath) {
+    Insertion orientMassiveInsertion = new OrientMassiveInsertion(this.graph, vertices);
+    orientMassiveInsertion.createGraph(dataPath);
+  }
+
+  @Override
+  public void singleModeLoading(String dataPath) {
+    Insertion orientSingleInsertion = new OrientSingleInsertion(this.graph, vertices);
+    orientSingleInsertion.createGraph(dataPath);
+  }
+
+  @Override
+  public void shutdown() {
+    if (graph != null) {
+      graph.shutdown();
+      graph = null;
+    }
+  }
+
+  @Override
+  public void delete(String dbPath) {
+    graph = new OrientGraphNoTx("plocal:" + dbPath);
+    graph.drop();
+    try {
+      Thread.sleep(6000);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+    Utils utils = new Utils();
+    utils.deleteRecursively(new File(dbPath));
+  }
+
+  @Override
+  public void shutdownMassiveGraph() {
+    if (graph != null) {
+      graph.shutdown();
+      graph = null;
+      vertices = null;
+    }
+  }
+
+  @Override
+  public void shorestPathQuery() {
+    Query orientQuery = new OrientQuery(this.graph);
+    orientQuery.findShortestPaths();
+
+  }
+
+  @Override
+  public void neighborsOfAllNodesQuery() {
+    Query orientQuery = new OrientQuery(this.graph);
+    orientQuery.findNeighborsOfAllNodes();
+  }
+
+  @Override
+  public void nodesOfAllEdgesQuery() {
+    Query orientQuery = new OrientQuery(this.graph);
+    orientQuery.findNodesOfAllEdges();
+  }
+
+  @Override
+  public int getNodeCount() {
+    return (int) graph.countVertices();
+  }
+
+  @Override
+  public Set<Integer> getNeighborsIds(int nodeId) {
+    Set<Integer> neighbours = new HashSet<Integer>();
+    Vertex vertex = graph.getVertices("nodeId", nodeId).iterator().next();
+    for (Vertex v : vertex.getVertices(Direction.IN, "similar")) {
+      Integer neighborId = v.getProperty("nodeId");
+      neighbours.add(neighborId);
+    }
+    return neighbours;
+  }
+
+  @Override
+  public double getNodeWeight(int nodeId) {
+    Vertex vertex = graph.getVertices("nodeId", nodeId).iterator().next();
+    double weight = getNodeOutDegree(vertex);
+    return weight;
+  }
+
+  public double getNodeInDegree(Vertex vertex) {
+    OMultiCollectionIterator result = (OMultiCollectionIterator) vertex.getVertices(Direction.IN, "similar");
+    return (double) result.size();
+  }
+
+  public double getNodeOutDegree(Vertex vertex) {
+    OMultiCollectionIterator result = (OMultiCollectionIterator) vertex.getVertices(Direction.OUT, "similar");
+    return (double) result.size();
+  }
+
+  @Override
+  public void initCommunityProperty() {
+    int communityCounter = 0;
+    for (Vertex v : graph.getVertices()) {
+      ((OrientVertex) v).setProperties("nodeCommunity", communityCounter, "community", communityCounter);
+      ((OrientVertex) v).save();
+      communityCounter++;
+    }
+  }
+
+  @Override
+	public Set<Integer> getCommunitiesConnectedToNodeCommunities( int nodeCommunities) {
+     Set<Integer> communities = new HashSet<>();
+     Iterable<Vertex> vertices = graph.getVertices("nodeCommunity", nodeCommunities);
 		for(Vertex vertex : vertices) {
-			GremlinPipeline<String, Vertex> pipe = new GremlinPipeline<String, Vertex>(vertex).out("similar");
-			Iterator<Vertex> iter = pipe.iterator();
-			while(iter.hasNext()) {
-				int community = iter.next().getProperty("community");
+      for( Vertex v : vertex.getVertices(Direction.OUT, "similar")) {
+				int community = v.getProperty("community");
 				if(!communities.contains(community)) {
 					communities.add(community);
 				}
@@ -197,144 +202,151 @@ public class OrientGraphDatabase implements GraphDatabase{
 		return communities;
 	}
 
-	@Override
-	public Set<Integer> getNodesFromCommunity(int community) {
-		Set<Integer> nodes = new HashSet<Integer>();
-		Iterable<Vertex> iter = orientGraph.getVertices("community", community);
-		for(Vertex v : iter) {
-			String nodeIdString = v.getProperty("nodeId");
-			nodes.add(Integer.valueOf(nodeIdString));
-		}
-		return nodes;
-	}
-	
-	@Override
-	public Set<Integer> getNodesFromNodeCommunity(int nodeCommunity) {
-		Set<Integer> nodes = new HashSet<Integer>();
-		Iterable<Vertex> iter = orientGraph.getVertices("nodeCommunity", nodeCommunity);
-		for(Vertex v : iter) {
-			String nodeIdString = v.getProperty("nodeId");
-			nodes.add(Integer.valueOf(nodeIdString));
-		}
-		return nodes;
-	}
-	
-	@Override
-	public double getEdgesInsideCommunity(int vertexCommunity, int communityVertices) {
-		double edges = 0;
-		Iterable<Vertex> vertices = orientGraph.getVertices("nodeCommunity", vertexCommunity);
-		Iterable<Vertex> comVertices = orientGraph.getVertices("community", orientGraph);
-		for(Vertex vertex : vertices) {
-			GremlinPipeline<String, Vertex> pipe = new GremlinPipeline<String, Vertex>(vertex).out("similar");
-			Iterator<Vertex> iter = pipe.iterator();
-			while(iter.hasNext()) {
-				if(Iterables.contains(comVertices, iter.next())){
-					edges++;
-				}
-			}
-		}
-		return edges;
-	}
-	
-	@Override
-	public double getCommunityWeight(int community) {
-		double communityWeight = 0;
-		Iterable<Vertex> iter = orientGraph.getVertices("community", community);
-		if(Iterables.size(iter) > 1) {
-			for(Vertex vertex : iter) {
-				communityWeight += getNodeOutDegree(vertex);
-			}
-		}
-		return communityWeight;
-	}
-	
-	@Override
-	public double getNodeCommunityWeight(int nodeCommunity) {
-		double nodeCommunityWeight = 0;
-		Iterable<Vertex> iter = orientGraph.getVertices("nodeCommunity", nodeCommunity);
-			for(Vertex vertex : iter) {
-				nodeCommunityWeight += getNodeOutDegree(vertex);
-			}
-		return nodeCommunityWeight;
-	}
-	
-	@Override
-	public void moveNode(int nodeCommunity, int toCommunity) {
-		Iterable<Vertex> fromIter = orientGraph.getVertices("nodeCommunity", nodeCommunity);
-		for(Vertex vertex : fromIter) {
-			vertex.setProperty("community", toCommunity);
-		}
-	}
-		
-	@Override
-	public double getGraphWeightSum() {
-		long edges = 0;
-		for(Vertex o : orientGraph.getVertices()) {
-			edges += ((OrientVertex)o).countEdges(Direction.OUT, "similar");
-		}
-		return (double)edges;
-	}
-		
-	@Override
-	public int reInitializeCommunities() {
-		Map<Integer, Integer> initCommunities = new HashMap<Integer, Integer>();
-		int communityCounter = 0;
-		for(Vertex v : orientGraph.getVertices()) {
-			int communityId = v.getProperty("community");
-			if(!initCommunities.containsKey(communityId)) {
-				initCommunities.put(communityId, communityCounter);
-				communityCounter++;
-			}
-			int newCommunityId = initCommunities.get(communityId);
-			v.setProperty("community", newCommunityId);
-			v.setProperty("nodeCommunity", newCommunityId);
-		}
-		return communityCounter;
-	}
-	
-	@Override
-	public int getCommunity(int nodeCommunity) {
-		Vertex vertex = orientGraph.getVertices("nodeCommunity", nodeCommunity).iterator().next();
-		int community = vertex.getProperty("community");
-		return community;
-	}
-	
-	@Override
-	public int getCommunityFromNode(int nodeId) {
-		Vertex vertex = orientGraph.getVertices("nodeId", String.valueOf(nodeId)).iterator().next();
-		return vertex.getProperty("community");
-	}
-	
-	@Override
-	public int getCommunitySize(int community) {
-		Iterable<Vertex> vertices = orientGraph.getVertices("community", community);
-		Set<Integer> nodeCommunities = new HashSet<Integer>();
-		for(Vertex v : vertices) {
-			int nodeCommunity = v.getProperty("nodeCommunity");
-			if(!nodeCommunities.contains(nodeCommunity)) {
-				nodeCommunities.add(nodeCommunity);
-			}
-		}
-		return nodeCommunities.size();
-	}
-		
-	@Override
-	public Map<Integer, List<Integer>> mapCommunities(int numberOfCommunities) {
-		Map<Integer, List<Integer>> communities = new HashMap<Integer, List<Integer>>();
-		for(int i = 0; i < numberOfCommunities; i++) {
-			Iterator<Vertex> verticesIter = orientGraph.getVertices("community", i).iterator();
-			List<Integer> vertices = new ArrayList<Integer>();
-			while(verticesIter.hasNext()) {
-				String nodeIdString = verticesIter.next().getProperty("nodeId");
-				vertices.add(Integer.valueOf(nodeIdString));
-			}
-			communities.put(i, vertices);
-		}
-		return communities;
-	}
-	
-	@Override
-	public void setClusteringWorkload(boolean isClusteringWorkload) {
-		this.clusteringWorkload = isClusteringWorkload;
-	}
+  @Override
+  public Set<Integer> getNodesFromCommunity(int community) {
+    Set<Integer> nodes = new HashSet<Integer>();
+    Iterable<Vertex> iter = graph.getVertices("community", community);
+    for (Vertex v : iter) {
+      Integer nodeId = v.getProperty("nodeId");
+      nodes.add(nodeId);
+    }
+    return nodes;
+  }
+
+  @Override
+  public Set<Integer> getNodesFromNodeCommunity(int nodeCommunity) {
+    Set<Integer> nodes = new HashSet<Integer>();
+    Iterable<Vertex> iter = graph.getVertices("nodeCommunity", nodeCommunity);
+    for (Vertex v : iter) {
+      Integer nodeId = v.getProperty("nodeId");
+      nodes.add(nodeId);
+    }
+    return nodes;
+  }
+
+  @Override
+  public double getEdgesInsideCommunity(int vertexCommunity, int communityVertices) {
+    double edges = 0;
+    Iterable<Vertex> vertices = graph.getVertices("nodeCommunity", vertexCommunity);
+    Iterable<Vertex> comVertices = graph.getVertices("community", communityVertices);
+    for (Vertex vertex : vertices) {
+      for (Vertex v : vertex.getVertices(Direction.OUT, "similar")) {
+        if (Iterables.contains(comVertices, v)) {
+          edges++;
+        }
+      }
+    }
+    return edges;
+  }
+
+  @Override
+  public double getCommunityWeight(int community) {
+    double communityWeight = 0;
+    Iterable<Vertex> iter = graph.getVertices("community", community);
+    if (Iterables.size(iter) > 1) {
+      for (Vertex vertex : iter) {
+        communityWeight += getNodeOutDegree(vertex);
+      }
+    }
+    return communityWeight;
+  }
+
+  @Override
+  public double getNodeCommunityWeight(int nodeCommunity) {
+    double nodeCommunityWeight = 0;
+    Iterable<Vertex> iter = graph.getVertices("nodeCommunity", nodeCommunity);
+    for (Vertex vertex : iter) {
+      nodeCommunityWeight += getNodeOutDegree(vertex);
+    }
+    return nodeCommunityWeight;
+  }
+
+  @Override
+  public void moveNode(int nodeCommunity, int toCommunity) {
+    Iterable<Vertex> fromIter = graph.getVertices("nodeCommunity", nodeCommunity);
+    for (Vertex vertex : fromIter) {
+      vertex.setProperty("community", toCommunity);
+    }
+  }
+
+  @Override
+  public double getGraphWeightSum() {
+    long edges = 0;
+    for (Vertex o : graph.getVertices()) {
+      edges += ((OrientVertex) o).countEdges(Direction.OUT, "similar");
+    }
+    return (double) edges;
+  }
+
+  @Override
+  public int reInitializeCommunities() {
+    Map<Integer, Integer> initCommunities = new HashMap<Integer, Integer>();
+    int communityCounter = 0;
+    for (Vertex v : graph.getVertices()) {
+      int communityId = v.getProperty("community");
+      if (!initCommunities.containsKey(communityId)) {
+        initCommunities.put(communityId, communityCounter);
+        communityCounter++;
+      }
+      int newCommunityId = initCommunities.get(communityId);
+      ((OrientVertex) v).setProperties("community", newCommunityId, "nodeCommunity", newCommunityId);
+      ((OrientVertex) v).save();
+    }
+    return communityCounter;
+  }
+
+  @Override
+  public int getCommunity(int nodeCommunity) {
+    final Iterator<Vertex> result = graph.getVertices("nodeCommunity", nodeCommunity).iterator();
+    if (!result.hasNext())
+      throw new IllegalArgumentException("node community not found: " + nodeCommunity);
+
+    Vertex vertex = result.next();
+    int community = vertex.getProperty("community");
+    return community;
+  }
+
+  @Override
+  public int getCommunityFromNode(int nodeId) {
+    Vertex vertex = graph.getVertices("nodeId", nodeId).iterator().next();
+    return vertex.getProperty("community");
+  }
+
+  @Override
+  public int getCommunitySize(int community) {
+    Iterable<Vertex> vertices = graph.getVertices("community", community);
+    Set<Integer> nodeCommunities = new HashSet<Integer>();
+    for (Vertex v : vertices) {
+      int nodeCommunity = v.getProperty("nodeCommunity");
+      if (!nodeCommunities.contains(nodeCommunity)) {
+        nodeCommunities.add(nodeCommunity);
+      }
+    }
+    return nodeCommunities.size();
+  }
+
+  @Override
+  public Map<Integer, List<Integer>> mapCommunities(int numberOfCommunities) {
+    Map<Integer, List<Integer>> communities = new HashMap<Integer, List<Integer>>();
+    for (int i = 0; i < numberOfCommunities; i++) {
+      Iterator<Vertex> verticesIter = graph.getVertices("community", i).iterator();
+      List<Integer> vertices = new ArrayList<Integer>();
+      while (verticesIter.hasNext()) {
+        Integer nodeId = verticesIter.next().getProperty("nodeId");
+        vertices.add(nodeId);
+      }
+      communities.put(i, vertices);
+    }
+    return communities;
+  }
+
+  @Override
+  public void setClusteringWorkload(boolean isClusteringWorkload) {
+    this.clusteringWorkload = isClusteringWorkload;
+  }
+
+  private OrientBaseGraph getGraph(String dbPath) {
+    OrientGraphFactory graphFactory = new OrientGraphFactory("plocal:" + dbPath);
+    return graphFactory.getNoTx();
+  }
 }

@@ -1,31 +1,33 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>eu.socialsensor</groupId>
-  <artifactId>graphdb-benchmarks</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
-  <name>graphdb-benchmarks</name>
-  <url>https://github.com/socialsensor/graphdb-benchmarks</url>
-  <description>Performance benchmark between popular graph databases.</description>
-  <organization>
-  	<name>SocialSensor</name>
-  	<url>http://www.socialsensor.eu/</url>
-  </organization>
-  <developers>
+<?xml version="1.0" encoding="utf-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>eu.socialsensor</groupId>
+    <artifactId>graphdb-benchmarks</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>graphdb-benchmarks</name>
+    <url>https://github.com/socialsensor/graphdb-benchmarks</url>
+    <description>Performance benchmark between popular graph databases.</description>
+    <organization>
+        <name>SocialSensor</name>
+        <url>http://www.socialsensor.eu/</url>
+    </organization>
+    <developers>
         <developer>
             <id>sarovios</id>
             <name>Sotiris Beis</name>
             <email>sotbeis@iti.gr</email>
         </developer>
     </developers>
-  <licenses>
+    <licenses>
         <license>
             <name>The Apache Software License, Version 2.0</name>
             <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-                <distribution>repo</distribution>
-                  </license>
-  </licenses>
-  <!-- required to include Tinkerpop SNAPSHOT dependencies -->
-  <repositories>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <!-- required to include Tinkerpop SNAPSHOT dependencies -->
+    <repositories>
         <repository>
             <id>sonatype-nexus-snapshots</id>
             <name>Sonatype Nexus Snapshots</name>
@@ -38,198 +40,199 @@
             </snapshots>
         </repository>
     </repositories>
-  <properties>
-  	<blueprints.version>2.5.0-SNAPSHOT</blueprints.version>
-  </properties>
-  <dependencies>
-  	<dependency>
-  		<groupId>colt</groupId>
-  		<artifactId>colt</artifactId>
-  		<version>1.2.0</version>
-  	</dependency>
-  	<dependency>
-  		<groupId>commons-codec</groupId>
-  		<artifactId>commons-codec</artifactId>
-  		<version>1.7</version>
-  	</dependency>
-  	<dependency>
-  		<groupId>commons-collections</groupId>
-  		<artifactId>commons-collections</artifactId>
-  		<version>3.2.1</version>
-  	</dependency>
-  	<dependency>
-  		<groupId>commons-configuration</groupId>
-  		<artifactId>commons-configuration</artifactId>
-  		<version>1.6</version>
-  	</dependency>
-  	<dependency>
-  		<groupId>commons-lang</groupId>
-  		<artifactId>commons-lang</artifactId>
-  		<version>2.5</version>
-  	</dependency>
-  	<dependency>
-  		<groupId>commons-logging</groupId>
-  		<artifactId>commons-logging</artifactId>
-  		<version>1.1.1</version>
-  	</dependency>
-  	<dependency>
-  		<groupId>org.apache.geronimo.specs</groupId>
-  		<artifactId>geronimo-jta_1.1_spec</artifactId>
-  		<version>1.1.1</version>
-  	</dependency>
-	<dependency>
-  		<groupId>com.tinkerpop.gremlin</groupId>
-  		<artifactId>gremlin-groovy</artifactId>
-  		<version>${blueprints.version}</version>
-  	</dependency>
-	<dependency>
-    	<groupId>com.tinkerpop.gremlin</groupId>
-		<artifactId>gremlin-java</artifactId>
-        <version>${blueprints.version}</version>
-	</dependency>   	
-	<dependency>
-  		<groupId>com.google.guava</groupId>
-  		<artifactId>guava</artifactId>
-  		<version>14.0.1</version>
-  	</dependency>
-  	<dependency>
-  		<groupId>com.github.stephenc.high-scale-lib</groupId>
-  		<artifactId>high-scale-lib</artifactId>
-  		<version>1.1.2</version>
-  	</dependency>
-  	<dependency>
-  		<groupId>com.carrotsearch</groupId>
-  		<artifactId>hppc</artifactId>
-  		<version>0.4.2</version>
-  	</dependency>
-  	<dependency>
-  		<groupId>com.sleepycat</groupId>
-  		<artifactId>je</artifactId>
-  		<version>5.0.73</version>
-  	</dependency>
-  	<dependency>
-  		<groupId>net.java.dev.jna</groupId>
-  		<artifactId>jna</artifactId>
-  		<version>4.0.0</version>
-  	</dependency>
-  	<dependency>
-  		<groupId>com.esotericsoftware.kryo</groupId>
-  		<artifactId>kryo</artifactId>
-  		<version>2.21</version>
-  		<classifier>shaded</classifier>
-  	</dependency>
-  	<dependency>
-  		<groupId>log4j</groupId>
-  		<artifactId>log4j</artifactId>
-  		<version>1.2.16</version>
-  	</dependency>
-  	<dependency>
-  		<groupId>org.apache.lucene</groupId>
-  		<artifactId>lucene-core</artifactId>
-  		<version>3.6.2</version>
-  	</dependency>
-<!--   	<dependency> -->
-<!--   		<groupId>org.neo4j</groupId> -->
-<!--   		<artifactId>neo4j-graph-algo</artifactId> -->
-<!--   		<version>2.1.0-M01</version> -->
-<!--   	</dependency> -->
-<!--   	<dependency> -->
-<!--   		<groupId>org.neo4j</groupId> -->
-<!--   		<artifactId>neo4j-kernel</artifactId> -->
-<!--   		<version>2.1.0-M01</version> -->
-<!--   	</dependency> -->
-<!--   	<dependency> -->
-<!--   		<groupId>org.neo4j</groupId> -->
-<!--   		<artifactId>neo4j-lucene-index</artifactId> -->
-<!--   		<version>2.1.0-M01</version> -->
-<!--   	</dependency> -->
-	<dependency>
-    	<groupId>org.neo4j</groupId>
-    	<artifactId>neo4j</artifactId>
-    <version>2.0.1</version>
-	</dependency>
-  	<dependency>
-  		<groupId>com.orientechnologies</groupId>
-  		<artifactId>orient-commons</artifactId>
-  		<version>1.7</version>
-  	</dependency>
-  	<dependency>
-  		<groupId>com.orientechnologies</groupId>
-  		<artifactId>orientdb-core</artifactId>
-  		<version>1.7</version>
-  	</dependency>
-  	<dependency>
-  		<groupId>com.orientechnologies</groupId>
-  		<artifactId>orientdb-graphdb</artifactId>
-  		<version>1.7</version>
-  	</dependency>
-  	<dependency>
-  		<groupId>com.orientechnologies</groupId>
-  		<artifactId>orientdb-nativeos</artifactId>
-  		<version>1.7</version>
-  	</dependency>
-  	<dependency>
-  		<groupId>com.tinkerpop</groupId>
-  		<artifactId>pipes</artifactId>
-  		<version>${blueprints.version}</version>
-  	</dependency>
-  	<dependency>
-  		<groupId>org.slf4j</groupId>
-  		<artifactId>slf4j-api</artifactId>
-  		<version>1.7.5</version>
-  	</dependency>
-  	<dependency>
-  		<groupId>org.slf4j</groupId>
-  		<artifactId>slf4j-log4j12</artifactId>
-  		<version>1.7.5</version>
-  	</dependency>
-  	<dependency>
-  		<groupId>org.iq80.snappy</groupId>
-  		<artifactId>snappy</artifactId>
-  		<version>0.3</version>
-  	</dependency>
-  	<dependency>
-  		<groupId>com.spatial4j</groupId>
-  		<artifactId>spatial4j</artifactId>
-  		<version>0.3</version>
-  	</dependency>
-  	<dependency>
-  		<groupId>com.thinkaurelius.titan</groupId>
-  		<artifactId>titan-berkeleyje</artifactId>
-  		<version>0.4.1</version>
-  	</dependency>
-  	<dependency>
-  		<groupId>com.thinkaurelius.titan</groupId>
-  		<artifactId>titan-core</artifactId>
-  		<version>0.4.1</version>
-  	</dependency>
-  	<dependency>
-  		<groupId>org.apache.commons</groupId>
-  		<artifactId>commons-lang3</artifactId>
-  		<version>3.1</version>
-  	</dependency>
-<!--   	<dependency> -->
-<!--   		<groupId>org.neo4j</groupId> -->
-<!--   		<artifactId>neo4j-cypher</artifactId> -->
-<!--   		<version>2.1.0-M01</version> -->
-<!--   	</dependency> -->
-	<dependency>
-		<groupId>com.sparsity</groupId>
-		<artifactId>sparkseejava</artifactId>
-		<version>5.0.0</version>
-	</dependency>
-  </dependencies>
-  <build>
-    <sourceDirectory>src</sourceDirectory>
-    <plugins>
-      <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.1</version>
-        <configuration>
-          <source>1.7</source>
-          <target>1.7</target>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
+    <properties>
+        <blueprints.version>2.5.0-SNAPSHOT</blueprints.version>
+        <orientdb.version>1.7.8</orientdb.version>
+    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>colt</groupId>
+            <artifactId>colt</artifactId>
+            <version>1.2.0</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.7</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-collections</groupId>
+            <artifactId>commons-collections</artifactId>
+            <version>3.2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-configuration</groupId>
+            <artifactId>commons-configuration</artifactId>
+            <version>1.6</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>2.5</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+            <version>1.1.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.geronimo.specs</groupId>
+            <artifactId>geronimo-jta_1.1_spec</artifactId>
+            <version>1.1.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.tinkerpop.gremlin</groupId>
+            <artifactId>gremlin-groovy</artifactId>
+            <version>${blueprints.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.tinkerpop.gremlin</groupId>
+            <artifactId>gremlin-java</artifactId>
+            <version>${blueprints.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>14.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.stephenc.high-scale-lib</groupId>
+            <artifactId>high-scale-lib</artifactId>
+            <version>1.1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.carrotsearch</groupId>
+            <artifactId>hppc</artifactId>
+            <version>0.4.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sleepycat</groupId>
+            <artifactId>je</artifactId>
+            <version>5.0.73</version>
+        </dependency>
+        <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna</artifactId>
+            <version>4.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.esotericsoftware.kryo</groupId>
+            <artifactId>kryo</artifactId>
+            <version>2.21</version>
+            <classifier>shaded</classifier>
+        </dependency>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.16</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-core</artifactId>
+            <version>3.6.2</version>
+        </dependency>
+        <!--    <dependency> -->
+        <!--      <groupId>org.neo4j</groupId> -->
+        <!--      <artifactId>neo4j-graph-algo</artifactId> -->
+        <!--      <version>2.1.0-M01</version> -->
+        <!--    </dependency> -->
+        <!--    <dependency> -->
+        <!--      <groupId>org.neo4j</groupId> -->
+        <!--      <artifactId>neo4j-kernel</artifactId> -->
+        <!--      <version>2.1.0-M01</version> -->
+        <!--    </dependency> -->
+        <!--    <dependency> -->
+        <!--      <groupId>org.neo4j</groupId> -->
+        <!--      <artifactId>neo4j-lucene-index</artifactId> -->
+        <!--      <version>2.1.0-M01</version> -->
+        <!--    </dependency> -->
+        <dependency>
+            <groupId>org.neo4j</groupId>
+            <artifactId>neo4j</artifactId>
+            <version>2.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.orientechnologies</groupId>
+            <artifactId>orient-commons</artifactId>
+            <version>${orientdb.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.orientechnologies</groupId>
+            <artifactId>orientdb-core</artifactId>
+            <version>${orientdb.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.orientechnologies</groupId>
+            <artifactId>orientdb-graphdb</artifactId>
+            <version>${orientdb.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.orientechnologies</groupId>
+            <artifactId>orientdb-nativeos</artifactId>
+            <version>${orientdb.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.tinkerpop</groupId>
+            <artifactId>pipes</artifactId>
+            <version>${blueprints.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.7.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.iq80.snappy</groupId>
+            <artifactId>snappy</artifactId>
+            <version>0.3</version>
+        </dependency>
+        <dependency>
+            <groupId>com.spatial4j</groupId>
+            <artifactId>spatial4j</artifactId>
+            <version>0.3</version>
+        </dependency>
+        <dependency>
+            <groupId>com.thinkaurelius.titan</groupId>
+            <artifactId>titan-berkeleyje</artifactId>
+            <version>0.4.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.thinkaurelius.titan</groupId>
+            <artifactId>titan-core</artifactId>
+            <version>0.4.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.1</version>
+        </dependency>
+        <!--    <dependency> -->
+        <!--      <groupId>org.neo4j</groupId> -->
+        <!--      <artifactId>neo4j-cypher</artifactId> -->
+        <!--      <version>2.1.0-M01</version> -->
+        <!--    </dependency> -->
+        <dependency>
+            <groupId>com.sparsity</groupId>
+            <artifactId>sparkseejava</artifactId>
+            <version>5.0.0</version>
+        </dependency>
+    </dependencies>
+    <build>
+        <sourceDirectory>src</sourceDirectory>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.1</version>
+                <configuration>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
