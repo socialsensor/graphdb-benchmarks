@@ -147,6 +147,10 @@ public class MassiveInsertionBenchmark implements Benchmark{
 		long start = System.currentTimeMillis();
 		orientGraphDatabase.massiveModeLoading(datasetDir);
 		long orientTime = System.currentTimeMillis() - start;
+		
+		System.out.println(orientGraphDatabase.getNodeCount());
+		System.out.println(orientGraphDatabase.getGraphWeightSum());
+		
 		orientGraphDatabase.shutdownMassiveGraph();
 		orientGraphDatabase.delete(GraphDatabaseBenchmark.ORIENTDB_PATH);
 		orientTimes[orientScenarioCount] = orientTime / 1000.0;
