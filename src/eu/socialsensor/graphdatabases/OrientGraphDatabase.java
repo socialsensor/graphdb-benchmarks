@@ -3,14 +3,17 @@ package eu.socialsensor.graphdatabases;
 import com.google.common.collect.Iterables;
 import com.orientechnologies.common.collection.OMultiCollectionIterator;
 import com.orientechnologies.orient.core.config.OGlobalConfiguration;
-import com.orientechnologies.orient.core.index.OIndex;
+import com.orientechnologies.orient.core.intent.OIntentMassiveInsert;
+import com.orientechnologies.orient.core.metadata.schema.OType;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Parameter;
 import com.tinkerpop.blueprints.Vertex;
-import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
-import com.tinkerpop.blueprints.impls.orient.OrientGraphFactory;
+import com.tinkerpop.blueprints.impls.orient.OrientEdgeType;
+import com.tinkerpop.blueprints.impls.orient.OrientExtendedGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientGraphNoTx;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
+import com.tinkerpop.blueprints.impls.orient.OrientVertexType;
+import com.tinkerpop.blueprints.impls.orient.asynch.OrientGraphAsynch;
 import eu.socialsensor.insert.Insertion;
 import eu.socialsensor.insert.OrientMassiveInsertion;
 import eu.socialsensor.insert.OrientSingleInsertion;
@@ -35,13 +38,12 @@ import java.util.Set;
  */
 public class OrientGraphDatabase implements GraphDatabase {
 
-  private OrientBaseGraph graph              = null;
-  private OIndex          vertices           = null;
-
-  private boolean         clusteringWorkload = false;
+  private OrientExtendedGraph graph              = null;
+  private boolean             clusteringWorkload = false;
 
   public OrientGraphDatabase() {
-    OGlobalConfiguration.USE_WAL.setValue(false);
+    OGlobalConfiguration.STORAGE_COMPRESSION_METHOD.setValue("nothing");
+    // OGlobalConfiguration.RID_BAG_EMBEDDED_TO_SBTREEBONSAI_THRESHOLD.setValue(20);
   }
 
   public static void main(String args[]) {
@@ -54,44 +56,35 @@ public class OrientGraphDatabase implements GraphDatabase {
 
   @Override
   public void createGraphForSingleLoad(String dbPath) {
+    OGlobalConfiguration.STORAGE_KEEP_OPEN.setValue(false);
     graph = getGraph(dbPath);
-    graph.setWarnOnForceClosingTx(true);
-    // maybe use keyIndex for unique ids?
-
-    graph.createKeyIndex("community", Vertex.class, new Parameter("type", "NOTUNIQUE_HASH_INDEX"), new Parameter("keytype",
-        "INTEGER"));
-    graph.createKeyIndex("nodeCommunity", Vertex.class, new Parameter("type", "NOTUNIQUE_HASH_INDEX"), new Parameter("keytype",
-        "INTEGER"));
-
-    graph.createKeyIndex("nodeId", Vertex.class, new Parameter("type", "UNIQUE_HASH_INDEX"), new Parameter("keytype", "INTEGER"));
-    vertices = graph.getRawGraph().getMetadata().getIndexManager().getIndex("V.nodeId");
-    graph.setWarnOnForceClosingTx(true);
+    try {
+      createSchema();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 
   @Override
   public void createGraphForMassiveLoad(String dbPath) {
-    OGlobalConfiguration.STORAGE_KEEP_OPEN.setValue(true);
-    OGlobalConfiguration.TX_USE_LOG.setValue(false);
-    OGlobalConfiguration.ENVIRONMENT_CONCURRENT.setValue(false);
+    OGlobalConfiguration.STORAGE_KEEP_OPEN.setValue(false);
     graph = getGraph(dbPath);
-    // maybe use keyIndex for unique ids?
-    graph.createKeyIndex("community", Vertex.class, new Parameter("type", "NOTUNIQUE_HASH_INDEX"), new Parameter("keytype",
-        "INTEGER"));
-    graph.createKeyIndex("nodeCommunity", Vertex.class, new Parameter("type", "NOTUNIQUE_HASH_INDEX"), new Parameter("keytype",
-        "INTEGER"));
-    graph.createKeyIndex("nodeId", Vertex.class, new Parameter("type", "UNIQUE_HASH_INDEX"), new Parameter("keytype", "INTEGER"));
-    vertices = graph.getRawGraph().getMetadata().getIndexManager().getIndex("V.nodeId");
+    try {
+      createSchema();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 
   @Override
   public void massiveModeLoading(String dataPath) {
-    Insertion orientMassiveInsertion = new OrientMassiveInsertion(this.graph, vertices);
+    Insertion orientMassiveInsertion = new OrientMassiveInsertion(this.graph);
     orientMassiveInsertion.createGraph(dataPath);
   }
 
   @Override
   public void singleModeLoading(String dataPath) {
-    Insertion orientSingleInsertion = new OrientSingleInsertion(this.graph, vertices);
+    Insertion orientSingleInsertion = new OrientSingleInsertion(this.graph);
     orientSingleInsertion.createGraph(dataPath);
   }
 
@@ -105,13 +98,15 @@ public class OrientGraphDatabase implements GraphDatabase {
 
   @Override
   public void delete(String dbPath) {
-    graph = new OrientGraphNoTx("plocal:" + dbPath);
-    graph.drop();
+    OrientGraphNoTx g = new OrientGraphNoTx("plocal:" + dbPath);
+    g.drop();
+
     try {
       Thread.sleep(6000);
     } catch (InterruptedException e) {
       e.printStackTrace();
     }
+
     Utils utils = new Utils();
     utils.deleteRecursively(new File(dbPath));
   }
@@ -121,7 +116,6 @@ public class OrientGraphDatabase implements GraphDatabase {
     if (graph != null) {
       graph.shutdown();
       graph = null;
-      vertices = null;
     }
   }
 
@@ -345,8 +339,39 @@ public class OrientGraphDatabase implements GraphDatabase {
     this.clusteringWorkload = isClusteringWorkload;
   }
 
-  private OrientBaseGraph getGraph(String dbPath) {
-    OrientGraphFactory graphFactory = new OrientGraphFactory("plocal:" + dbPath);
-    return graphFactory.getNoTx();
+  protected void createSchema() {
+    OrientVertexType v = graph.getVertexBaseType();
+    v.createProperty("nodeId", OType.INTEGER);
+    // v.createEdgeProperty(Direction.OUT, "similar", OType.LINKBAG);
+    // v.createEdgeProperty(Direction.IN, "similar", OType.LINKBAG);
+
+    OrientEdgeType similar = graph.createEdgeType("similar");
+    // similar.createProperty("out", OType.LINK, v);
+    // similar.createProperty("in", OType.LINK, v);
+
+    if (clusteringWorkload) {
+//      graph.createKeyIndex("community", Vertex.class, new Parameter("type", "NOTUNIQUE_HASH_INDEX"), new Parameter("keytype",
+//          "INTEGER"));
+//      graph.createKeyIndex("nodeCommunity", Vertex.class, new Parameter("type", "NOTUNIQUE_HASH_INDEX"), new Parameter("keytype",
+//          "INTEGER"));
+    }
+    graph.createKeyIndex("nodeId", Vertex.class, new Parameter("type", "UNIQUE_HASH_INDEX"), new Parameter("keytype", "INTEGER"));
+  }
+
+  private OrientExtendedGraph getGraph(final String dbPath) {
+    // return new OrientBatchGraph(new OrientGraph("plocal:" + dbPath), VertexIDType.NUMBER, 10000);
+
+    // final OrientGraph g = new OrientGraph("plocal:" + dbPath);
+    // g.setUseLog(false);
+    // g.declareIntent(new OIntentMassiveInsert());
+
+    OGlobalConfiguration.USE_WAL.setValue(false);
+    OrientGraphAsynch g = new OrientGraphAsynch("plocal:" + dbPath).setCache(1000000);
+    g.declareIntent(new OIntentMassiveInsert());
+
+    // g = new OrientGraphNoTx("plocal:" + dbPath);
+    // OrientGraphFactory graphFactory = new OrientGraphFactory("plocal:" + dbPath);
+    // g = graphFactory.getNoTx();
+    return g;
   }
 }

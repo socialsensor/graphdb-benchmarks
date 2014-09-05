@@ -20,13 +20,10 @@
 
 package eu.socialsensor.insert;
 
-import com.orientechnologies.orient.core.index.OIndex;
-import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
-import com.tinkerpop.blueprints.impls.orient.OrientElementIterable;
-import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import org.apache.log4j.Logger;
 
-import java.util.Arrays;
+import com.tinkerpop.blueprints.Vertex;
+import com.tinkerpop.blueprints.impls.orient.OrientExtendedGraph;
 
 /**
  * Implementation of single Insertion in OrientDB graph database
@@ -37,23 +34,26 @@ import java.util.Arrays;
  */
 public abstract class OrientAbstractInsertion implements Insertion {
 
-  public static String      INSERTION_TIMES_OUTPUT_PATH = null;
+  public static String          INSERTION_TIMES_OUTPUT_PATH = null;
 
-  protected static int      count;
-  protected OIndex          vertices                    = null;
-  protected OrientBaseGraph orientGraph                 = null;
-  protected Logger          logger                      = Logger.getLogger(OrientAbstractInsertion.class);
+  protected int                 nodesCounter                = 0;
+  protected OrientExtendedGraph orientGraph                 = null;
+  protected Logger              logger                      = Logger.getLogger(OrientAbstractInsertion.class);
 
-  public OrientAbstractInsertion(OrientBaseGraph orientGraph, OIndex vertices) {
+  public OrientAbstractInsertion(OrientExtendedGraph orientGraph) {
     this.orientGraph = orientGraph;
-    this.vertices = vertices;
   }
 
-  protected Iterable<OrientVertex> vertexIndexLookup(final int iValue) {
-    Object indexValue = vertices.get(iValue);
-    if (indexValue != null && !(indexValue instanceof Iterable<?>))
-      indexValue = Arrays.asList(indexValue);
+  protected Vertex getOrCreate(final String value) {
+    final int key = Integer.parseInt(value);
 
-    return new OrientElementIterable<OrientVertex>(orientGraph, (Iterable<?>) indexValue);
+    Vertex vertex = orientGraph.getVertex(key);
+
+    if (vertex == null) {
+      vertex = orientGraph.addVertex(key, "nodeId", key);
+      nodesCounter++;
+    }
+
+    return vertex;
   }
 }

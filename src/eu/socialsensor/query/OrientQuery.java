@@ -3,7 +3,7 @@ package eu.socialsensor.query;
 import com.orientechnologies.orient.core.sql.OCommandSQL;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
-import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
+import com.tinkerpop.blueprints.impls.orient.OrientExtendedGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import eu.socialsensor.benchmarks.FindShortestPathBenchmark;
 
@@ -17,9 +17,9 @@ import java.util.List;
  */
 public class OrientQuery implements Query {
 
-  private OrientBaseGraph orientGraph = null;
+  private OrientExtendedGraph orientGraph = null;
 
-  public OrientQuery(OrientBaseGraph orientGraph) {
+  public OrientQuery(OrientExtendedGraph orientGraph) {
     this.orientGraph = orientGraph;
   }
 
