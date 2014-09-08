@@ -63,17 +63,21 @@ public class OrientMassiveInsertion extends OrientAbstractInsertion {
       Vertex srcVertex, dstVertex;
       while ((line = reader.readLine()) != null) {
         if (lineCounter > 4) {
-//          System.out.printf("\nrow[%d]: %s", lineCounter, line );
+          // System.out.printf("\nrow[%d]: %s", lineCounter, line );
 
           String[] parts = line.split("\t");
 
-          srcVertex = getOrCreate(parts[0]);
-          if (parts[0].equals(parts[1]))
-            dstVertex = srcVertex;
-          else
-            dstVertex = getOrCreate(parts[1]);
+//          if (orientGraph instanceof OrientGraphAsynch)
+//            ((OrientGraphAsynch) orientGraph).addEdgeByVerticesKeys(parts[0], parts[1], "similar");
+//          else {
+            srcVertex = getOrCreate(parts[0]);
+            if (parts[0].equals(parts[1]))
+              dstVertex = srcVertex;
+            else
+              dstVertex = getOrCreate(parts[1]);
 
-          orientGraph.addEdge(null, srcVertex, dstVertex, "similar");
+            orientGraph.addEdge(null, srcVertex, dstVertex, "similar");
+//          }
         }
         lineCounter++;
 

@@ -340,38 +340,46 @@ public class OrientGraphDatabase implements GraphDatabase {
   }
 
   protected void createSchema() {
-    OrientVertexType v = graph.getVertexBaseType();
-    v.createProperty("nodeId", OType.INTEGER);
-    // v.createEdgeProperty(Direction.OUT, "similar", OType.LINKBAG);
-    // v.createEdgeProperty(Direction.IN, "similar", OType.LINKBAG);
+    OrientExtendedGraph g = graph;
 
-    OrientEdgeType similar = graph.createEdgeType("similar");
-    // similar.createProperty("out", OType.LINK, v);
-    // similar.createProperty("in", OType.LINK, v);
+    OrientVertexType v = g.getVertexBaseType();
+    v.createProperty("nodeId", OType.INTEGER);
+    v.createEdgeProperty(Direction.OUT, "similar", OType.LINKBAG);
+    v.createEdgeProperty(Direction.IN, "similar", OType.LINKBAG);
+
+    OrientEdgeType similar = g.createEdgeType("similar");
+    similar.createProperty("out", OType.LINK, v);
+    similar.createProperty("in", OType.LINK, v);
 
     if (clusteringWorkload) {
-//      graph.createKeyIndex("community", Vertex.class, new Parameter("type", "NOTUNIQUE_HASH_INDEX"), new Parameter("keytype",
-//          "INTEGER"));
-//      graph.createKeyIndex("nodeCommunity", Vertex.class, new Parameter("type", "NOTUNIQUE_HASH_INDEX"), new Parameter("keytype",
-//          "INTEGER"));
+      // graph.createKeyIndex("community", Vertex.class, new Parameter("type", "NOTUNIQUE_HASH_INDEX"), new Parameter("keytype",
+      // "INTEGER"));
+      // graph.createKeyIndex("nodeCommunity", Vertex.class, new Parameter("type", "NOTUNIQUE_HASH_INDEX"), new Parameter("keytype",
+      // "INTEGER"));
     }
-    graph.createKeyIndex("nodeId", Vertex.class, new Parameter("type", "UNIQUE_HASH_INDEX"), new Parameter("keytype", "INTEGER"));
+    g.createKeyIndex("nodeId", Vertex.class, new Parameter("type", "UNIQUE_HASH_INDEX"), new Parameter("keytype", "INTEGER"));
   }
 
   private OrientExtendedGraph getGraph(final String dbPath) {
-    // return new OrientBatchGraph(new OrientGraph("plocal:" + dbPath), VertexIDType.NUMBER, 10000);
+    OGlobalConfiguration.USE_WAL.setValue(false);
+    // OGlobalConfiguration.RID_BAG_EMBEDDED_TO_SBTREEBONSAI_THRESHOLD.setValue(-1);
+
+    // OrientBatchGraph g = new OrientBatchGraph(new OrientGraph("plocal:" + dbPath), VertexIDType.NUMBER, 10000);
 
     // final OrientGraph g = new OrientGraph("plocal:" + dbPath);
     // g.setUseLog(false);
     // g.declareIntent(new OIntentMassiveInsert());
 
-    OGlobalConfiguration.USE_WAL.setValue(false);
-    OrientGraphAsynch g = new OrientGraphAsynch("plocal:" + dbPath).setCache(1000000);
-    g.declareIntent(new OIntentMassiveInsert());
+    OrientGraphAsynch g = new OrientGraphAsynch("plocal:" + dbPath);
+    g.setKeyFieldName("nodeId");
+//    g.setCache(1000000);
+    g.setOutStats(System.out);
 
-    // g = new OrientGraphNoTx("plocal:" + dbPath);
+    // OrientGraphNoTx g = new OrientGraphNoTx("plocal:" + dbPath);
     // OrientGraphFactory graphFactory = new OrientGraphFactory("plocal:" + dbPath);
     // g = graphFactory.getNoTx();
+
+    g.declareIntent(new OIntentMassiveInsert());
     return g;
   }
 }

@@ -22,8 +22,12 @@ package eu.socialsensor.insert;
 
 import org.apache.log4j.Logger;
 
+import com.orientechnologies.orient.core.db.record.OIdentifiable;
+import com.orientechnologies.orient.core.index.OIndex;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientExtendedGraph;
+import com.tinkerpop.blueprints.impls.orient.OrientGraphNoTx;
+import com.tinkerpop.blueprints.impls.orient.asynch.OrientGraphAsynch;
 
 /**
  * Implementation of single Insertion in OrientDB graph database
@@ -40,6 +44,8 @@ public abstract class OrientAbstractInsertion implements Insertion {
   protected OrientExtendedGraph orientGraph                 = null;
   protected Logger              logger                      = Logger.getLogger(OrientAbstractInsertion.class);
 
+  protected OIndex              index;
+
   public OrientAbstractInsertion(OrientExtendedGraph orientGraph) {
     this.orientGraph = orientGraph;
   }
@@ -47,13 +53,22 @@ public abstract class OrientAbstractInsertion implements Insertion {
   protected Vertex getOrCreate(final String value) {
     final int key = Integer.parseInt(value);
 
-    Vertex vertex = orientGraph.getVertex(key);
+    Vertex v;
+    if (orientGraph instanceof OrientGraphNoTx) {
+      if (index == null)
+        index = orientGraph.getRawGraph().getMetadata().getIndexManager().getIndex("V.nodeId");
 
-    if (vertex == null) {
-      vertex = orientGraph.addVertex(key, "nodeId", key);
+      final OIdentifiable rec = (OIdentifiable) index.get(key);
+      if (rec != null)
+        return orientGraph.getVertex(rec);
+
       nodesCounter++;
+      v = orientGraph.addVertex(key, "nodeId", key);
+
+    } else {
+      v = ((OrientGraphAsynch) orientGraph).addOrUpdateVertex(key, "nodeId", key);
     }
 
-    return vertex;
+    return v;
   }
 }
