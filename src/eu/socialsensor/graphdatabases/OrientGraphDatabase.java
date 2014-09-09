@@ -371,12 +371,11 @@ public class OrientGraphDatabase implements GraphDatabase {
     similar.createProperty("out", OType.LINK, v);
     similar.createProperty("in", OType.LINK, v);
 
-    if (clusteringWorkload) {
-      graph.createKeyIndex("community", Vertex.class, new Parameter("type", "NOTUNIQUE_HASH_INDEX"), new Parameter("keytype",
-          "INTEGER"));
-      graph.createKeyIndex("nodeCommunity", Vertex.class, new Parameter("type", "NOTUNIQUE_HASH_INDEX"), new Parameter("keytype",
-          "INTEGER"));
-    }
+    g.createKeyIndex("community", Vertex.class, new Parameter("type", "NOTUNIQUE_HASH_INDEX"), new Parameter("keytype",
+        "INTEGER"));
+    g.createKeyIndex("nodeCommunity", Vertex.class, new Parameter("type", "NOTUNIQUE_HASH_INDEX"), new Parameter("keytype",
+        "INTEGER"));
+
     g.createKeyIndex("nodeId", Vertex.class, new Parameter("type", "UNIQUE_HASH_INDEX"), new Parameter("keytype", "INTEGER"),
         new Parameter("metadata.mergeKeys", true));
   }
