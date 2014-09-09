@@ -30,9 +30,7 @@ public class OrientQuery implements Query {
   public void findNeighborsOfAllNodes() {
     for (Vertex v : orientGraph.getVertices()) {
       for (Vertex vv : v.getVertices(Direction.BOTH, "similar")) {
-
       }
-      // GremlinPipeline<String, Vertex> getNeighboursPipe = new GremlinPipeline<String, Vertex>(v).both("similar");
     }
   }
 
@@ -40,12 +38,6 @@ public class OrientQuery implements Query {
   public void findNodesOfAllEdges() {
     for (Vertex v : orientGraph.getVertices()) {
       for (Vertex vv : v.getVertices(Direction.BOTH)) {
-        // GremlinPipeline<String, Vertex> getNodesPipe = new GremlinPipeline<String, Vertex>(e).bothV();
-        // Iterator<Vertex> vertexIter = getNodesPipe.iterator();
-        // @SuppressWarnings("unused")
-        // Vertex startNode = vertexIter.next();
-        // @SuppressWarnings("unused")
-        // Vertex endNode = vertexIter.next();
       }
     }
   }
@@ -59,20 +51,6 @@ public class OrientQuery implements Query {
       List<OrientVertex> result = orientGraph
           .command(new OCommandSQL("SELECT shortestPath(" + v1.getId() + "," + v2.getId() + ")")).execute();
       int length = result.size();
-
-      // @SuppressWarnings("rawtypes")
-      // final GremlinPipeline<String, List> pathPipe = new GremlinPipeline<String, List>(v1)
-      // .as("similar")
-      // .out("similar")
-      // .loop("similar", new PipeFunction<LoopBundle<Vertex>, Boolean>() {
-      // //@Override
-      // public Boolean compute(LoopBundle<Vertex> bundle) {
-      // return bundle.getLoops() < 5 && !bundle.getObject().equals(v2);
-      // }
-      // })
-      // .path();
-      // @SuppressWarnings("unused")
-      // int length = pathPipe.iterator().next().size();
     }
 
   }
