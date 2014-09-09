@@ -2,14 +2,21 @@ package eu.socialsensor.graphdatabases;
 
 import com.google.common.collect.Iterables;
 import com.orientechnologies.common.collection.OMultiCollectionIterator;
+import com.orientechnologies.common.util.OCallable;
 import com.orientechnologies.orient.core.config.OGlobalConfiguration;
+import com.orientechnologies.orient.core.id.ORecordId;
 import com.orientechnologies.orient.core.intent.OIntentMassiveInsert;
 import com.orientechnologies.orient.core.metadata.schema.OType;
+import com.orientechnologies.orient.core.record.impl.ODocument;
+import com.orientechnologies.orient.core.storage.impl.local.ORecordConflictResolver;
+import com.orientechnologies.orient.core.version.ORecordVersion;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Parameter;
 import com.tinkerpop.blueprints.Vertex;
+import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientEdgeType;
 import com.tinkerpop.blueprints.impls.orient.OrientExtendedGraph;
+import com.tinkerpop.blueprints.impls.orient.OrientGraphFactory;
 import com.tinkerpop.blueprints.impls.orient.OrientGraphNoTx;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import com.tinkerpop.blueprints.impls.orient.OrientVertexType;
@@ -342,6 +349,19 @@ public class OrientGraphDatabase implements GraphDatabase {
   protected void createSchema() {
     OrientExtendedGraph g = graph;
 
+    if (g instanceof OrientGraphAsynch) {
+      ((OrientGraphAsynch) g).execute(new OCallable<Object, OrientBaseGraph>() {
+        @Override
+        public Object call(OrientBaseGraph g) {
+          createSchemaInternal(g);
+          return null;
+        }
+      });
+    } else
+      createSchemaInternal(g);
+  }
+
+  private void createSchemaInternal(OrientExtendedGraph g) {
     OrientVertexType v = g.getVertexBaseType();
     v.createProperty("nodeId", OType.INTEGER);
     v.createEdgeProperty(Direction.OUT, "similar", OType.LINKBAG);
@@ -352,12 +372,13 @@ public class OrientGraphDatabase implements GraphDatabase {
     similar.createProperty("in", OType.LINK, v);
 
     if (clusteringWorkload) {
-      // graph.createKeyIndex("community", Vertex.class, new Parameter("type", "NOTUNIQUE_HASH_INDEX"), new Parameter("keytype",
-      // "INTEGER"));
-      // graph.createKeyIndex("nodeCommunity", Vertex.class, new Parameter("type", "NOTUNIQUE_HASH_INDEX"), new Parameter("keytype",
-      // "INTEGER"));
+      graph.createKeyIndex("community", Vertex.class, new Parameter("type", "NOTUNIQUE_HASH_INDEX"), new Parameter("keytype",
+          "INTEGER"));
+      graph.createKeyIndex("nodeCommunity", Vertex.class, new Parameter("type", "NOTUNIQUE_HASH_INDEX"), new Parameter("keytype",
+          "INTEGER"));
     }
-    g.createKeyIndex("nodeId", Vertex.class, new Parameter("type", "UNIQUE_HASH_INDEX"), new Parameter("keytype", "INTEGER"));
+    g.createKeyIndex("nodeId", Vertex.class, new Parameter("type", "UNIQUE_HASH_INDEX"), new Parameter("keytype", "INTEGER"),
+        new Parameter("metadata.mergeKeys", true));
   }
 
   private OrientExtendedGraph getGraph(final String dbPath) {
@@ -370,16 +391,31 @@ public class OrientGraphDatabase implements GraphDatabase {
     // g.setUseLog(false);
     // g.declareIntent(new OIntentMassiveInsert());
 
-    OrientGraphAsynch g = new OrientGraphAsynch("plocal:" + dbPath);
-    g.setKeyFieldName("nodeId");
-//    g.setCache(1000000);
-    g.setOutStats(System.out);
+    if (clusteringWorkload) {
+      OrientGraphNoTx g = new OrientGraphNoTx("plocal:" + dbPath);
+      OrientGraphFactory graphFactory = new OrientGraphFactory("plocal:" + dbPath);
+      g = graphFactory.getNoTx();
+      return g;
+    } else {
+      OrientGraphAsynch g = new OrientGraphAsynch("plocal:" + dbPath);
+      g.setKeyFieldName("nodeId");
+      g.setCache(1000000);
+      g.setOutStats(System.out);
+      g.setConflictStrategy(new ORecordConflictResolver() {
+        @Override
+        public byte[] onUpdate(ORecordId rid, ORecordVersion iRecordVersion, byte[] iRecordContent, ORecordVersion iDatabaseVersion) {
+          ODocument storedRecord = rid.getRecord();
+          ODocument newRecord = new ODocument().fromStream(iRecordContent);
 
-    // OrientGraphNoTx g = new OrientGraphNoTx("plocal:" + dbPath);
-    // OrientGraphFactory graphFactory = new OrientGraphFactory("plocal:" + dbPath);
-    // g = graphFactory.getNoTx();
+          storedRecord.merge(newRecord, false, true);
 
-    g.declareIntent(new OIntentMassiveInsert());
-    return g;
+          iDatabaseVersion.setCounter(Math.max(iDatabaseVersion.getCounter(), iRecordVersion.getCounter()));
+
+          return storedRecord.toStream();
+        }
+      });
+      g.declareIntent(new OIntentMassiveInsert());
+      return g;
+    }
   }
 }
