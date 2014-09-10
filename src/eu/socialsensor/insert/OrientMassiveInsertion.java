@@ -1,9 +1,14 @@
 package eu.socialsensor.insert;
 
-import com.orientechnologies.orient.core.index.OIndex;
+import com.orientechnologies.common.util.OCallable;
+import com.orientechnologies.orient.core.db.ODatabaseRecordThreadLocal;
 import com.orientechnologies.orient.core.intent.OIntentMassiveInsert;
+import com.tinkerpop.blueprints.TransactionalGraph;
+import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
-import com.tinkerpop.blueprints.impls.orient.OrientVertex;
+import com.tinkerpop.blueprints.impls.orient.OrientExtendedGraph;
+import com.tinkerpop.blueprints.impls.orient.OrientGraphNoTx;
+import com.tinkerpop.blueprints.impls.orient.asynch.OrientGraphAsynch;
 import org.apache.log4j.Level;
 
 import java.io.BufferedReader;
@@ -12,70 +17,81 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 /**
-  * Implementation of massive Insertion in OrientDB graph database
-  * 
-  * @author sotbeis
-  * @email sotbeis@iti.gr
-  * 
-  */
+ * Implementation of massive Insertion in OrientDB graph database
+ * 
+ * @author sotbeis
+ * @email sotbeis@iti.gr
+ * 
+ */
 public class OrientMassiveInsertion extends OrientAbstractInsertion {
-	
-	public OrientMassiveInsertion(OrientBaseGraph orientGraph, OIndex vertices) {
-		super(orientGraph, vertices);
-	}
 
-	@Override
-	public void createGraph(String datasetDir) {
-		logger.setLevel(Level.INFO);
-		logger.info("Loading data in massive mode in OrientDB database . . . .");
-		orientGraph.getRawGraph().declareIntent(new OIntentMassiveInsert());
-		try {
-			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(datasetDir)));
-			String line;
-			int lineCounter = 1;
-			OrientVertex srcVertex, dstVertex;
-			Iterable<OrientVertex> cache;
-			while ((line = reader.readLine()) != null) {
-				if (lineCounter > 4) {
-					String[] parts = line.split("\t");
-					final Integer key = Integer.parseInt(parts[0]);
-					cache = vertexIndexLookup(key);
-					if (cache.iterator().hasNext()) {
-						srcVertex = cache.iterator().next();
-					} else {
-						srcVertex = orientGraph.addVertex(null, "nodeId", key);
-						vertices.put(key, srcVertex);
-					}
+  public OrientMassiveInsertion(OrientExtendedGraph orientGraph) {
+    super(orientGraph);
 
-					final Integer key2 = Integer.parseInt(parts[1]);
-					cache = vertexIndexLookup(key2);
-					if (cache.iterator().hasNext()) {
-						dstVertex = cache.iterator().next();
-					} 
-					else {
-						dstVertex = orientGraph.addVertex(null, "nodeId", key2);
-						vertices.put(key2, dstVertex);
-					}
+    if (orientGraph instanceof OrientGraphAsynch)
+      ((OrientGraphAsynch) orientGraph).execute(new OCallable<Object, OrientBaseGraph>() {
+        @Override
+        public Object call(OrientBaseGraph iArgument) {
+          for (int i = 0; i < 16; ++i) {
+            iArgument.getVertexBaseType().addCluster("v_" + i);
+            iArgument.getEdgeBaseType().addCluster("e_" + i);
+          }
+          return null;
+        }
+      });
+    else {
+      OrientGraphNoTx g = new OrientGraphNoTx(orientGraph.getRawGraph().getURL());
+      for (int i = 0; i < 16; ++i) {
+        g.getVertexBaseType().addCluster("v_" + i);
+        g.getEdgeBaseType().addCluster("e_" + i);
+      }
+      g.shutdown();
+      ODatabaseRecordThreadLocal.INSTANCE.set(orientGraph.getRawGraph());
+    }
 
-					if (key.equals(key2)) {
-						dstVertex = srcVertex;
-					}
+  }
 
-					orientGraph.addEdge(null, srcVertex, dstVertex, "similar");
-				}
-				lineCounter++;
-				
-				if (lineCounter % 1000 == 0)
-					orientGraph.commit();
-			}
-			
-			orientGraph.commit();
-			reader.close();
-			orientGraph.getRawGraph().declareIntent(null);
-		} 
-		catch (IOException ioe) {
-			ioe.printStackTrace();
-		}
-	}
+  @Override
+  public void createGraph(String datasetDir) {
+    logger.setLevel(Level.INFO);
+    logger.info("Loading data in massive mode in OrientDB database . . . .");
+    orientGraph.declareIntent(new OIntentMassiveInsert());
+    try {
+      BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(datasetDir)));
+      String line;
+      int lineCounter = 1;
+      Vertex srcVertex, dstVertex;
+      while ((line = reader.readLine()) != null) {
+        if (lineCounter > 4) {
+          // System.out.printf("\nrow[%d]: %s", lineCounter, line );
+
+          String[] parts = line.split("\t");
+
+//          if (orientGraph instanceof OrientGraphAsynch)
+//            ((OrientGraphAsynch) orientGraph).addEdgeByVerticesKeys(parts[0], parts[1], "similar");
+//          else {
+            srcVertex = getOrCreate(parts[0]);
+            if (parts[0].equals(parts[1]))
+              dstVertex = srcVertex;
+            else
+              dstVertex = getOrCreate(parts[1]);
+
+            orientGraph.addEdge(null, srcVertex, dstVertex, "similar");
+//          }
+        }
+        lineCounter++;
+
+        if (orientGraph instanceof TransactionalGraph && lineCounter % 5000 == 0)
+          ((TransactionalGraph) orientGraph).commit();
+      }
+
+      if (orientGraph instanceof TransactionalGraph)
+        ((TransactionalGraph) orientGraph).commit();
+
+      reader.close();
+    } catch (IOException ioe) {
+      ioe.printStackTrace();
+    }
+  }
 
 }
