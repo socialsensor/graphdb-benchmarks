@@ -4,11 +4,11 @@ import com.google.common.collect.Iterables;
 import com.orientechnologies.common.collection.OMultiCollectionIterator;
 import com.orientechnologies.common.util.OCallable;
 import com.orientechnologies.orient.core.config.OGlobalConfiguration;
+import com.orientechnologies.orient.core.conflict.ORecordConflictStrategy;
 import com.orientechnologies.orient.core.id.ORecordId;
 import com.orientechnologies.orient.core.intent.OIntentMassiveInsert;
 import com.orientechnologies.orient.core.metadata.schema.OType;
 import com.orientechnologies.orient.core.record.impl.ODocument;
-import com.orientechnologies.orient.core.storage.impl.local.ORecordConflictResolver;
 import com.orientechnologies.orient.core.version.ORecordVersion;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Parameter;
@@ -400,9 +400,9 @@ public class OrientGraphDatabase implements GraphDatabase {
       g.setKeyFieldName("nodeId");
       g.setCache(1000000);
       g.setOutStats(System.out);
-      g.setConflictStrategy(new ORecordConflictResolver() {
+      g.setConflictStrategy(new ORecordConflictStrategy() {
         @Override
-        public byte[] onUpdate(ORecordId rid, ORecordVersion iRecordVersion, byte[] iRecordContent, ORecordVersion iDatabaseVersion) {
+        public byte[] onUpdate(byte iRecordType, ORecordId rid, ORecordVersion iRecordVersion, byte[] iRecordContent, ORecordVersion iDatabaseVersion) {
           ODocument storedRecord = rid.getRecord();
           ODocument newRecord = new ODocument().fromStream(iRecordContent);
 
@@ -411,6 +411,11 @@ public class OrientGraphDatabase implements GraphDatabase {
           iDatabaseVersion.setCounter(Math.max(iDatabaseVersion.getCounter(), iRecordVersion.getCounter()));
 
           return storedRecord.toStream();
+        }
+
+        @Override
+        public String getName() {
+          return null;
         }
       });
       g.declareIntent(new OIntentMassiveInsert());
