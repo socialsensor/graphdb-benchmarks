@@ -19,6 +19,8 @@ import org.neo4j.graphdb.ResourceIterable;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 import org.neo4j.graphdb.index.Index;
+import org.neo4j.graphdb.schema.IndexDefinition;
+import org.neo4j.graphdb.schema.Schema;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.helpers.collection.MapUtil;
 import org.neo4j.index.lucene.unsafe.batchinsert.LuceneBatchInserterIndexProvider;
@@ -45,11 +47,20 @@ import eu.socialsensor.utils.Utils;
  * @author sotbeis
  * @email sotbeis@iti.gr
  */
-@SuppressWarnings("deprecation")
+//@SuppressWarnings("deprecation")
 public class Neo4jGraphDatabase implements GraphDatabase {
 	
 	GraphDatabaseService neo4jGraph = null;
+	Schema schema = null;
+	IndexDefinition indexDefinition = null;
+	
+	/**
+	 * DELETE
+	 */
 	private Index<Node> nodeIndex = null;
+	/**
+	 * 
+	 */
 	
 	private BatchInserter inserter = null;
 	private BatchInserterIndexProvider indexProvider = null;
@@ -61,7 +72,7 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 	    SIMILAR
 	}
 	
-	public static Label NODE_LABEL = DynamicLabel.label("node");
+	public static Label NODE_LABEL = DynamicLabel.label("Node");
 	
 	public static void main(String args[]) {
 	}
@@ -80,11 +91,17 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 	@Override
 	public void createGraphForSingleLoad(String dbPath) {
 		neo4jGraph = new GraphDatabaseFactory().newEmbeddedDatabase(dbPath);
-		try ( Transaction tx = neo4jGraph.beginTx() ) {
-			nodeIndex = neo4jGraph.index().forNodes("nodes");
+		try(Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
+			schema = neo4jGraph.schema();
+			indexDefinition = schema.indexFor(NODE_LABEL).on("nodeId").create();
 			tx.success();
 			tx.close();
 		}
+//		try (Transaction tx = neo4jGraph.beginTx()) {
+//			nodeIndex = neo4jGraph.index().forNodes("nodes");
+//			tx.success();
+//			tx.close();
+//		}
 	}
 
 	@Override
@@ -103,7 +120,8 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 	
 	@Override
 	public void singleModeLoading(String dataPath) {
-		Insertion neo4jSingleInsertion = new Neo4jSingleInsertion(this.neo4jGraph, this.nodeIndex);
+//		Insertion neo4jSingleInsertion = new Neo4jSingleInsertion(this.neo4jGraph, this.nodeIndex);
+		Insertion neo4jSingleInsertion = new Neo4jSingleInsertion(this.neo4jGraph);
 		neo4jSingleInsertion.createGraph(dataPath);
 	}
 	
