@@ -80,7 +80,7 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 	@Override
 	public void open(String dbPath) {
 		neo4jGraph = new GraphDatabaseFactory().newEmbeddedDatabase(dbPath);
-		try(Transaction tx = neo4jGraph.beginTx()) {
+		try(Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
 			nodeIndex = neo4jGraph.index().forNodes("nodes");
 			tx.success();
 			tx.close();
@@ -182,7 +182,7 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 	@Override
 	public int getNodeCount() {
 		int nodeCount;
-		try (Transaction tx = neo4jGraph.beginTx()) {
+		try (Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
 			nodeCount = IteratorUtil.count(GlobalGraphOperations.at(neo4jGraph).getAllNodes());
 			tx.success();
 			tx.close();
@@ -193,7 +193,7 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 	@Override
 	public Set<Integer> getNeighborsIds(int nodeId) {
 		Set<Integer> neighbors = new HashSet<Integer>();
-		try (Transaction tx = neo4jGraph.beginTx()) {
+		try (Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
 			Node n = nodeIndex.get("nodeId", nodeId).getSingle();
 			for(Relationship relationship : n.getRelationships(RelTypes.SIMILAR, Direction.OUTGOING)) {
 				Node neighbour = relationship.getOtherNode(n);
@@ -201,7 +201,7 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 				neighbors.add(Integer.valueOf(neighbourId));
 			}
 			tx.success();
-//			tx.close();
+			tx.close();
 		}
 		return neighbors;
 	}
@@ -209,7 +209,7 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 	@Override
 	public double getNodeWeight(int nodeId) {
 		double weight;
-		try(Transaction tx = neo4jGraph.beginTx()) {
+		try(Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
 			Node n = nodeIndex.get("nodeId", nodeId).getSingle();
 			weight =  getNodeOutDegree(n);
 			tx.success();
@@ -232,29 +232,35 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 	@Override
 	public void initCommunityProperty() {
 		int communityCounter = 0;
-		int transactionCounter = 0;
-		Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin();
-		for(Node n : GlobalGraphOperations.at(neo4jGraph).getAllNodes()) {
-			n.setProperty("nodeCommunity", communityCounter);
-			n.setProperty("community", communityCounter);
-			communityCounter++;
-			transactionCounter++;
-			if(transactionCounter == LouvainMethod.CACHE_SIZE) {
-				transactionCounter = 0;
-				tx.success();
-				tx.close();
-				tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin();
+//		int transactionCounter = 0;
+		
+		//maybe commit changes every 1000 transactions?
+		try(Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
+			for(Node n : GlobalGraphOperations.at(neo4jGraph).getAllNodes()) {
+				n.setProperty("nodeCommunity", communityCounter);
+				n.setProperty("community", communityCounter);
+				communityCounter++;
 			}
+			tx.success();
+			tx.close();
 		}
-		tx.success();
-		tx.close();
+		
+		
+//			transactionCounter++;
+//			if(transactionCounter == LouvainMethod.CACHE_SIZE) {
+//				transactionCounter = 0;
+//				tx.success();
+//				tx.close();
+//				tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin();
+//			}
+		
 		
 	}
 
 	@Override
 	public Set<Integer> getCommunitiesConnectedToNodeCommunities(int nodeCommunities) {
 		Set<Integer> communities = new HashSet<Integer>();
-		try(Transaction tx = neo4jGraph.beginTx()) {
+		try(Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
 			ResourceIterable<Node> nodes = neo4jGraph.findNodesByLabelAndProperty(Neo4jGraphDatabase.NODE_LABEL, "nodeCommunity", nodeCommunities);
 			for(Node n : nodes) {
 				for(Relationship r : n.getRelationships(RelTypes.SIMILAR, Direction.OUTGOING)) {
@@ -272,7 +278,7 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 	@Override
 	public Set<Integer> getNodesFromCommunity(int community) {
 		Set<Integer> nodes = new HashSet<Integer>();
-		try(Transaction tx = neo4jGraph.beginTx()) {
+		try(Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
 			ResourceIterable<Node> iter = neo4jGraph.findNodesByLabelAndProperty(NODE_LABEL, "community", community);
 			for(Node n : iter) {
 				String nodeIdString = (String)(n.getProperty("nodeId"));
@@ -287,7 +293,7 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 	@Override
 	public Set<Integer> getNodesFromNodeCommunity(int nodeCommunity) {
 		Set<Integer> nodes = new HashSet<Integer>();
-		try(Transaction tx = neo4jGraph.beginTx()) {
+		try(Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
 			ResourceIterable<Node> iter = neo4jGraph.findNodesByLabelAndProperty(NODE_LABEL, "nodeCommunity", nodeCommunity);
 			for(Node n : iter) {
 				String nodeIdString = (String)(n.getProperty("nodeId"));
@@ -302,7 +308,7 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 	@Override
 	public double getEdgesInsideCommunity(int nodeCommunity, int communityNodes) {
 		double edges = 0;
-		try(Transaction tx = neo4jGraph.beginTx()) {
+		try(Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
 			ResourceIterable<Node> nodes = neo4jGraph.findNodesByLabelAndProperty(NODE_LABEL, "nodeCommunity", nodeCommunity);
 			ResourceIterable<Node> comNodes = neo4jGraph.findNodesByLabelAndProperty(NODE_LABEL, "community", communityNodes);
 			for(Node node : nodes) {
@@ -324,7 +330,7 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 	@Override
 	public double getCommunityWeight(int community) {
 		double communityWeight = 0;
-		try(Transaction tx = neo4jGraph.beginTx()) {
+		try(Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
 			ResourceIterable<Node> iter = neo4jGraph.findNodesByLabelAndProperty(NODE_LABEL, "community", community);
 			if(Iterables.size(iter) > 1) {
 				for(Node n : iter) {
@@ -340,7 +346,7 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 	@Override
 	public double getNodeCommunityWeight(int nodeCommunity) {
 		double nodeCommunityWeight = 0;
-		try(Transaction tx = neo4jGraph.beginTx()) {
+		try(Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
 			ResourceIterable<Node> iter = neo4jGraph.findNodesByLabelAndProperty(NODE_LABEL, "nodeCommunity", nodeCommunity);
 			if(Iterables.size(iter) > 1) {
 				for(Node n : iter) {
@@ -368,7 +374,7 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 	@Override
 	public double getGraphWeightSum() {
 		int edgeCount;
-		try (Transaction tx = neo4jGraph.beginTx()) {
+		try (Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
 			edgeCount = IteratorUtil.count(GlobalGraphOperations.at(neo4jGraph).getAllRelationships());
 			tx.success();
 			tx.close();
@@ -401,7 +407,7 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 	@Override
 	public int getCommunity(int nodeCommunity) {
 		int community = 0;
-		try(Transaction tx = neo4jGraph.beginTx()) {
+		try(Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
 			Node node = neo4jGraph.findNodesByLabelAndProperty(NODE_LABEL, "nodeCommunity", nodeCommunity).iterator().next();
 			community = (int)(node.getProperty("community"));
 			tx.success();
@@ -413,7 +419,7 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 	@Override
 	public int getCommunityFromNode(int nodeId) {
 		int community = 0;
-		try(Transaction tx = neo4jGraph.beginTx()) {
+		try(Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
 			Node node = nodeIndex.get("nodeId", nodeId).getSingle();
 			community = (int)(node.getProperty("community"));
 			tx.success();
@@ -425,7 +431,7 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 	@Override
 	public int getCommunitySize(int community) {
 		Set<Integer> nodeCommunities = new HashSet<Integer>();
-		try(Transaction tx = neo4jGraph.beginTx()) {
+		try(Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
 			ResourceIterable<Node> nodes = neo4jGraph.findNodesByLabelAndProperty(NODE_LABEL, "community", community);
 			for(Node n : nodes) {
 				int nodeCommunity = (int)(n.getProperty("community"));
@@ -440,7 +446,7 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 	@Override
 	public Map<Integer, List<Integer>> mapCommunities(int numberOfCommunities) {
 		Map<Integer, List<Integer>> communities = new HashMap<Integer, List<Integer>>();
-		try(Transaction tx = neo4jGraph.beginTx()) {
+		try(Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
 			for(int i = 0; i < numberOfCommunities; i++) {
 				ResourceIterable<Node> nodesIter = neo4jGraph.findNodesByLabelAndProperty(NODE_LABEL, "community", i);
 				List<Integer> nodes = new ArrayList<Integer>();
