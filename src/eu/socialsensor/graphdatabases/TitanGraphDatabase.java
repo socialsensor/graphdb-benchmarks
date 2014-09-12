@@ -88,23 +88,24 @@ public class TitanGraphDatabase implements GraphDatabase{
 		PropertyKey nodeId = titanManagement.makePropertyKey("nodeId").dataType(String.class).make();
 		titanManagement.buildIndex("nodeId", Vertex.class).addKey(nodeId).buildCompositeIndex();
 		titanManagement.commit();
-		BaseConfiguration config = new BaseConfiguration();
 	}
 	
 	@Override
 	public void createGraphForMassiveLoad(String dbPath) {
-//		BaseConfiguration config = new BaseConfiguration();
-//        Configuration storage = config.subset(GraphDatabaseConfiguration.STORAGE_NAMESPACE);
-//        storage.setProperty(GraphDatabaseConfiguration.STORAGE_BACKEND_KEY, "local");
-//        storage.setProperty(GraphDatabaseConfiguration.STORAGE_DIRECTORY_KEY, dbPath);
-//        storage.setProperty(GraphDatabaseConfiguration.STORAGE_BATCH_KEY, true);
-//        titanGraph = TitanFactory.open(config);
-//		titanGraph.makeKey("nodeId").dataType(String.class).indexed(Vertex.class).make();
-//		titanGraph.makeLabel("similar").make();
-//		titanGraph.commit();
-//		batchGraph = new BatchGraph<TitanGraph>(titanGraph, VertexIDType.STRING, 10000);
-//		batchGraph.setVertexIdKey("nodeId");
-//		batchGraph.setLoadingFromScratch(true);	
+		titanGraph = TitanFactory.build()
+				.set("storage.backend", "berkeleyje")
+				.set("storage.directory", dbPath)
+				.set("storage.batch-loading", true)
+				.open();
+		TitanManagement titanManagement = titanGraph.getManagementSystem();
+		PropertyKey nodeId = titanManagement.makePropertyKey("nodeId").dataType(String.class).make();
+		titanManagement.buildIndex("nodeId", Vertex.class).addKey(nodeId).buildCompositeIndex();
+		titanManagement.makeEdgeLabel("similar").make();
+		titanManagement.commit();
+		
+		batchGraph = new BatchGraph<TitanGraph>(titanGraph, VertexIDType.STRING, 1000);
+		batchGraph.setVertexIdKey("nodeId");
+		batchGraph.setLoadingFromScratch(true);
 	}
 	
 	@Override
