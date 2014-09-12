@@ -37,6 +37,7 @@ import eu.socialsensor.clustering.LouvainMethod;
 import eu.socialsensor.insert.Insertion;
 import eu.socialsensor.insert.Neo4jMassiveInsertion;
 import eu.socialsensor.insert.Neo4jSingleInsertion;
+import eu.socialsensor.main.GraphDatabaseBenchmark;
 import eu.socialsensor.query.Neo4jQuery;
 import eu.socialsensor.query.Query;
 import eu.socialsensor.utils.Utils;
@@ -75,13 +76,26 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 	public static Label NODE_LABEL = DynamicLabel.label("Node");
 	
 	public static void main(String args[]) {
+		Neo4jGraphDatabase test = new Neo4jGraphDatabase();
+		test.open(GraphDatabaseBenchmark.NEO4JDB_PATH);
+		test.shutdown();
 	}
 	
 	@Override
 	public void open(String dbPath) {
 		neo4jGraph = new GraphDatabaseFactory().newEmbeddedDatabase(dbPath);
 		try(Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
-			nodeIndex = neo4jGraph.index().forNodes("nodes");
+			
+			Node node = neo4jGraph.findNodesByLabelAndProperty(NODE_LABEL, "nodeId", 1).iterator().next();
+			System.out.println(node);
+			
+//			nodeIndex = neo4jGraph.index().forNodes("nodes");
+			
+			if(clusteringWorkload) {
+				schema = neo4jGraph.schema();
+				indexDefinition = schema.indexFor(NODE_LABEL).on("community").create();
+				indexDefinition = schema.indexFor(NODE_LABEL).on("nodeCommunity").create();
+			}
 			tx.success();
 			tx.close();
 		}
@@ -195,6 +209,7 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 		Set<Integer> neighbors = new HashSet<Integer>();
 		try (Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
 			Node n = nodeIndex.get("nodeId", nodeId).getSingle();
+//			Node n = neo4jGraph.findNodesByLabelAndProperty(NODE_LABEL, "nodeId", nodeId).iterator().next();
 			for(Relationship relationship : n.getRelationships(RelTypes.SIMILAR, Direction.OUTGOING)) {
 				Node neighbour = relationship.getOtherNode(n);
 				String neighbourId = (String)neighbour.getProperty("nodeId");
@@ -211,6 +226,7 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 		double weight;
 		try(Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
 			Node n = nodeIndex.get("nodeId", nodeId).getSingle();
+//			Node n = neo4jGraph.findNodesByLabelAndProperty(NODE_LABEL, "nodeId", nodeId).iterator().next();
 			weight =  getNodeOutDegree(n);
 			tx.success();
 			tx.close();
@@ -421,6 +437,7 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 		int community = 0;
 		try(Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
 			Node node = nodeIndex.get("nodeId", nodeId).getSingle();
+//			Node node = neo4jGraph.findNodesByLabelAndProperty(NODE_LABEL, "nodeId", nodeId).iterator().next();
 			community = (int)(node.getProperty("community"));
 			tx.success();
 			tx.close();
