@@ -15,6 +15,9 @@ import com.tinkerpop.blueprints.Compare;
 import com.tinkerpop.blueprints.Vertex;
 
 import eu.socialsensor.benchmarks.SingleInsertionBenchmark;
+import eu.socialsensor.graphdatabases.GraphDatabase;
+import eu.socialsensor.graphdatabases.TitanGraphDatabase;
+import eu.socialsensor.main.GraphDatabaseBenchmark;
 import eu.socialsensor.utils.Utils;
 
 /**
@@ -34,6 +37,15 @@ public class TitanSingleInsertion implements Insertion {
 	private TitanGraph titanGraph = null;
 	
 	private Logger logger = Logger.getLogger(TitanSingleInsertion.class);
+	
+	public static void main(String[] args) {
+		GraphDatabase graph = new TitanGraphDatabase();
+		graph.createGraphForSingleLoad(GraphDatabaseBenchmark.TITANDB_PATH);
+		graph.singleModeLoading("./data/enronEdges.txt");
+		graph.shutdown();
+		
+		graph.delete(GraphDatabaseBenchmark.TITANDB_PATH);
+	}
 		
 	public TitanSingleInsertion(TitanGraph titanGraph) {
 		this.titanGraph = titanGraph;
@@ -58,8 +70,10 @@ public class TitanSingleInsertion implements Insertion {
 				if(lineCounter > 4) {
 					String[] parts = line.split("\t");
 					
-					if(titanGraph.query().has("nodeId", Compare.EQUAL, parts[0]).vertices().iterator().hasNext()) {
-						srcVertex = titanGraph.query().has("nodeId", Compare.EQUAL, parts[0]).vertices().iterator().next();
+					if(titanGraph.query().has("nodeId", Compare.EQUAL, parts[0]).vertices().iterator()
+							.hasNext()) {
+						srcVertex = (Vertex)titanGraph.query().has("nodeId", Compare.EQUAL, parts[0])
+								.vertices().iterator().next();
 					}
 					else {
 						srcVertex = titanGraph.addVertex(parts[0]);
@@ -75,8 +89,10 @@ public class TitanSingleInsertion implements Insertion {
 						start = System.currentTimeMillis();
 					}
 					
-					if(titanGraph.query().has("nodeId", Compare.EQUAL, parts[1]).vertices().iterator().hasNext()) {
-						dstVertex = titanGraph.query().has("nodeId", Compare.EQUAL, parts[1]).vertices().iterator().next();
+					if(titanGraph.query().has("nodeId", Compare.EQUAL, parts[1]).vertices().iterator()
+							.hasNext()) {
+						dstVertex = (Vertex)titanGraph.query().has("nodeId", Compare.EQUAL, parts[1])
+								.vertices().iterator().next();
 					}
 					else {
 						dstVertex = titanGraph.addVertex(parts[1]);
