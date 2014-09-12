@@ -200,12 +200,12 @@
         <dependency>
             <groupId>com.thinkaurelius.titan</groupId>
             <artifactId>titan-berkeleyje</artifactId>
-            <version>0.4.1</version>
+            <version>0.5.0</version>
         </dependency>
         <dependency>
             <groupId>com.thinkaurelius.titan</groupId>
             <artifactId>titan-core</artifactId>
-            <version>0.4.1</version>
+            <version>0.5.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
