@@ -5,14 +5,17 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.graphdb.index.Index;
 import org.neo4j.kernel.GraphDatabaseAPI;
 
 import eu.socialsensor.benchmarks.SingleInsertionBenchmark;
@@ -27,7 +30,6 @@ import eu.socialsensor.utils.Utils;
  * @email sotbeis@iti.gr
  * 
  */
-@SuppressWarnings("deprecation")
 public class Neo4jSingleInsertion implements Insertion {
 
 	public static String INSERTION_TIMES_OUTPUT_PATH = null;
@@ -35,13 +37,13 @@ public class Neo4jSingleInsertion implements Insertion {
 	private static int count;
 	
 	private GraphDatabaseService neo4jGraph = null;
-	private Index<Node> nodeIndex;
+	ExecutionEngine engine;
 	
 	private Logger logger = Logger.getLogger(Neo4jSingleInsertion.class);
 	
-	public Neo4jSingleInsertion(GraphDatabaseService neo4jGraph, Index<Node> nodeIndex) {
+	public Neo4jSingleInsertion(GraphDatabaseService neo4jGraph) {
 		this.neo4jGraph = neo4jGraph;
-		this.nodeIndex = nodeIndex;
+		engine = new ExecutionEngine(this.neo4jGraph);
 	}
 	
 	@Override
@@ -54,7 +56,7 @@ public class Neo4jSingleInsertion implements Insertion {
 		try {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(datasetDir)));
 			String line;
-			int nodesCounter = 0;
+			int edgeCounter = 0;
 			int lineCounter = 1;
 			long start = System.currentTimeMillis();
 			long duration;
@@ -63,37 +65,8 @@ public class Neo4jSingleInsertion implements Insertion {
 				if(lineCounter > 4) {
 					String[] parts = line.split("\t");
 					
-					try (Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
-						srcNode = nodeIndex.get("nodeId", parts[0]).getSingle();
-						if(srcNode == null) {
-							srcNode = neo4jGraph.createNode(Neo4jGraphDatabase.NODE_LABEL);
-							srcNode.setProperty("nodeId", parts[0]);
-							nodeIndex.add(srcNode, "nodeId", parts[0]);
-							tx.success();
-							tx.close();
-							nodesCounter++;
-						}
-					}
-					
-					
-					if(nodesCounter == 1000) {
-						duration = System.currentTimeMillis() - start;
-						insertionTimes.add((double) duration);
-						nodesCounter = 0;
-						start = System.currentTimeMillis();
-					}
-					
-					try (Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
-						dstNode = nodeIndex.get("nodeId", parts[1]).getSingle();
-						if(dstNode == null) {
-							dstNode = neo4jGraph.createNode(Neo4jGraphDatabase.NODE_LABEL);
-							dstNode.setProperty("nodeId", parts[1]);
-							nodeIndex.add(dstNode, "nodeId", parts[1]);
-							tx.success();
-							tx.close();
-							nodesCounter++;
-						}
-					}
+					srcNode = getOrCreate(parts[0]);
+					dstNode = getOrCreate(parts[1]);
 					
 					try (Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
 						srcNode.createRelationshipTo(dstNode, Neo4jGraphDatabase.RelTypes.SIMILAR);
@@ -101,12 +74,13 @@ public class Neo4jSingleInsertion implements Insertion {
 						tx.close();
 					}
 					
-					if(nodesCounter == 1000) {
+					if(edgeCounter == 1000) {
 						duration = System.currentTimeMillis() - start;
 						insertionTimes.add((double) duration);
-						nodesCounter = 0;
+						edgeCounter = 0;
 						start = System.currentTimeMillis();
 					}
+					
 				}
 				lineCounter++;
 			}
@@ -120,6 +94,20 @@ public class Neo4jSingleInsertion implements Insertion {
 		}
 		Utils utils = new Utils();
 		utils.writeTimes(insertionTimes, Neo4jSingleInsertion.INSERTION_TIMES_OUTPUT_PATH+"."+count);
+	}
+	
+	private Node getOrCreate(String nodeId) {
+		Node result;
+		try(Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
+			String queryString = "MERGE (n:Node {nodeId: {nodeId}}) RETURN n";
+		    Map<String, Object> parameters = new HashMap<String, Object>();
+		    parameters.put( "nodeId", nodeId);
+		    ResourceIterator<Node> resultIterator = engine.execute( queryString, parameters ).columnAs( "n" );
+		    result = resultIterator.next();
+		    tx.success();
+		    tx.close();
+		}
+		return result;
 	}
 	
 }
