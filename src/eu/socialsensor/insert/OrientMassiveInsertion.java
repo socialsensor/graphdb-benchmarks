@@ -75,7 +75,7 @@ public class OrientMassiveInsertion extends OrientAbstractInsertion {
         }
         lineCounter++;
 
-        if (orientGraph instanceof TransactionalGraph && lineCounter % 5000 == 0)
+        if (orientGraph instanceof TransactionalGraph && lineCounter % 2000 == 0)
           ((TransactionalGraph) orientGraph).commit();
       }
 
