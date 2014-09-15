@@ -2,16 +2,11 @@ package eu.socialsensor.clustering;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import eu.socialsensor.graphdatabases.GraphDatabase;
-import eu.socialsensor.graphdatabases.Neo4jGraphDatabase;
-import eu.socialsensor.main.GraphDatabaseBenchmark;
-import eu.socialsensor.utils.Metrics;
-import eu.socialsensor.utils.Utils;
 
 /**
  * Implementation of Louvain Method on top of graph databases. Gephi Toolkit (https://gephi.org/toolkit/) 
@@ -36,39 +31,6 @@ public class LouvainMethod {
     public static int CACHE_SIZE = 1000;
         
 	public static void main(String args[]) throws ExecutionException {
-		
-//		GraphDatabase neo4jGraphDatabase = new Neo4jGraphDatabase();
-		
-//		neo4jGraphDatabase.delete(GraphDatabaseBenchmark.NEO4JDB_PATH);
-		
-//		neo4jGraphDatabase.createGraphForMassiveLoad(GraphDatabaseBenchmark.NEO4JDB_PATH);
-//		neo4jGraphDatabase.massiveModeLoading("./data/network.dat");
-//		neo4jGraphDatabase.shutdownMassiveGraph();
-
-		
-		GraphDatabase neo4jGraphDatabase = new Neo4jGraphDatabase();
-		neo4jGraphDatabase.open(GraphDatabaseBenchmark.NEO4JDB_PATH);
-		neo4jGraphDatabase.setClusteringWorkload(true);
-		
-		for(int i = 0; i < 5; i++) {
-			long start = System.currentTimeMillis();
-			System.out.println("Graph Database: Neo4j, Dataset: graph5000, Cache Size: 250");				
-			LouvainMethod louvainMethodCache = new LouvainMethod(neo4jGraphDatabase, 250, false);
-			louvainMethodCache.computeModularity();
-			double neo4jTime = (System.currentTimeMillis() - start) / 1000.0;
-			System.out.println(neo4jTime);
-			
-			//evaluation with NMI
-			Map<Integer, List<Integer>> predictedCommunities = neo4jGraphDatabase.mapCommunities(louvainMethodCache.getN());
-			Utils utils = new Utils();
-			Map<Integer, List<Integer>> actualCommunities = utils.mapNodesToCommunities("./data/community.dat");
-			Metrics metrics = new Metrics();
-			double NMI = metrics.normalizedMutualInformation(5000, actualCommunities, predictedCommunities);
-			System.out.println("NMI value: " + NMI);
-			System.out.println();
-		}
-
-		neo4jGraphDatabase.shutdown();
 		
 	}
 	
