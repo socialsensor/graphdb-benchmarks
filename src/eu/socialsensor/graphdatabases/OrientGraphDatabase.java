@@ -4,11 +4,11 @@ import com.google.common.collect.Iterables;
 import com.orientechnologies.common.collection.OMultiCollectionIterator;
 import com.orientechnologies.common.util.OCallable;
 import com.orientechnologies.orient.core.config.OGlobalConfiguration;
+import com.orientechnologies.orient.core.conflict.OAutoMergeRecordConflictStrategy;
 import com.orientechnologies.orient.core.id.ORecordId;
 import com.orientechnologies.orient.core.intent.OIntentMassiveInsert;
 import com.orientechnologies.orient.core.metadata.schema.OType;
 import com.orientechnologies.orient.core.record.impl.ODocument;
-import com.orientechnologies.orient.core.storage.impl.local.ORecordConflictResolver;
 import com.orientechnologies.orient.core.version.ORecordVersion;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Parameter;
@@ -21,9 +21,11 @@ import com.tinkerpop.blueprints.impls.orient.OrientGraphNoTx;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import com.tinkerpop.blueprints.impls.orient.OrientVertexType;
 import com.tinkerpop.blueprints.impls.orient.asynch.OrientGraphAsynch;
+
 import eu.socialsensor.insert.Insertion;
 import eu.socialsensor.insert.OrientMassiveInsertion;
 import eu.socialsensor.insert.OrientSingleInsertion;
+import eu.socialsensor.main.GraphDatabaseBenchmark;
 import eu.socialsensor.query.OrientQuery;
 import eu.socialsensor.query.Query;
 import eu.socialsensor.utils.Utils;
@@ -54,6 +56,14 @@ public class OrientGraphDatabase implements GraphDatabase {
   }
 
   public static void main(String args[]) {
+	  GraphDatabase db = new OrientGraphDatabase();
+	  db.createGraphForSingleLoad(GraphDatabaseBenchmark.ORIENTDB_PATH);
+	  long start = System.currentTimeMillis();
+	  db.singleModeLoading("enronEdges.txt");
+	  long time = System.currentTimeMillis() - start;
+	  db.shutdownMassiveGraph();
+	  db.delete(GraphDatabaseBenchmark.ORIENTDB_PATH);
+	  System.out.println(time / 1000.0);
   }
 
   @Override
@@ -400,19 +410,7 @@ public class OrientGraphDatabase implements GraphDatabase {
       g.setKeyFieldName("nodeId");
       g.setCache(1000000);
       g.setOutStats(System.out);
-      g.setConflictStrategy(new ORecordConflictResolver() {
-        @Override
-        public byte[] onUpdate(ORecordId rid, ORecordVersion iRecordVersion, byte[] iRecordContent, ORecordVersion iDatabaseVersion) {
-          ODocument storedRecord = rid.getRecord();
-          ODocument newRecord = new ODocument().fromStream(iRecordContent);
-
-          storedRecord.merge(newRecord, false, true);
-
-          iDatabaseVersion.setCounter(Math.max(iDatabaseVersion.getCounter(), iRecordVersion.getCounter()));
-
-          return storedRecord.toStream();
-        }
-      });
+      g.setConflictStrategy("automerge");
       g.declareIntent(new OIntentMassiveInsert());
       return g;
     }

@@ -18,7 +18,6 @@ import java.util.Map.Entry;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-import eu.socialsensor.benchmarks.SingleInsertionBenchmark;
 import eu.socialsensor.graphdatabases.GraphDatabase;
 import eu.socialsensor.graphdatabases.Neo4jGraphDatabase;
 import eu.socialsensor.graphdatabases.OrientGraphDatabase;
@@ -39,11 +38,13 @@ public class Utils {
 	private Logger logger = Logger.getLogger(Utils.class);
 	
 	static public void main(String args[]) {
+		Utils utils = new Utils();
+		System.out.println(utils.calculateFactorial(6));
 	}
 	
 	public void getDocumentsAs2dList(List<List<Double>> data, String docPath) {
 		Utils utils = new Utils();
-		for(int i = 0; i < SingleInsertionBenchmark.SCENARIOS; i++) {
+		for(int i = 0; i < GraphDatabaseBenchmark.SCENARIOS; i++) {
 			data.add(utils.getListFromTextDoc(docPath+"."+(i+1)));
 		}
 	}
@@ -170,18 +171,7 @@ public class Utils {
 		}
 		return communities;
 	}
-	
-//	public long getKeyByValue(Map<Long, Integer> map, int value) {
-//		long key = 0;
-//		for(Map.Entry<Long, Integer> entry : map.entrySet()) {
-//			if(value == entry.getValue()) {
-//				key = entry.getKey();
-//				break;
-//			}
-//		}
-//		return key;
-//	}
-	
+		
 	public <T, E> T getKeyByValue(Map<T, E> map, E value) {
 		for (Entry<T, E> entry : map.entrySet()) {
 	        if (value.equals(entry.getValue())) {
@@ -190,31 +180,55 @@ public class Utils {
 	    }
 	    return null;
 	}
+	
+	public int calculateFactorial(int n) {
+		if(n < 0) {
+			throw new Error("Number should be non-negative.");
+		}
+		else if(n == 0) {
+			return 1;
+		}
+		else {
+			int factorial = 1;
+			for (int i = 1 ; i <= n ; i++ ) {
+				factorial = factorial * i;
+			}
+			return factorial;
+		}
+	}
 
 	public void createDatabases(String dataset) {
 		System.out.println("");
 		logger.setLevel(Level.INFO);
 		logger.info("Creating graph databases before benchmark execution . . . .");
 		
-		GraphDatabase titanGraphDatabase = new TitanGraphDatabase();
-		titanGraphDatabase.createGraphForMassiveLoad(GraphDatabaseBenchmark.TITANDB_PATH);
-		titanGraphDatabase.massiveModeLoading(dataset);
-		titanGraphDatabase.shutdownMassiveGraph();
+		if(GraphDatabaseBenchmark.TITAN_SELECTED) {
+			GraphDatabase titanGraphDatabase = new TitanGraphDatabase();
+			titanGraphDatabase.createGraphForMassiveLoad(GraphDatabaseBenchmark.TITANDB_PATH);
+			titanGraphDatabase.massiveModeLoading(dataset);
+			titanGraphDatabase.shutdownMassiveGraph();
+		}
 		
-		GraphDatabase orientGraphDatabase = new OrientGraphDatabase();
-		orientGraphDatabase.createGraphForMassiveLoad(GraphDatabaseBenchmark.ORIENTDB_PATH);
-		orientGraphDatabase.massiveModeLoading(dataset);
-		orientGraphDatabase.shutdownMassiveGraph();
+		if(GraphDatabaseBenchmark.ORIENTDB_SELECTED) {
+			GraphDatabase orientGraphDatabase = new OrientGraphDatabase();
+			orientGraphDatabase.createGraphForMassiveLoad(GraphDatabaseBenchmark.ORIENTDB_PATH);
+			orientGraphDatabase.massiveModeLoading(dataset);
+			orientGraphDatabase.shutdownMassiveGraph();
+		}
 		
-		GraphDatabase neo4jGraphDatabase = new Neo4jGraphDatabase();
-		neo4jGraphDatabase.createGraphForMassiveLoad(GraphDatabaseBenchmark.NEO4JDB_PATH);
-		neo4jGraphDatabase.massiveModeLoading(dataset);
-		neo4jGraphDatabase.shutdownMassiveGraph();
+		if(GraphDatabaseBenchmark.NEO4J_SELECTED) {
+			GraphDatabase neo4jGraphDatabase = new Neo4jGraphDatabase();
+			neo4jGraphDatabase.createGraphForMassiveLoad(GraphDatabaseBenchmark.NEO4JDB_PATH);
+			neo4jGraphDatabase.massiveModeLoading(dataset);
+			neo4jGraphDatabase.shutdownMassiveGraph();
+		}
 		
-		GraphDatabase sparkseeGraphDatabase = new SparkseeGraphDatabase();
-		sparkseeGraphDatabase.createGraphForMassiveLoad(GraphDatabaseBenchmark.SPARKSEEDB_PATH);
-		sparkseeGraphDatabase.massiveModeLoading(dataset);
-		sparkseeGraphDatabase.shutdownMassiveGraph();
+		if(GraphDatabaseBenchmark.SPARKSEE_SELECTED) {
+			GraphDatabase sparkseeGraphDatabase = new SparkseeGraphDatabase();
+			sparkseeGraphDatabase.createGraphForMassiveLoad(GraphDatabaseBenchmark.SPARKSEEDB_PATH);
+			sparkseeGraphDatabase.massiveModeLoading(dataset);
+			sparkseeGraphDatabase.shutdownMassiveGraph();
+		}
 	}
 	
 	public void deleteDatabases() {
@@ -222,26 +236,174 @@ public class Utils {
 		logger.setLevel(Level.INFO);
 		logger.info("Deleting graph databases . . . .");
 		
-		GraphDatabase titanGraphDatabase = new TitanGraphDatabase();
-		titanGraphDatabase.delete(GraphDatabaseBenchmark.TITANDB_PATH);
-		
-		GraphDatabase orientGraphDatabase = new OrientGraphDatabase();
-		orientGraphDatabase.delete(GraphDatabaseBenchmark.ORIENTDB_PATH);
-		
-		GraphDatabase neo4jGraphDatabase = new Neo4jGraphDatabase();
-		neo4jGraphDatabase.delete(GraphDatabaseBenchmark.NEO4JDB_PATH);
-		
-		GraphDatabase sparkseeGraphDatabase = new SparkseeGraphDatabase();
-		sparkseeGraphDatabase.delete(GraphDatabaseBenchmark.SPARKSEEDB_PATH);
+		if(GraphDatabaseBenchmark.TITAN_SELECTED) {
+			GraphDatabase titanGraphDatabase = new TitanGraphDatabase();
+			titanGraphDatabase.delete(GraphDatabaseBenchmark.TITANDB_PATH);
+		}
+		if(GraphDatabaseBenchmark.ORIENTDB_SELECTED) {
+			GraphDatabase orientGraphDatabase = new OrientGraphDatabase();
+			orientGraphDatabase.delete(GraphDatabaseBenchmark.ORIENTDB_PATH);
+		}
+		if(GraphDatabaseBenchmark.NEO4J_SELECTED) {
+			GraphDatabase neo4jGraphDatabase = new Neo4jGraphDatabase();
+			neo4jGraphDatabase.delete(GraphDatabaseBenchmark.NEO4JDB_PATH);
+		}
+		if(GraphDatabaseBenchmark.SPARKSEE_SELECTED) {
+			GraphDatabase sparkseeGraphDatabase = new SparkseeGraphDatabase();
+			sparkseeGraphDatabase.delete(GraphDatabaseBenchmark.SPARKSEEDB_PATH);
+		}
 	}
 	
 	public Method[] filter(Method[] declaredMethods, String endsWith) {
 	    List<Method> filtered = new ArrayList<>();
 	    for(Method method : declaredMethods) {
 	    	if(method.getName().endsWith(endsWith)) {
-	    		filtered.add(method);
+	    		if(GraphDatabaseBenchmark.TITAN_SELECTED && 
+	    				method.getName().contains(GraphDatabaseBenchmark.TITAN)) {
+	    			filtered.add(method);
+	    		}
+	    		if(GraphDatabaseBenchmark.ORIENTDB_SELECTED &&
+	    				method.getName().contains(GraphDatabaseBenchmark.ORIENTDB)) {
+	    			filtered.add(method);
+	    		}
+	    		if(GraphDatabaseBenchmark.NEO4J_SELECTED &&
+	    				method.getName().contains(GraphDatabaseBenchmark.NEO4J)) {
+	    			filtered.add(method);
+	    		}
+	    		if(GraphDatabaseBenchmark.SPARKSEE_SELECTED &&
+	    				method.getName().contains(GraphDatabaseBenchmark.SPARKSEE)) {
+	    			filtered.add(method);
+	    		}
 	    	}
 	    }
 	    return filtered.toArray(new Method[filtered.size()]);
+	}
+	
+	public void selectDatabases(String selectedDatabases) {
+		String[] dbs = selectedDatabases.split(",");
+		for(String db : dbs) {
+			if(db.equals(GraphDatabaseBenchmark.TITAN)) {
+				GraphDatabaseBenchmark.TITAN_SELECTED = true;
+			}
+			if(db.equals(GraphDatabaseBenchmark.ORIENTDB)) {
+				GraphDatabaseBenchmark.ORIENTDB_SELECTED = true;
+			}
+			if(db.equals(GraphDatabaseBenchmark.NEO4J)) {
+				GraphDatabaseBenchmark.NEO4J_SELECTED = true;
+			}
+			if(db.equals(GraphDatabaseBenchmark.SPARKSEE)) {
+				GraphDatabaseBenchmark.SPARKSEE_SELECTED = true;
+			}
+		}
+	}
+	
+	public void writeResults(double[] titanTimes, double[] orientTimes, double[] neo4jTimes, 
+			double[] sparkseeTimes, String resultsFile, String benchmarkTitle) {
+		
+		String meanTitanTimeString;
+		String stdTitanTimeString;
+		if(GraphDatabaseBenchmark.TITAN_SELECTED) {
+			double meanTitanTime = calculateMean(titanTimes);
+			double varTitanTime = calculateVariance(meanTitanTime, titanTimes);
+			double stdTitanTime = calculateStdDeviation(varTitanTime);
+			meanTitanTimeString = String.valueOf(meanTitanTime);
+			stdTitanTimeString = String.valueOf(stdTitanTime);
+		}
+		else {
+			meanTitanTimeString = "Titan was not selected";
+			stdTitanTimeString = "Titan was not selected";
+		}
+		
+		String meanOrientTimeString;
+		String stdOrientTimeString;
+		if(GraphDatabaseBenchmark.ORIENTDB_SELECTED) {
+			double meanOrientTime = calculateMean(orientTimes);
+			double varOrientTime = calculateVariance(meanOrientTime, orientTimes);
+			double stdOrientTime = calculateStdDeviation(varOrientTime);
+			meanOrientTimeString = String.valueOf(meanOrientTime);
+			stdOrientTimeString = String.valueOf(stdOrientTime);
+		}
+		else {
+			meanOrientTimeString = "OrientDB was not selected";
+			stdOrientTimeString = "OrientDB was not selected";
+		}
+		
+		String meanNeo4jTimeString;
+		String stdNeo4jTimeString;
+		if(GraphDatabaseBenchmark.NEO4J_SELECTED) {
+			double meanNeo4jTime = calculateMean(neo4jTimes);
+			double varNeo4jTime = calculateVariance(meanNeo4jTime, neo4jTimes);
+			double stdNeo4jTime = calculateStdDeviation(varNeo4jTime);
+			meanNeo4jTimeString = String.valueOf(meanNeo4jTime);
+			stdNeo4jTimeString = String.valueOf(stdNeo4jTime);
+		}
+		else {
+			meanNeo4jTimeString = "Neo4j was not selected";
+			stdNeo4jTimeString = "Neo4j was not selected";
+		}
+		
+		String meanSparkseeTimeString;
+		String stdSparkseeTimeString;
+		if(GraphDatabaseBenchmark.SPARKSEE_SELECTED) {
+			double meanSparkseeTime = calculateMean(sparkseeTimes);
+			double varSparkseeTime = calculateVariance(meanSparkseeTime, sparkseeTimes);
+			double stdSparkseeTime = calculateStdDeviation(varSparkseeTime);
+			meanSparkseeTimeString = String.valueOf(meanSparkseeTime);
+			stdSparkseeTimeString = String.valueOf(stdSparkseeTime);
+		}
+		else {
+			meanSparkseeTimeString = "Sparksee was not selected";
+			stdSparkseeTimeString = "Sparksee was not selected";
+		}
+
+		String output = GraphDatabaseBenchmark.RESULTS_PATH + resultsFile;
+		logger.setLevel(Level.INFO);
+		System.out.println("");
+		logger.info("Write results to "+output);
+		String title = benchmarkTitle + "Benchmark Results";
+		try {
+			BufferedWriter out = new BufferedWriter(new FileWriter(output));
+			out.write("##############################################################");
+			out.write("\n");
+			out.write("######### " + title + " #########");
+			out.write("\n");
+			out.write("##############################################################");
+			out.write("\n");
+			out.write("\n");
+			out.write("OrientDB execution time");
+			out.write("\n");
+			out.write("Mean Value: "+meanOrientTimeString);
+			out.write("\n");
+			out.write("STD Value: "+stdOrientTimeString);
+			out.write("\n");
+			out.write("\n");
+			out.write("Titan execution time");
+			out.write("\n");
+			out.write("Mean Value: "+meanTitanTimeString);
+			out.write("\n");
+			out.write("STD Value: "+stdTitanTimeString);
+			out.write("\n");
+			out.write("\n");
+			out.write("Neo4j execution time");
+			out.write("\n");
+			out.write("Mean Value: "+meanNeo4jTimeString);
+			out.write("\n");
+			out.write("STD Value: "+stdNeo4jTimeString);
+			out.write("\n");
+			out.write("\n");
+			out.write("Sparksee execution time");
+			out.write("\n");
+			out.write("Mean Value: " + meanSparkseeTimeString);
+			out.write("\n");
+			out.write("STD Value: " + stdSparkseeTimeString);
+			out.write("\n");
+			out.write("########################################################");
+			
+			out.flush();
+			out.close();
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 }

@@ -32,7 +32,7 @@ public class ClusteringBenchmark implements Benchmark {
 	public final static boolean IS_RANDOMIZED = false;
 	public static final String SYNTH_DATASET = "SynthGraph500";
 	
-	private final String resultFile = "CWResults.txt";
+	private static final String CW_RESULTS = "CWResults.txt";
 	
 	BufferedWriter out;
 	
@@ -52,8 +52,7 @@ public class ClusteringBenchmark implements Benchmark {
 		
 		logger.setLevel(Level.INFO);
 		logger.info("Executing Clustering Benchmark . . . .");
-		String resultsFolder = GraphDatabaseBenchmark.inputPropertiesFile.getProperty("RESULTS_PATH");
-		String output = resultsFolder+resultFile;
+		String output = GraphDatabaseBenchmark.RESULTS_PATH + ClusteringBenchmark.CW_RESULTS;
 		try {
 			out = new BufferedWriter(new FileWriter(output));
 			out.write("###########################################################");

@@ -1,5 +1,6 @@
 package eu.socialsensor.main;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -24,6 +25,16 @@ import eu.socialsensor.utils.Utils;
  *
  */
 public class GraphDatabaseBenchmark {
+	
+	public final static String TITAN = "titan";
+	public final static String ORIENTDB = "orientdb";
+	public final static String NEO4J = "neo4j";
+	public final static String SPARKSEE = "sparksee";
+	
+	public static boolean TITAN_SELECTED = false;
+	public static boolean ORIENTDB_SELECTED = false;
+	public static boolean NEO4J_SELECTED = false;
+	public static boolean SPARKSEE_SELECTED = false;
 			
 	public final static String ORIENTDB_PATH = "data/OrientDB";
 	public final static String TITANDB_PATH = "data/TitanDB";
@@ -37,6 +48,10 @@ public class GraphDatabaseBenchmark {
 	public final static String FIND_SHORTEST_PATH_BENCHMARK = "QW-FS";
 	public final static String CLUSTERING_BENCHMARK = "CW";
 	public final static String ALL_BENCHMARK = "ALL";
+	
+	public static int SCENARIOS = 0;
+	
+	public static String RESULTS_PATH;
 	
 	public static Properties inputPropertiesFile = new Properties();
 	
@@ -62,10 +77,20 @@ public class GraphDatabaseBenchmark {
 			String realDataset = inputPropertiesFile.getProperty("REAL_DATASET");
 			String syntheticDataset = inputPropertiesFile.getProperty("SYNTHETIC_DATASET");
 			String benchmarkProperty = inputPropertiesFile.getProperty("BENCHMARK");
+			String selectedDatabases = inputPropertiesFile.getProperty("DATABASES");
 			String benchmarkClass = null;
 			Constructor<?> constructor = null;
 			Benchmark benchmark = null;
+			
 			Utils utils = new Utils();
+			utils.selectDatabases(selectedDatabases);
+			GraphDatabaseBenchmark.SCENARIOS = utils.calculateFactorial(selectedDatabases.split(",").length);
+			GraphDatabaseBenchmark.RESULTS_PATH = inputPropertiesFile.getProperty("RESULTS_PATH");
+			
+			File resultsPath = new File(GraphDatabaseBenchmark.RESULTS_PATH);
+			if(!resultsPath.exists()) {
+				resultsPath.mkdirs();
+			}
 			
 			if(benchmarkProperty.equals(MASSIVE_INSERTION_BENCHMARK)) {
 				logger.info("Massive Insertion Benchmark Selected");
@@ -81,7 +106,7 @@ public class GraphDatabaseBenchmark {
 			}
 			else {
 				if(benchmarkProperty.equals(FIND_NEIGHBOURS_BENCHMARK)) {
-					logger.info("Find Neighbours of All Nodes Benchmark Selected");
+					logger.info("Find new OAutoMergeRecordConflictStrategy()Neighbours of All Nodes Benchmark Selected");
 					utils.createDatabases(realDataset);
 					benchmarkClass = inputPropertiesFile.getProperty("QW-FN_CLASS");
 				}

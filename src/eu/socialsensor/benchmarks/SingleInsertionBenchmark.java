@@ -29,7 +29,6 @@ import eu.socialsensor.utils.Utils;
  */
 public class SingleInsertionBenchmark implements Benchmark {
 	
-	public static int SCENARIOS = 24;
 	public static String INSERTION_TIMES_OUTPUT_PATH;
 	
 	private String INSERTION_TIMES_OUTPUT_FILE = "SIWResults";
@@ -47,7 +46,7 @@ public class SingleInsertionBenchmark implements Benchmark {
 		System.out.println("");
 		logger.info("Executing Single Insertion Benchmark . . . .");
 		
-		String resultsFolder = GraphDatabaseBenchmark.inputPropertiesFile.getProperty("RESULTS_PATH");
+		String resultsFolder = GraphDatabaseBenchmark.RESULTS_PATH;
 		INSERTION_TIMES_OUTPUT_PATH = resultsFolder + INSERTION_TIMES_OUTPUT_FILE;
 		
 		Utils utils = new Utils();
@@ -72,33 +71,40 @@ public class SingleInsertionBenchmark implements Benchmark {
 		System.out.println("");
 		logger.info("Single Insertion Benchmark finished");
 		
-		List<List<Double>> titanInsertionTimesOfEachScenario = new ArrayList<List<Double>>(SingleInsertionBenchmark.SCENARIOS);
-		utils.getDocumentsAs2dList(titanInsertionTimesOfEachScenario, TitanSingleInsertion.INSERTION_TIMES_OUTPUT_PATH);
-		List<List<Double>> orientInsertionTimesOfEachScenario = new ArrayList<List<Double>>(SingleInsertionBenchmark.SCENARIOS);
-		utils.getDocumentsAs2dList(orientInsertionTimesOfEachScenario, OrientSingleInsertion.INSERTION_TIMES_OUTPUT_PATH);
-		List<List<Double>> neo4jInsertionTimesOfEachScenario = new ArrayList<List<Double>>(SingleInsertionBenchmark.SCENARIOS);
-		utils.getDocumentsAs2dList(neo4jInsertionTimesOfEachScenario, Neo4jSingleInsertion.INSERTION_TIMES_OUTPUT_PATH);
-		List<List<Double>> sparkseeInsertionTimesOfEachScenario = new ArrayList<List<Double>>(SingleInsertionBenchmark.SCENARIOS);
-		utils.getDocumentsAs2dList(sparkseeInsertionTimesOfEachScenario, SparkseeSingleInsertion.INSERTION_TIMES_OUTPUT_PATH);
-		
-		//compute mean time
-		List<Double> titanMeanInsertionTimes = utils.calculateMeanList(titanInsertionTimesOfEachScenario);
-		List<Double> orientMeanInsertionTimes = utils.calculateMeanList(orientInsertionTimesOfEachScenario);
-		List<Double> neo4jMeanInsertionTimes = utils.calculateMeanList(neo4jInsertionTimesOfEachScenario);
-		List<Double> sparkseeMeanInsertionTimes = utils.calculateMeanList(sparkseeInsertionTimesOfEachScenario);
-		
 		System.out.println("");
-		logger.info("Write results to "+resultsFolder);
-		utils.writeTimes(titanMeanInsertionTimes, TitanSingleInsertion.INSERTION_TIMES_OUTPUT_PATH);
-		utils.writeTimes(orientMeanInsertionTimes, OrientSingleInsertion.INSERTION_TIMES_OUTPUT_PATH);
-		utils.writeTimes(neo4jMeanInsertionTimes, Neo4jSingleInsertion.INSERTION_TIMES_OUTPUT_PATH);
-		utils.writeTimes(sparkseeMeanInsertionTimes, SparkseeSingleInsertion.INSERTION_TIMES_OUTPUT_PATH);
+		logger.info("Write results to " + resultsFolder);
+		if(GraphDatabaseBenchmark.TITAN_SELECTED) {
+			List<List<Double>> titanInsertionTimesOfEachScenario = new ArrayList<List<Double>>(GraphDatabaseBenchmark.SCENARIOS);
+			utils.getDocumentsAs2dList(titanInsertionTimesOfEachScenario, TitanSingleInsertion.INSERTION_TIMES_OUTPUT_PATH);
+			List<Double> titanMeanInsertionTimes = utils.calculateMeanList(titanInsertionTimesOfEachScenario);
+			utils.writeTimes(titanMeanInsertionTimes, TitanSingleInsertion.INSERTION_TIMES_OUTPUT_PATH);
+			utils.deleteMultipleFiles(TitanSingleInsertion.INSERTION_TIMES_OUTPUT_PATH, GraphDatabaseBenchmark.SCENARIOS);
+		}
 		
-		//clearing thrash
-		utils.deleteMultipleFiles(TitanSingleInsertion.INSERTION_TIMES_OUTPUT_PATH, SingleInsertionBenchmark.SCENARIOS);
-		utils.deleteMultipleFiles(OrientSingleInsertion.INSERTION_TIMES_OUTPUT_PATH, SingleInsertionBenchmark.SCENARIOS);
-		utils.deleteMultipleFiles(Neo4jSingleInsertion.INSERTION_TIMES_OUTPUT_PATH, SingleInsertionBenchmark.SCENARIOS);
-		utils.deleteMultipleFiles(SparkseeSingleInsertion.INSERTION_TIMES_OUTPUT_PATH, SingleInsertionBenchmark.SCENARIOS);
+		if(GraphDatabaseBenchmark.ORIENTDB_SELECTED) {
+			List<List<Double>> orientInsertionTimesOfEachScenario = new ArrayList<List<Double>>(GraphDatabaseBenchmark.SCENARIOS);
+			utils.getDocumentsAs2dList(orientInsertionTimesOfEachScenario, OrientSingleInsertion.INSERTION_TIMES_OUTPUT_PATH);
+			List<Double> orientMeanInsertionTimes = utils.calculateMeanList(orientInsertionTimesOfEachScenario);
+			utils.writeTimes(orientMeanInsertionTimes, OrientSingleInsertion.INSERTION_TIMES_OUTPUT_PATH);
+			utils.deleteMultipleFiles(OrientSingleInsertion.INSERTION_TIMES_OUTPUT_PATH, GraphDatabaseBenchmark.SCENARIOS);
+		}
+		
+		if(GraphDatabaseBenchmark.NEO4J_SELECTED) {
+			List<List<Double>> neo4jInsertionTimesOfEachScenario = new ArrayList<List<Double>>(GraphDatabaseBenchmark.SCENARIOS);
+			utils.getDocumentsAs2dList(neo4jInsertionTimesOfEachScenario, Neo4jSingleInsertion.INSERTION_TIMES_OUTPUT_PATH);
+			List<Double> neo4jMeanInsertionTimes = utils.calculateMeanList(neo4jInsertionTimesOfEachScenario);
+			utils.writeTimes(neo4jMeanInsertionTimes, Neo4jSingleInsertion.INSERTION_TIMES_OUTPUT_PATH);
+			utils.deleteMultipleFiles(Neo4jSingleInsertion.INSERTION_TIMES_OUTPUT_PATH, GraphDatabaseBenchmark.SCENARIOS);
+		}
+		
+		if(GraphDatabaseBenchmark.SPARKSEE_SELECTED) {
+			List<List<Double>> sparkseeInsertionTimesOfEachScenario = new ArrayList<List<Double>>(GraphDatabaseBenchmark.SCENARIOS);
+			utils.getDocumentsAs2dList(sparkseeInsertionTimesOfEachScenario, SparkseeSingleInsertion.INSERTION_TIMES_OUTPUT_PATH);
+			List<Double> sparkseeMeanInsertionTimes = utils.calculateMeanList(sparkseeInsertionTimesOfEachScenario);
+			utils.writeTimes(sparkseeMeanInsertionTimes, SparkseeSingleInsertion.INSERTION_TIMES_OUTPUT_PATH);
+			utils.deleteMultipleFiles(SparkseeSingleInsertion.INSERTION_TIMES_OUTPUT_PATH, GraphDatabaseBenchmark.SCENARIOS);
+		}
+				
 	}
 	
 	@SuppressWarnings("unused")
