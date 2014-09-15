@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicLabel;
@@ -18,22 +19,16 @@ import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.ResourceIterable;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
-import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.graphdb.schema.Schema;
 import org.neo4j.helpers.collection.IteratorUtil;
-import org.neo4j.helpers.collection.MapUtil;
-import org.neo4j.index.lucene.unsafe.batchinsert.LuceneBatchInserterIndexProvider;
 import org.neo4j.kernel.GraphDatabaseAPI;
 import org.neo4j.tooling.GlobalGraphOperations;
 import org.neo4j.unsafe.batchinsert.BatchInserter;
-import org.neo4j.unsafe.batchinsert.BatchInserterIndex;
-import org.neo4j.unsafe.batchinsert.BatchInserterIndexProvider;
 import org.neo4j.unsafe.batchinsert.BatchInserters;
 
 import com.google.common.collect.Iterables;
 
-import eu.socialsensor.clustering.LouvainMethod;
 import eu.socialsensor.insert.Insertion;
 import eu.socialsensor.insert.Neo4jMassiveInsertion;
 import eu.socialsensor.insert.Neo4jSingleInsertion;
@@ -48,24 +43,14 @@ import eu.socialsensor.utils.Utils;
  * @author sotbeis
  * @email sotbeis@iti.gr
  */
-//@SuppressWarnings("deprecation")
+@SuppressWarnings("deprecation")
 public class Neo4jGraphDatabase implements GraphDatabase {
 	
 	GraphDatabaseService neo4jGraph = null;
 	Schema schema = null;
 	IndexDefinition indexDefinition = null;
-	
-	/**
-	 * DELETE
-	 */
-	private Index<Node> nodeIndex = null;
-	/**
-	 * 
-	 */
-	
+		
 	private BatchInserter inserter = null;
-	private BatchInserterIndexProvider indexProvider = null;
-	private BatchInserterIndex nodes = null;
 	
 	private boolean clusteringWorkload = false;
 	
@@ -77,25 +62,27 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 	
 	public static void main(String args[]) {
 		Neo4jGraphDatabase test = new Neo4jGraphDatabase();
-		test.open(GraphDatabaseBenchmark.NEO4JDB_PATH);
-		test.shutdown();
+		test.createGraphForMassiveLoad(GraphDatabaseBenchmark.NEO4JDB_PATH);
+		test.massiveModeLoading("./data/livejournalEdges.txt");
+		test.shutdownMassiveGraph();
 	}
 	
 	@Override
 	public void open(String dbPath) {
 		neo4jGraph = new GraphDatabaseFactory().newEmbeddedDatabase(dbPath);
 		try(Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
-			
-			Node node = neo4jGraph.findNodesByLabelAndProperty(NODE_LABEL, "nodeId", 1).iterator().next();
-			System.out.println(node);
-			
-//			nodeIndex = neo4jGraph.index().forNodes("nodes");
-			
+						
 			if(clusteringWorkload) {
 				schema = neo4jGraph.schema();
 				indexDefinition = schema.indexFor(NODE_LABEL).on("community").create();
 				indexDefinition = schema.indexFor(NODE_LABEL).on("nodeCommunity").create();
 			}
+			tx.success();
+			tx.close();
+		}
+		
+		try(Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
+			neo4jGraph.schema().awaitIndexesOnline(10l, TimeUnit.MINUTES);
 			tx.success();
 			tx.close();
 		}
@@ -111,11 +98,6 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 			tx.success();
 			tx.close();
 		}
-//		try (Transaction tx = neo4jGraph.beginTx()) {
-//			nodeIndex = neo4jGraph.index().forNodes("nodes");
-//			tx.success();
-//			tx.close();
-//		}
 	}
 
 	@Override
@@ -128,20 +110,18 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 		config.put("neostore.propertystore.db.mapped_memory", "250M");
 		config.put("neostore.propertystore.db.strings.mapped_memory", "250M");
 		inserter = BatchInserters.inserter(dbPath, config);
-		indexProvider = new LuceneBatchInserterIndexProvider(inserter);
-		nodes = indexProvider.nodeIndex("nodes", MapUtil.stringMap("type", "exact"));
+		inserter.createDeferredSchemaIndex(NODE_LABEL).on("nodeId").create();
 	}
 	
 	@Override
 	public void singleModeLoading(String dataPath) {
-//		Insertion neo4jSingleInsertion = new Neo4jSingleInsertion(this.neo4jGraph, this.nodeIndex);
 		Insertion neo4jSingleInsertion = new Neo4jSingleInsertion(this.neo4jGraph);
 		neo4jSingleInsertion.createGraph(dataPath);
 	}
 	
 	@Override
 	public void massiveModeLoading(String dataPath) {
-		Insertion neo4jMassiveInsertion = new Neo4jMassiveInsertion(this.inserter, this.nodes);
+		Insertion neo4jMassiveInsertion = new Neo4jMassiveInsertion(this.inserter);
 		neo4jMassiveInsertion.createGraph(dataPath);
 	}
 	
@@ -149,7 +129,6 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 	public void shutdown() {
 		if(neo4jGraph != null) {
 			neo4jGraph.shutdown();
-			nodeIndex = null;
 		}
 	}
 	
@@ -168,9 +147,7 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 	@Override
 	public void shutdownMassiveGraph() {
 		if(inserter != null) {
-			indexProvider.shutdown();
 			inserter.shutdown();
-			indexProvider = null;
 			inserter = null;
 		}
 	}
@@ -208,8 +185,8 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 	public Set<Integer> getNeighborsIds(int nodeId) {
 		Set<Integer> neighbors = new HashSet<Integer>();
 		try (Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
-			Node n = nodeIndex.get("nodeId", nodeId).getSingle();
-//			Node n = neo4jGraph.findNodesByLabelAndProperty(NODE_LABEL, "nodeId", nodeId).iterator().next();
+			Node n = neo4jGraph.findNodesByLabelAndProperty(NODE_LABEL, "nodeId", String.valueOf(nodeId))
+					.iterator().next();
 			for(Relationship relationship : n.getRelationships(RelTypes.SIMILAR, Direction.OUTGOING)) {
 				Node neighbour = relationship.getOtherNode(n);
 				String neighbourId = (String)neighbour.getProperty("nodeId");
@@ -225,8 +202,8 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 	public double getNodeWeight(int nodeId) {
 		double weight;
 		try(Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
-			Node n = nodeIndex.get("nodeId", nodeId).getSingle();
-//			Node n = neo4jGraph.findNodesByLabelAndProperty(NODE_LABEL, "nodeId", nodeId).iterator().next();
+			Node n = neo4jGraph.findNodesByLabelAndProperty(NODE_LABEL, "nodeId", String.valueOf(nodeId))
+					.iterator().next();
 			weight =  getNodeOutDegree(n);
 			tx.success();
 			tx.close();
@@ -248,7 +225,6 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 	@Override
 	public void initCommunityProperty() {
 		int communityCounter = 0;
-//		int transactionCounter = 0;
 		
 		//maybe commit changes every 1000 transactions?
 		try(Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
@@ -260,17 +236,6 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 			tx.success();
 			tx.close();
 		}
-		
-		
-//			transactionCounter++;
-//			if(transactionCounter == LouvainMethod.CACHE_SIZE) {
-//				transactionCounter = 0;
-//				tx.success();
-//				tx.close();
-//				tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin();
-//			}
-		
-		
 	}
 
 	@Override
@@ -424,7 +389,8 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 	public int getCommunity(int nodeCommunity) {
 		int community = 0;
 		try(Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
-			Node node = neo4jGraph.findNodesByLabelAndProperty(NODE_LABEL, "nodeCommunity", nodeCommunity).iterator().next();
+			Node node = neo4jGraph.findNodesByLabelAndProperty(NODE_LABEL, "nodeCommunity", nodeCommunity)
+					.iterator().next();
 			community = (int)(node.getProperty("community"));
 			tx.success();
 			tx.close();
@@ -436,8 +402,9 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 	public int getCommunityFromNode(int nodeId) {
 		int community = 0;
 		try(Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
-			Node node = nodeIndex.get("nodeId", nodeId).getSingle();
-//			Node node = neo4jGraph.findNodesByLabelAndProperty(NODE_LABEL, "nodeId", nodeId).iterator().next();
+//			Node node = nodeIndex.get("nodeId", nodeId).getSingle();
+			Node node = neo4jGraph.findNodesByLabelAndProperty(NODE_LABEL, "nodeId", String.valueOf(nodeId))
+					.iterator().next();
 			community = (int)(node.getProperty("community"));
 			tx.success();
 			tx.close();

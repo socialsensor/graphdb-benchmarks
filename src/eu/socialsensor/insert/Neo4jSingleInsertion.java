@@ -16,7 +16,6 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.graphdb.index.Index;
 import org.neo4j.kernel.GraphDatabaseAPI;
 
 import eu.socialsensor.benchmarks.SingleInsertionBenchmark;
@@ -41,7 +40,7 @@ public class Neo4jSingleInsertion implements Insertion {
 	ExecutionEngine engine;
 	
 	private Logger logger = Logger.getLogger(Neo4jSingleInsertion.class);
-		
+	
 	public Neo4jSingleInsertion(GraphDatabaseService neo4jGraph) {
 		this.neo4jGraph = neo4jGraph;
 		engine = new ExecutionEngine(this.neo4jGraph);
