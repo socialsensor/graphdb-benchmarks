@@ -1,8 +1,5 @@
 package eu.socialsensor.benchmarks;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -25,15 +22,14 @@ import eu.socialsensor.utils.Utils;
  */
 public class FindNeighboursOfAllNodesBenchmark implements Benchmark {
 	
-	private static int SCENARIOS = 24;
-	private final String resultFile = "QW-FNResults.txt";
+	private static final String QW_FN_RESULTS = "QW-FNResults.txt";
 	
 	private Logger logger = Logger.getLogger(FindNeighboursOfAllNodesBenchmark.class);
 	
-	private double[] orientTimes = new double[SCENARIOS];
-	private double[] titanTimes = new double[SCENARIOS];
-	private double[] neo4jTimes = new double[SCENARIOS];
-	private double[] sparkseeTimes = new double[SCENARIOS];
+	private double[] orientTimes = new double[GraphDatabaseBenchmark.SCENARIOS];
+	private double[] titanTimes = new double[GraphDatabaseBenchmark.SCENARIOS];
+	private double[] neo4jTimes = new double[GraphDatabaseBenchmark.SCENARIOS];
+	private double[] sparkseeTimes = new double[GraphDatabaseBenchmark.SCENARIOS];
 	
 	private int titanScenarioCount = 0;
 	private int orientScenarioCount = 0;
@@ -66,71 +62,9 @@ public class FindNeighboursOfAllNodesBenchmark implements Benchmark {
 		
 		System.out.println("");
 		logger.info("Find Neighbours of All Nodes Benchmark finished");
-				
-		double meanOrientTime = utils.calculateMean(orientTimes);
-		double meanTitanTime = utils.calculateMean(titanTimes);
-		double meanNeo4jTime = utils.calculateMean(neo4jTimes);
-		double meanSparkseeTime = utils.calculateMean(sparkseeTimes);
 		
-		double varOrientTime = utils.calculateVariance(meanOrientTime, orientTimes);
-		double varTitanTime = utils.calculateVariance(meanTitanTime, titanTimes);
-		double varNeo4jTime = utils.calculateVariance(meanNeo4jTime, neo4jTimes);
-		double varSparkseeTime = utils.calculateVariance(meanSparkseeTime, sparkseeTimes);
-		
-		double stdOrientTime = utils.calculateStdDeviation(varOrientTime);
-		double stdTitanTime = utils.calculateStdDeviation(varTitanTime);
-		double stdNeo4jTime = utils.calculateStdDeviation(varNeo4jTime);
-		double stdSparkseeTime = utils.calculateStdDeviation(varSparkseeTime);
-		
-		String resultsFolder = GraphDatabaseBenchmark.inputPropertiesFile.getProperty("RESULTS_PATH");
-		String output = resultsFolder+resultFile;
-		System.out.println("");
-		logger.info("Write results to "+output);
-		try {
-			BufferedWriter out = new BufferedWriter(new FileWriter(output));
-			out.write("##############################################################");
-			out.write("\n");
-			out.write("####### Find Neighbours of All Nodes Benchmark Results #######");
-			out.write("\n");
-			out.write("##############################################################");
-			out.write("\n");
-			out.write("\n");
-			out.write("OrientDB execution time");
-			out.write("\n");
-			out.write("Mean Value: "+meanOrientTime);
-			out.write("\n");
-			out.write("STD Value: "+stdOrientTime);
-			out.write("\n");
-			out.write("\n");
-			out.write("Titan execution time");
-			out.write("\n");
-			out.write("Mean Value: "+meanTitanTime);
-			out.write("\n");
-			out.write("STD Value: "+stdTitanTime);
-			out.write("\n");
-			out.write("\n");
-			out.write("Neo4j execution time");
-			out.write("\n");
-			out.write("Mean Value: "+meanNeo4jTime);
-			out.write("\n");
-			out.write("STD Value: "+stdNeo4jTime);
-			out.write("\n");
-			out.write("\n");
-			out.write("Sparksee execution time");
-			out.write("\n");
-			out.write("Mean Value: " + meanSparkseeTime);
-			out.write("\n");
-			out.write("STD Value: " + stdSparkseeTime);
-			out.write("\n");
-			out.write("########################################################");
-			
-			out.flush();
-			out.close();
-		}
-		catch (IOException e) {
-			e.printStackTrace();
-		}
-		
+		utils.writeResults(titanTimes, orientTimes, neo4jTimes, sparkseeTimes, QW_FN_RESULTS, 
+				"Find Neighbours of All Nodes");		
 	}
 	
 	@SuppressWarnings("unused")

@@ -3,6 +3,7 @@ package eu.socialsensor.query;
 import java.util.Iterator;
 import java.util.List;
 
+import com.thinkaurelius.titan.core.TitanFactory;
 import com.thinkaurelius.titan.core.TitanGraph;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
@@ -11,6 +12,7 @@ import com.tinkerpop.pipes.PipeFunction;
 import com.tinkerpop.pipes.branch.LoopPipe.LoopBundle;
 
 import eu.socialsensor.benchmarks.FindShortestPathBenchmark;
+import eu.socialsensor.main.GraphDatabaseBenchmark;
 
 /**
  * Query implementation for Titan graph database
@@ -24,10 +26,25 @@ public class TitanQuery implements Query {
 	private TitanGraph titanGraph = null;
 	
 	public static void main(String args[]) {
+//		GraphDatabase graph = new TitanGraphDatabase();
+//		graph.createGraphForMassiveLoad(GraphDatabaseBenchmark.TITANDB_PATH);
+//		graph.massiveModeLoading("./data/youtubeEdges.txt");
+//		graph.shutdownMassiveGraph();
+		
+		TitanQuery titanQuery = new TitanQuery();
+		titanQuery.findNodesOfAllEdges();
 	}
 	
 	public TitanQuery(TitanGraph titanGraph) {
 		this.titanGraph = titanGraph;
+	}
+	
+	public TitanQuery() {
+		this.titanGraph = TitanFactory.build()
+				.set("storage.backend", "berkeleyje")
+				.set("storage.transactions", false)
+				.set("storage.directory", GraphDatabaseBenchmark.TITANDB_PATH)
+				.open();
 	}
 	
 	@Override
@@ -35,7 +52,7 @@ public class TitanQuery implements Query {
 		for(Vertex v : titanGraph.getVertices()) {
 			@SuppressWarnings("unused")
 			GremlinPipeline<String, Vertex> pipe = new GremlinPipeline<String, Vertex>(v).both("similar");
-		}
+		}		
 	}
 	
 	@Override

@@ -11,7 +11,6 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.neo4j.helpers.collection.MapUtil;
 import org.neo4j.unsafe.batchinsert.BatchInserter;
-import org.neo4j.unsafe.batchinsert.BatchInserterIndex;
 
 import eu.socialsensor.graphdatabases.Neo4jGraphDatabase;
 
@@ -26,14 +25,12 @@ import eu.socialsensor.graphdatabases.Neo4jGraphDatabase;
 public class Neo4jMassiveInsertion implements Insertion {
 	
 	private BatchInserter inserter = null;
-	private BatchInserterIndex nodes = null;
 	Map<Long, Long> cache = new HashMap<Long, Long>();
 	
 	private Logger logger = Logger.getLogger(Neo4jMassiveInsertion.class);
-	
-	public Neo4jMassiveInsertion(BatchInserter inserter, BatchInserterIndex index) {
+		
+	public Neo4jMassiveInsertion(BatchInserter inserter) {
 		this.inserter = inserter;
-		this.nodes = index;
 	}
 	
 	@Override
@@ -62,7 +59,6 @@ public class Neo4jMassiveInsertion implements Insertion {
 		catch (IOException e) {
 			e.printStackTrace();
 		}
-		nodes.flush();
 	}
 	
 	private long getOrCreate(String value) {
@@ -71,7 +67,6 @@ public class Neo4jMassiveInsertion implements Insertion {
 			Map<String, Object> properties = MapUtil.map("nodeId", value);
 			id = inserter.createNode(properties, Neo4jGraphDatabase.NODE_LABEL);
 			cache.put(Long.valueOf(value), id);
-			nodes.add(id, properties);
 		}
 		return id;
 	}

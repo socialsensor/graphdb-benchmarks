@@ -1,5 +1,14 @@
 package eu.socialsensor.graphdatabases;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import com.google.common.collect.Iterables;
 import com.orientechnologies.common.collection.OMultiCollectionIterator;
 import com.orientechnologies.common.util.OCallable;
@@ -17,21 +26,14 @@ import com.tinkerpop.blueprints.impls.orient.OrientGraphNoTx;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import com.tinkerpop.blueprints.impls.orient.OrientVertexType;
 import com.tinkerpop.blueprints.impls.orient.asynch.OrientGraphAsynch;
+
 import eu.socialsensor.insert.Insertion;
 import eu.socialsensor.insert.OrientMassiveInsertion;
 import eu.socialsensor.insert.OrientSingleInsertion;
+import eu.socialsensor.main.GraphDatabaseBenchmark;
 import eu.socialsensor.query.OrientQuery;
 import eu.socialsensor.query.Query;
 import eu.socialsensor.utils.Utils;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * OrientDB graph database implementation
@@ -50,6 +52,14 @@ public class OrientGraphDatabase implements GraphDatabase {
   }
 
   public static void main(String args[]) {
+    GraphDatabase db = new OrientGraphDatabase();
+    db.createGraphForSingleLoad(GraphDatabaseBenchmark.ORIENTDB_PATH);
+    long start = System.currentTimeMillis();
+    db.singleModeLoading("enronEdges.txt");
+    long time = System.currentTimeMillis() - start;
+    db.shutdownMassiveGraph();
+    db.delete(GraphDatabaseBenchmark.ORIENTDB_PATH);
+    System.out.println(time / 1000.0);
   }
 
   @Override

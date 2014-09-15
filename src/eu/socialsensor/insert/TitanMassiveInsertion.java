@@ -12,6 +12,10 @@ import com.thinkaurelius.titan.core.TitanGraph;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.util.wrappers.batch.BatchGraph;
 
+import eu.socialsensor.graphdatabases.GraphDatabase;
+import eu.socialsensor.graphdatabases.TitanGraphDatabase;
+import eu.socialsensor.main.GraphDatabaseBenchmark;
+
 /**
  * Implementation of massive Insertion in Titan
  * graph database
@@ -26,6 +30,15 @@ public class TitanMassiveInsertion implements Insertion {
 	
 	private Logger logger = Logger.getLogger(TitanMassiveInsertion.class);
 	
+	public static void main(String[] args) {
+		GraphDatabase graph = new TitanGraphDatabase();
+		graph.createGraphForMassiveLoad(GraphDatabaseBenchmark.TITANDB_PATH);
+		graph.massiveModeLoading("./data/youtubeEdges.txt");
+		graph.shutdown();
+		
+		graph.delete(GraphDatabaseBenchmark.TITANDB_PATH);
+	}
+	
 	public TitanMassiveInsertion(BatchGraph<TitanGraph> batchGraph) {
 		this.batchGraph = batchGraph;
 	}
@@ -34,6 +47,7 @@ public class TitanMassiveInsertion implements Insertion {
 	public void createGraph(String datasetDir) {
 		logger.setLevel(Level.INFO);
 		logger.info("Loading data in massive mode in Titan database . . . .");
+		long start = System.currentTimeMillis();
 		try {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(datasetDir)));
 			String line;
@@ -50,6 +64,8 @@ public class TitanMassiveInsertion implements Insertion {
 				}
 				lineCounter++;
 			}
+			long time = System.currentTimeMillis() - start;
+			System.out.println(time / 1000.0);
 			reader.close();
 		}
 		catch(IOException ioe) {

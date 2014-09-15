@@ -15,8 +15,11 @@ import org.apache.commons.configuration.BaseConfiguration;
 import org.apache.commons.configuration.Configuration;
 
 import com.google.common.collect.Iterables;
+import com.thinkaurelius.titan.core.PropertyKey;
+import com.thinkaurelius.titan.core.Titan;
 import com.thinkaurelius.titan.core.TitanFactory;
 import com.thinkaurelius.titan.core.TitanGraph;
+import com.thinkaurelius.titan.core.schema.TitanManagement;
 import com.thinkaurelius.titan.core.util.TitanCleanup;
 import com.thinkaurelius.titan.graphdb.configuration.GraphDatabaseConfiguration;
 import com.tinkerpop.blueprints.Edge;
@@ -67,41 +70,42 @@ public class TitanGraphDatabase implements GraphDatabase{
 	
 	@Override
 	public void open(String dbPath) {
-		BaseConfiguration config = new BaseConfiguration();
-        Configuration storage = config.subset(GraphDatabaseConfiguration.STORAGE_NAMESPACE);
-        storage.setProperty(GraphDatabaseConfiguration.STORAGE_BACKEND_KEY, STORAGE_BACKEND);
-        storage.setProperty(GraphDatabaseConfiguration.STORAGE_DIRECTORY_KEY, dbPath);
-        storage.setProperty(GraphDatabaseConfiguration.STORAGE_TRANSACTIONAL_KEY, false);
-		titanGraph = TitanFactory.open(config);
+		titanGraph = TitanFactory.build()
+				.set("storage.backend", "berkeleyje")
+				.set("storage.transactions", false)
+				.set("storage.directory", dbPath)
+				.open();
 	}
 	
 	@Override
 	public void createGraphForSingleLoad(String dbPath) {
-		BaseConfiguration config = new BaseConfiguration();
-        Configuration storage = config.subset(GraphDatabaseConfiguration.STORAGE_NAMESPACE);
-        storage.setProperty(GraphDatabaseConfiguration.STORAGE_BACKEND_KEY, STORAGE_BACKEND);
-        storage.setProperty(GraphDatabaseConfiguration.STORAGE_DIRECTORY_KEY, dbPath);
-        storage.setProperty(GraphDatabaseConfiguration.STORAGE_TRANSACTIONAL_KEY, false);
-		titanGraph = TitanFactory.open(config);
-		titanGraph.makeKey("nodeId").dataType(String.class).indexed(Vertex.class).make();
-		titanGraph.makeLabel("similar").unidirected().make();
-		titanGraph.commit();
+		titanGraph = TitanFactory.build()
+				.set("storage.backend", "berkeleyje")
+				.set("storage.transactions", false)
+				.set("storage.directory", dbPath)
+				.open();
+		TitanManagement titanManagement = titanGraph.getManagementSystem();
+		PropertyKey nodeId = titanManagement.makePropertyKey("nodeId").dataType(String.class).make();
+		titanManagement.buildIndex("nodeId", Vertex.class).addKey(nodeId).buildCompositeIndex();
+		titanManagement.commit();
 	}
 	
 	@Override
 	public void createGraphForMassiveLoad(String dbPath) {
-		BaseConfiguration config = new BaseConfiguration();
-        Configuration storage = config.subset(GraphDatabaseConfiguration.STORAGE_NAMESPACE);
-        storage.setProperty(GraphDatabaseConfiguration.STORAGE_BACKEND_KEY, "local");
-        storage.setProperty(GraphDatabaseConfiguration.STORAGE_DIRECTORY_KEY, dbPath);
-        storage.setProperty(GraphDatabaseConfiguration.STORAGE_BATCH_KEY, true);
-        titanGraph = TitanFactory.open(config);
-		titanGraph.makeKey("nodeId").dataType(String.class).indexed(Vertex.class).make();
-		titanGraph.makeLabel("similar").make();
-		titanGraph.commit();
-		batchGraph = new BatchGraph<TitanGraph>(titanGraph, VertexIDType.STRING, 10000);
+		titanGraph = TitanFactory.build()
+				.set("storage.backend", "berkeleyje")
+				.set("storage.directory", dbPath)
+				.set("storage.batch-loading", true)
+				.open();
+		TitanManagement titanManagement = titanGraph.getManagementSystem();
+		PropertyKey nodeId = titanManagement.makePropertyKey("nodeId").dataType(String.class).make();
+		titanManagement.buildIndex("nodeId", Vertex.class).addKey(nodeId).buildCompositeIndex();
+		titanManagement.makeEdgeLabel("similar").make();
+		titanManagement.commit();
+		
+		batchGraph = new BatchGraph<TitanGraph>(titanGraph, VertexIDType.STRING, 1000);
 		batchGraph.setVertexIdKey("nodeId");
-		batchGraph.setLoadingFromScratch(true);	
+		batchGraph.setLoadingFromScratch(true);
 	}
 	
 	@Override
@@ -126,7 +130,10 @@ public class TitanGraphDatabase implements GraphDatabase{
 	
 	@Override
 	public void delete(String dbPath) {
-		titanGraph = TitanFactory.open(dbPath);
+		titanGraph = TitanFactory.build()
+				.set("storage.backend", "berkeleyje")
+				.set("storage.directory", dbPath)
+				.open();
 		titanGraph.shutdown();
 		TitanCleanup.clear(titanGraph);
 		try {
