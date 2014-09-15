@@ -1,16 +1,5 @@
 package eu.socialsensor.benchmarks;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
-
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-
 import eu.socialsensor.clustering.LouvainMethod;
 import eu.socialsensor.graphdatabases.GraphDatabase;
 import eu.socialsensor.graphdatabases.Neo4jGraphDatabase;
@@ -20,6 +9,16 @@ import eu.socialsensor.graphdatabases.TitanGraphDatabase;
 import eu.socialsensor.main.GraphDatabaseBenchmark;
 import eu.socialsensor.utils.Metrics;
 import eu.socialsensor.utils.Utils;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 /**
  * ClusteringBenchmark implementation
@@ -69,7 +68,7 @@ public class ClusteringBenchmark implements Benchmark {
 			out.write("\n");
 			out.write("OrientDB execution time");
 			out.write("\n");
-			orientClusteringBenchmark(GraphDatabaseBenchmark.ORIENTDB_PATH);
+      orientdbClusteringBenchmark(GraphDatabaseBenchmark.ORIENTDB_PATH);
 			out.write("\n");
 			out.write("\n");
 			out.write("Titan execution time");
@@ -130,7 +129,7 @@ public class ClusteringBenchmark implements Benchmark {
 		titanGraphDatabase.shutdown();
 	}
 	
-	private void orientClusteringBenchmark(String dbPAth) throws ExecutionException, IOException {
+	private void orientdbClusteringBenchmark(String dbPAth) throws ExecutionException, IOException {
 		GraphDatabase orientGraphDatabase = new OrientGraphDatabase();
 		orientGraphDatabase.setClusteringWorkload(true);
 		orientGraphDatabase.open(dbPAth);

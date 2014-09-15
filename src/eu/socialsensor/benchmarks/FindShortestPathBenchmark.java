@@ -83,7 +83,7 @@ public class FindShortestPathBenchmark implements Benchmark {
 	}
 	
 	@SuppressWarnings("unused")
-	private void orientFindShortestPathBenchmark() {
+	private void orientdbFindShortestPathBenchmark() {
 		GraphDatabase orientGraphDatabase = new OrientGraphDatabase();
 		orientGraphDatabase.open(GraphDatabaseBenchmark.ORIENTDB_PATH);
 		long start = System.currentTimeMillis();

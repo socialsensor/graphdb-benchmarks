@@ -1,13 +1,5 @@
 package eu.socialsensor.benchmarks;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-
 import eu.socialsensor.graphdatabases.GraphDatabase;
 import eu.socialsensor.graphdatabases.Neo4jGraphDatabase;
 import eu.socialsensor.graphdatabases.OrientGraphDatabase;
@@ -20,6 +12,13 @@ import eu.socialsensor.insert.TitanSingleInsertion;
 import eu.socialsensor.main.GraphDatabaseBenchmark;
 import eu.socialsensor.utils.PermuteMethod;
 import eu.socialsensor.utils.Utils;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * SingleInsertionBenchmak implementation
@@ -117,7 +116,7 @@ public class SingleInsertionBenchmark implements Benchmark {
 	}
 		
 	@SuppressWarnings("unused")
-	private void orientSingleInsertionBenchmark() {
+	private void orientdbSingleInsertionBenchmark() {
 		GraphDatabase orientGraphDatabase = new OrientGraphDatabase();
 		orientGraphDatabase.createGraphForSingleLoad(GraphDatabaseBenchmark.ORIENTDB_PATH);
 		orientGraphDatabase.singleModeLoading(DATASET_PATH);

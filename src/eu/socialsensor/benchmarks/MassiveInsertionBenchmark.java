@@ -78,7 +78,7 @@ public class MassiveInsertionBenchmark implements Benchmark{
 	}
 	
 	@SuppressWarnings("unused")
-	private void orientMassiveInsertionBenchmark() {
+	private void orientdbMassiveInsertionBenchmark() {
 		GraphDatabase orientGraphDatabase = new OrientGraphDatabase();
 		orientGraphDatabase.createGraphForMassiveLoad(GraphDatabaseBenchmark.ORIENTDB_PATH);
 		long start = System.currentTimeMillis();
