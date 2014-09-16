@@ -26,7 +26,6 @@ import com.orientechnologies.orient.core.db.record.OIdentifiable;
 import com.orientechnologies.orient.core.index.OIndex;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientExtendedGraph;
-import com.tinkerpop.blueprints.impls.orient.OrientGraphNoTx;
 import com.tinkerpop.blueprints.impls.orient.asynch.OrientGraphAsynch;
 
 /**
@@ -54,7 +53,9 @@ public abstract class OrientAbstractInsertion implements Insertion {
     final int key = Integer.parseInt(value);
 
     Vertex v;
-    if (orientGraph instanceof OrientGraphNoTx) {
+    if (orientGraph instanceof OrientGraphAsynch) {
+      v = ((OrientGraphAsynch) orientGraph).addOrUpdateVertex(key, "nodeId", key);
+    } else {
       if (index == null)
         index = orientGraph.getRawGraph().getMetadata().getIndexManager().getIndex("V.nodeId");
 
@@ -64,9 +65,6 @@ public abstract class OrientAbstractInsertion implements Insertion {
 
       nodesCounter++;
       v = orientGraph.addVertex(key, "nodeId", key);
-
-    } else {
-      v = ((OrientGraphAsynch) orientGraph).addOrUpdateVertex(key, "nodeId", key);
     }
 
     return v;

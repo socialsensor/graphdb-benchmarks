@@ -1,11 +1,5 @@
 package eu.socialsensor.benchmarks;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-
 import eu.socialsensor.graphdatabases.GraphDatabase;
 import eu.socialsensor.graphdatabases.Neo4jGraphDatabase;
 import eu.socialsensor.graphdatabases.OrientGraphDatabase;
@@ -14,6 +8,11 @@ import eu.socialsensor.graphdatabases.TitanGraphDatabase;
 import eu.socialsensor.main.GraphDatabaseBenchmark;
 import eu.socialsensor.utils.PermuteMethod;
 import eu.socialsensor.utils.Utils;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 /**
  * FindNeighboursOfAllNodesBenchmark implementation
@@ -68,7 +67,7 @@ public class FindNeighboursOfAllNodesBenchmark implements Benchmark {
 	}
 	
 	@SuppressWarnings("unused")
-	private void orientFindNeighboursOfAllNodesBenchmark() {
+	private void orientdbFindNeighboursOfAllNodesBenchmark() {
 		GraphDatabase orientGraphDatabase = new OrientGraphDatabase();
 		orientGraphDatabase.open(GraphDatabaseBenchmark.ORIENTDB_PATH);
 		long start = System.currentTimeMillis();

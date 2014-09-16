@@ -1,5 +1,10 @@
 package eu.socialsensor.main;
 
+import eu.socialsensor.benchmarks.Benchmark;
+import eu.socialsensor.utils.Utils;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -9,12 +14,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
-
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-
-import eu.socialsensor.benchmarks.Benchmark;
-import eu.socialsensor.utils.Utils;
 
 /**
  * Main class for the execution of GraphDatabaseBenchmark.
@@ -106,7 +105,7 @@ public class GraphDatabaseBenchmark {
 			}
 			else {
 				if(benchmarkProperty.equals(FIND_NEIGHBOURS_BENCHMARK)) {
-					logger.info("Find new OAutoMergeRecordConflictStrategy()Neighbours of All Nodes Benchmark Selected");
+					logger.info("Find Neighbours of All Nodes Benchmark Selected");
 					utils.createDatabases(realDataset);
 					benchmarkClass = inputPropertiesFile.getProperty("QW-FN_CLASS");
 				}
