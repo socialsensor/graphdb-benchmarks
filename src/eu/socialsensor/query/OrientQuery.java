@@ -1,12 +1,16 @@
 package eu.socialsensor.query;
 
+import com.orientechnologies.orient.core.command.OCommandRequest;
 import com.orientechnologies.orient.core.sql.OCommandSQL;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
+import com.tinkerpop.blueprints.impls.orient.OrientDynaElementIterable;
 import com.tinkerpop.blueprints.impls.orient.OrientExtendedGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
+
 import eu.socialsensor.benchmarks.FindShortestPathBenchmark;
 
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -45,12 +49,18 @@ public class OrientQuery implements Query {
   @Override
   public void findShortestPaths() {
     Vertex v1 = orientGraph.getVertices("nodeId", "1").iterator().next();
-    for (int i : FindShortestPathBenchmark.generatedNodes) {
+    for(int i = 0; i < 100; i++) {
+//    for (int i : FindShortestPathBenchmark.generatedNodes) {
       final Vertex v2 = orientGraph.getVertices("nodeId", String.valueOf(i)).iterator().next();
 
-      List<OrientVertex> result = orientGraph
+      OrientDynaElementIterable result = orientGraph
           .command(new OCommandSQL("SELECT shortestPath(" + v1.getId() + "," + v2.getId() + ")")).execute();
-      int length = result.size();
+      
+      Iterator<Object> iter = result.iterator();
+      while(iter.hasNext()) {
+    	  Vertex v = (Vertex)iter.next();
+    	  System.out.println(v);
+      }
     }
 
   }

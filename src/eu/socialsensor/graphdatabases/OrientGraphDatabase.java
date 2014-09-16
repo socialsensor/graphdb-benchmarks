@@ -53,13 +53,22 @@ public class OrientGraphDatabase implements GraphDatabase {
 
   public static void main(String args[]) {
     GraphDatabase db = new OrientGraphDatabase();
+//    db.createGraphForMassiveLoad(GraphDatabaseBenchmark.ORIENTDB_PATH);
+//    long start = System.currentTimeMillis();
+//    db.massiveModeLoading("data/enronEdges.txt");
+//    long time = System.currentTimeMillis() - start;
+//    db.shutdownMassiveGraph();
+//    db.delete(GraphDatabaseBenchmark.ORIENTDB_PATH);
+//    System.out.println(time / 1000.0);
+    
     db.createGraphForSingleLoad(GraphDatabaseBenchmark.ORIENTDB_PATH);
-    long start = System.currentTimeMillis();
-    db.singleModeLoading("enronEdges.txt");
-    long time = System.currentTimeMillis() - start;
-    db.shutdownMassiveGraph();
-    db.delete(GraphDatabaseBenchmark.ORIENTDB_PATH);
-    System.out.println(time / 1000.0);
+    db.singleModeLoading("data/enronEdges.txt");
+    db.shutdown();
+    
+//    db.open(GraphDatabaseBenchmark.ORIENTDB_PATH);
+//    db.shorestPathQuery();
+//    
+//    db.shutdown();
   }
 
   @Override

@@ -62,9 +62,13 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 	
 	public static void main(String args[]) {
 		Neo4jGraphDatabase test = new Neo4jGraphDatabase();
-		test.createGraphForMassiveLoad(GraphDatabaseBenchmark.NEO4JDB_PATH);
-		test.massiveModeLoading("./data/livejournalEdges.txt");
-		test.shutdownMassiveGraph();
+//		test.createGraphForMassiveLoad("Neo4jYoutube");
+//		test.massiveModeLoading("./data/youtubeEdges.txt");
+//		test.shutdownMassiveGraph();
+		
+		test.open("Neo4jYoutube");
+		test.neighborsOfAllNodesQuery();
+		test.shutdown();
 	}
 	
 	@Override

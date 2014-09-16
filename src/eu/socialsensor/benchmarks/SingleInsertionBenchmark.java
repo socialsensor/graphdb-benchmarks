@@ -77,7 +77,7 @@ public class SingleInsertionBenchmark implements Benchmark {
 			utils.getDocumentsAs2dList(titanInsertionTimesOfEachScenario, TitanSingleInsertion.INSERTION_TIMES_OUTPUT_PATH);
 			List<Double> titanMeanInsertionTimes = utils.calculateMeanList(titanInsertionTimesOfEachScenario);
 			utils.writeTimes(titanMeanInsertionTimes, TitanSingleInsertion.INSERTION_TIMES_OUTPUT_PATH);
-			utils.deleteMultipleFiles(TitanSingleInsertion.INSERTION_TIMES_OUTPUT_PATH, GraphDatabaseBenchmark.SCENARIOS);
+//			utils.deleteMultipleFiles(TitanSingleInsertion.INSERTION_TIMES_OUTPUT_PATH, GraphDatabaseBenchmark.SCENARIOS);
 		}
 		
 		if(GraphDatabaseBenchmark.ORIENTDB_SELECTED) {
@@ -85,7 +85,7 @@ public class SingleInsertionBenchmark implements Benchmark {
 			utils.getDocumentsAs2dList(orientInsertionTimesOfEachScenario, OrientSingleInsertion.INSERTION_TIMES_OUTPUT_PATH);
 			List<Double> orientMeanInsertionTimes = utils.calculateMeanList(orientInsertionTimesOfEachScenario);
 			utils.writeTimes(orientMeanInsertionTimes, OrientSingleInsertion.INSERTION_TIMES_OUTPUT_PATH);
-			utils.deleteMultipleFiles(OrientSingleInsertion.INSERTION_TIMES_OUTPUT_PATH, GraphDatabaseBenchmark.SCENARIOS);
+//			utils.deleteMultipleFiles(OrientSingleInsertion.INSERTION_TIMES_OUTPUT_PATH, GraphDatabaseBenchmark.SCENARIOS);
 		}
 		
 		if(GraphDatabaseBenchmark.NEO4J_SELECTED) {
@@ -93,7 +93,7 @@ public class SingleInsertionBenchmark implements Benchmark {
 			utils.getDocumentsAs2dList(neo4jInsertionTimesOfEachScenario, Neo4jSingleInsertion.INSERTION_TIMES_OUTPUT_PATH);
 			List<Double> neo4jMeanInsertionTimes = utils.calculateMeanList(neo4jInsertionTimesOfEachScenario);
 			utils.writeTimes(neo4jMeanInsertionTimes, Neo4jSingleInsertion.INSERTION_TIMES_OUTPUT_PATH);
-			utils.deleteMultipleFiles(Neo4jSingleInsertion.INSERTION_TIMES_OUTPUT_PATH, GraphDatabaseBenchmark.SCENARIOS);
+//			utils.deleteMultipleFiles(Neo4jSingleInsertion.INSERTION_TIMES_OUTPUT_PATH, GraphDatabaseBenchmark.SCENARIOS);
 		}
 		
 		if(GraphDatabaseBenchmark.SPARKSEE_SELECTED) {
@@ -101,7 +101,7 @@ public class SingleInsertionBenchmark implements Benchmark {
 			utils.getDocumentsAs2dList(sparkseeInsertionTimesOfEachScenario, SparkseeSingleInsertion.INSERTION_TIMES_OUTPUT_PATH);
 			List<Double> sparkseeMeanInsertionTimes = utils.calculateMeanList(sparkseeInsertionTimesOfEachScenario);
 			utils.writeTimes(sparkseeMeanInsertionTimes, SparkseeSingleInsertion.INSERTION_TIMES_OUTPUT_PATH);
-			utils.deleteMultipleFiles(SparkseeSingleInsertion.INSERTION_TIMES_OUTPUT_PATH, GraphDatabaseBenchmark.SCENARIOS);
+//			utils.deleteMultipleFiles(SparkseeSingleInsertion.INSERTION_TIMES_OUTPUT_PATH, GraphDatabaseBenchmark.SCENARIOS);
 		}
 				
 	}

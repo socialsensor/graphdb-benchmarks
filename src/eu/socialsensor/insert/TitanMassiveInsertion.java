@@ -47,7 +47,6 @@ public class TitanMassiveInsertion implements Insertion {
 	public void createGraph(String datasetDir) {
 		logger.setLevel(Level.INFO);
 		logger.info("Loading data in massive mode in Titan database . . . .");
-		long start = System.currentTimeMillis();
 		try {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(datasetDir)));
 			String line;
@@ -64,8 +63,6 @@ public class TitanMassiveInsertion implements Insertion {
 				}
 				lineCounter++;
 			}
-			long time = System.currentTimeMillis() - start;
-			System.out.println(time / 1000.0);
 			reader.close();
 		}
 		catch(IOException ioe) {

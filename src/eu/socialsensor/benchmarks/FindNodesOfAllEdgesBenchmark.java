@@ -8,6 +8,7 @@ import eu.socialsensor.graphdatabases.TitanGraphDatabase;
 import eu.socialsensor.main.GraphDatabaseBenchmark;
 import eu.socialsensor.utils.PermuteMethod;
 import eu.socialsensor.utils.Utils;
+
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
@@ -64,70 +65,6 @@ public class FindNodesOfAllEdgesBenchmark implements Benchmark {
 		
 		utils.writeResults(titanTimes, orientTimes, neo4jTimes, sparkseeTimes, QW_FA_RESULTS, 
 				"Find Adjacent Nodes of All Edges");
-				
-//		double meanOrientTime = utils.calculateMean(orientTimes);
-//		double meanTitanTime = utils.calculateMean(titanTimes);
-//		double meanNeo4jTime = utils.calculateMean(neo4jTimes);
-//		double meanSparkseeTime = utils.calculateMean(sparkseeTimes);
-//		
-//		double varOrientTime = utils.calculateVariance(meanOrientTime, orientTimes);
-//		double varTitanTime = utils.calculateVariance(meanTitanTime, titanTimes);
-//		double varNeo4jTime = utils.calculateVariance(meanNeo4jTime, neo4jTimes);
-//		double varSparkseeTime = utils.calculateVariance(meanSparkseeTime, sparkseeTimes);
-//		
-//		double stdOrientTime = utils.calculateStdDeviation(varOrientTime);
-//		double stdTitanTime = utils.calculateStdDeviation(varTitanTime);
-//		double stdNeo4jTime = utils.calculateStdDeviation(varNeo4jTime);
-//		double stdSparkseeTime = utils.calculateStdDeviation(varSparkseeTime);
-//		
-//		String resultsFolder = GraphDatabaseBenchmark.inputPropertiesFile.getProperty("RESULTS_PATH");
-//		String output = resultsFolder+resultFile;
-//		logger.info("Write results to "+output);
-//		try {
-//			BufferedWriter out = new BufferedWriter(new FileWriter(output));
-//			out.write("##############################################################");
-//			out.write("\n");
-//			out.write("##### Find Adjacent Nodes of All Edges Benchmark Results #####");
-//			out.write("\n");
-//			out.write("##############################################################");
-//			out.write("\n");
-//			out.write("\n");
-//			out.write("OrientDB execution time");
-//			out.write("\n");
-//			out.write("Mean Value: "+meanOrientTime);
-//			out.write("\n");
-//			out.write("STD Value: "+stdOrientTime);
-//			out.write("\n");
-//			out.write("\n");
-//			out.write("Titan execution time");
-//			out.write("\n");
-//			out.write("Mean Value: "+meanTitanTime);
-//			out.write("\n");
-//			out.write("STD Value: "+stdTitanTime);
-//			out.write("\n");
-//			out.write("\n");
-//			out.write("Neo4j execution time");
-//			out.write("\n");
-//			out.write("Mean Value: "+meanNeo4jTime);
-//			out.write("\n");
-//			out.write("STD Value: "+stdNeo4jTime);
-//			out.write("\n");
-//			out.write("\n");
-//			out.write("Sparksee execution time");
-//			out.write("\n");
-//			out.write("Mean Value: " + meanSparkseeTime);
-//			out.write("\n");
-//			out.write("STD Value: " + stdSparkseeTime);
-//			out.write("\n");
-//			out.write("########################################################");
-//			
-//			out.flush();
-//			out.close();
-//		}
-//		catch (IOException e) {
-//			e.printStackTrace();
-//		}
-		
 	}
 	
 	@SuppressWarnings("unused")
@@ -140,6 +77,8 @@ public class FindNodesOfAllEdgesBenchmark implements Benchmark {
 		orientGraphDatabase.shutdown();
 		orientTimes[orientScenarioCount] = orientTime / 1000.0;
 		orientScenarioCount++;
+		
+		System.out.println("orientTime: " + orientTime / 1000.0);
 	}
 	
 	@SuppressWarnings("unused")
@@ -152,6 +91,8 @@ public class FindNodesOfAllEdgesBenchmark implements Benchmark {
 		titanGraphDatabase.shutdown();
 		titanTimes[titanScenarioCount] = titanTime / 1000.0;
 		titanScenarioCount++;
+		
+		System.out.println("titanTime: " + titanTime / 1000.0);
 	}
 	
 	@SuppressWarnings("unused")
@@ -164,6 +105,7 @@ public class FindNodesOfAllEdgesBenchmark implements Benchmark {
 		neo4jGraphDatabase.shutdown();
 		neo4jTimes[neo4jScenarioCount] = neo4jTime / 1000.0;
 		neo4jScenarioCount++;
+		System.out.println("neo4jTime: " + neo4jTime / 1000.0);
 	}
 	
 //	@SuppressWarnings("unused")
