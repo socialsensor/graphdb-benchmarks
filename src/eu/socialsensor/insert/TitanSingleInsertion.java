@@ -62,7 +62,6 @@ public class TitanSingleInsertion implements Insertion {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(datasetDir)));
 			String line;
 			int lineCounter = 1;
-			int nodesCounter = 0;
 			long start = System.currentTimeMillis();
 			long duration;
 			Vertex srcVertex, dstVertex;
@@ -70,49 +69,22 @@ public class TitanSingleInsertion implements Insertion {
 				if(lineCounter > 4) {
 					String[] parts = line.split("\t");
 					
-					if(titanGraph.query().has("nodeId", Compare.EQUAL, parts[0]).vertices().iterator()
-							.hasNext()) {
-						srcVertex = (Vertex)titanGraph.query().has("nodeId", Compare.EQUAL, parts[0])
-								.vertices().iterator().next();
-					}
-					else {
-						srcVertex = titanGraph.addVertex(parts[0]);
-						titanGraph.commit();
-						srcVertex.setProperty("nodeId", parts[0]);
-						nodesCounter++;
-					}
-					
-					if(nodesCounter == 1000) {
-						duration = System.currentTimeMillis() - start;
-						insertionTimes.add((double) duration);
-						nodesCounter = 0;
-						start = System.currentTimeMillis();
-					}
-					
-					if(titanGraph.query().has("nodeId", Compare.EQUAL, parts[1]).vertices().iterator()
-							.hasNext()) {
-						dstVertex = (Vertex)titanGraph.query().has("nodeId", Compare.EQUAL, parts[1])
-								.vertices().iterator().next();
-					}
-					else {
-						dstVertex = titanGraph.addVertex(parts[1]);
-						titanGraph.commit();
-						dstVertex.setProperty("nodeId", parts[1]);
-						nodesCounter++;
-					}
+					srcVertex = getOrCreate(parts[0]);
+					dstVertex = getOrCreate(parts[1]);
 					
 					titanGraph.addEdge(null, srcVertex, dstVertex, "similar");
 					titanGraph.commit();
 					
-					if(nodesCounter == 1000) {
+					if(lineCounter % 1000 == 0) {
 						duration = System.currentTimeMillis() - start;
 						insertionTimes.add((double) duration);
-						nodesCounter = 0;
 						start = System.currentTimeMillis();
 					}
+					
 				}
 				lineCounter++;
 			}
+			
 			duration = System.currentTimeMillis() - start;
 			insertionTimes.add((double) duration);
 			reader.close();
@@ -125,6 +97,21 @@ public class TitanSingleInsertion implements Insertion {
 		}
 		Utils utils = new Utils();
 		utils.writeTimes(insertionTimes, TitanSingleInsertion.INSERTION_TIMES_OUTPUT_PATH+"."+count);
+	}
+	
+	private Vertex getOrCreate(String nodeId) {
+		Vertex v;
+		if(titanGraph.query().has("nodeId", Compare.EQUAL, nodeId).vertices().iterator()
+				.hasNext()) {
+			v = (Vertex)titanGraph.query().has("nodeId", Compare.EQUAL, nodeId)
+					.vertices().iterator().next();
+		}
+		else {
+			v = titanGraph.addVertex(nodeId);
+			v.setProperty("nodeId", nodeId);
+			titanGraph.commit();
+		}
+		return v;
 	}
 
 }
