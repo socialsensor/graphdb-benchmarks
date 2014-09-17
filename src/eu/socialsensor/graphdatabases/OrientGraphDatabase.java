@@ -44,7 +44,6 @@ import eu.socialsensor.utils.Utils;
 public class OrientGraphDatabase implements GraphDatabase {
 
   private OrientExtendedGraph graph              = null;
-  private boolean             clusteringWorkload = false;
 
   public OrientGraphDatabase() {
     OGlobalConfiguration.STORAGE_COMPRESSION_METHOD.setValue("nothing");
@@ -357,11 +356,6 @@ public class OrientGraphDatabase implements GraphDatabase {
       communities.put(i, vertices);
     }
     return communities;
-  }
-
-  @Override
-  public void setClusteringWorkload(boolean isClusteringWorkload) {
-    this.clusteringWorkload = isClusteringWorkload;
   }
 
   protected void createSchema() {

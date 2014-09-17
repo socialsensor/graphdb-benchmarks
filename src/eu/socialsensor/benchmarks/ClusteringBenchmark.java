@@ -34,6 +34,8 @@ public class ClusteringBenchmark implements Benchmark {
 	
 	private static final String CW_RESULTS = "CWResults.txt";
 	
+	private static String EVALUATION_DATASET;
+	
 	private int nodesCnt;
 	
 	BufferedWriter out;
@@ -57,13 +59,15 @@ public class ClusteringBenchmark implements Benchmark {
 			}
 		}
 		else {
+			double cacheIncrFacTemp = cacheIncrementFactor;
 			for(int i = 0; i < cacheValuesCnt; i ++) {
 				double cacheSize = nodesCnt * cacheIncrementFactor;
 				cacheSizes.add((int)cacheSize);
-				cacheIncrementFactor += cacheIncrementFactor;
+				cacheIncrementFactor += cacheIncrFacTemp;
 			}
 		}
 		SYNTH_DATASET = "SynthGraph" + nodesCnt;
+		EVALUATION_DATASET = GraphDatabaseBenchmark.inputPropertiesFile.getProperty("EVALUATION_DATASET");
 	}
 	
 	@Override
@@ -130,7 +134,6 @@ public class ClusteringBenchmark implements Benchmark {
 	
 	private void titanClusteringBenchmark(String dbPAth) throws ExecutionException, IOException {
 		GraphDatabase titanGraphDatabase = new TitanGraphDatabase();
-		titanGraphDatabase.setClusteringWorkload(true);
 		titanGraphDatabase.open(dbPAth);
 		int runs = 1;
 		int numberOfLoops = 2;
@@ -143,17 +146,19 @@ public class ClusteringBenchmark implements Benchmark {
 			for(int j = 0; j < numberOfLoops; j++) {
 				int cacheSize = cacheSizes.get(i);
 				logger.info("Graph Database: Titan, Dataset: " + SYNTH_DATASET + ", Cache Size: " + cacheSize);				
+				
 				long start = System.currentTimeMillis();
 				LouvainMethod louvainMethodCache = new LouvainMethod(titanGraphDatabase, cacheSize, IS_RANDOMIZED);
 				louvainMethodCache.computeModularity();
 				double titanTime = (System.currentTimeMillis() - start) / 1000.0;
+				
 				out.write(cacheSize + ","+titanTime);
 				out.write("\n");
 				
 				//evaluation with NMI
 				Map<Integer, List<Integer>> predictedCommunities = titanGraphDatabase.mapCommunities(louvainMethodCache.getN());
 				Utils utils = new Utils();
-				Map<Integer, List<Integer>> actualCommunities = utils.mapNodesToCommunities("./data/community.dat");
+				Map<Integer, List<Integer>> actualCommunities = utils.mapNodesToCommunities(EVALUATION_DATASET);
 				Metrics metrics = new Metrics();
 				double NMI = metrics.normalizedMutualInformation(this.nodesCnt, actualCommunities, predictedCommunities);
 				logger.info("NMI value: " + NMI);
@@ -165,7 +170,6 @@ public class ClusteringBenchmark implements Benchmark {
 	
 	private void orientClusteringBenchmark(String dbPAth) throws ExecutionException, IOException {
 		GraphDatabase orientGraphDatabase = new OrientGraphDatabase();
-		orientGraphDatabase.setClusteringWorkload(true);
 		orientGraphDatabase.open(dbPAth);
 		int runs = 1;
 		int numberOfLoops = 2;
@@ -176,19 +180,21 @@ public class ClusteringBenchmark implements Benchmark {
 				numberOfLoops = 1;
 			}
 			for(int j = 0; j < numberOfLoops; j++) {
-				long start = System.currentTimeMillis();
 				int cacheSize = cacheSizes.get(i);
 				logger.info("Graph Database: OrientDB, Dataset: " + SYNTH_DATASET+", Cache Size: " + cacheSize);
+				
+				long start = System.currentTimeMillis();
 				LouvainMethod louvainMethodCache = new LouvainMethod(orientGraphDatabase, cacheSize, IS_RANDOMIZED);
 				louvainMethodCache.computeModularity();
 				double orientTime = (System.currentTimeMillis() - start) / 1000.0;
+				
 				out.write(cacheSize + ","+orientTime);
 				out.write("\n");
 				
 				//evaluation with NMI
 				Map<Integer, List<Integer>> predictedCommunities = orientGraphDatabase.mapCommunities(louvainMethodCache.getN());
 				Utils utils = new Utils();
-				Map<Integer, List<Integer>> actualCommunities = utils.mapNodesToCommunities("./data/community.dat");
+				Map<Integer, List<Integer>> actualCommunities = utils.mapNodesToCommunities(EVALUATION_DATASET);
 				Metrics metrics = new Metrics();
 				double NMI = metrics.normalizedMutualInformation(this.nodesCnt, actualCommunities, predictedCommunities);
 				logger.info("NMI value: " + NMI);
@@ -200,7 +206,6 @@ public class ClusteringBenchmark implements Benchmark {
 	
 	private void neo4jClusteringBenchmark(String dbPAth) throws ExecutionException, IOException {
 		GraphDatabase neo4jGraphDatabase = new Neo4jGraphDatabase();
-		neo4jGraphDatabase.setClusteringWorkload(true);
 		neo4jGraphDatabase.open(dbPAth);
 		int runs = 1;
 		int numberOfLoops = 2;
@@ -211,19 +216,21 @@ public class ClusteringBenchmark implements Benchmark {
 				numberOfLoops = 1;
 			}
 			for(int j = 0; j < numberOfLoops; j ++) {
-				long start = System.currentTimeMillis();
 				int cacheSize = cacheSizes.get(i);
 				logger.info("Graph Database: Neo4j, Dataset: " + SYNTH_DATASET + ", Cache Size: " + cacheSize);				
+				
+				long start = System.currentTimeMillis();
 				LouvainMethod louvainMethodCache = new LouvainMethod(neo4jGraphDatabase, cacheSize, IS_RANDOMIZED);
 				louvainMethodCache.computeModularity();
 				double neo4jTime = (System.currentTimeMillis() - start) / 1000.0;
+				
 				out.write(cacheSize + ","+neo4jTime);
 				out.write("\n");
 				
 				//evaluation with NMI
 				Map<Integer, List<Integer>> predictedCommunities = neo4jGraphDatabase.mapCommunities(louvainMethodCache.getN());
 				Utils utils = new Utils();
-				Map<Integer, List<Integer>> actualCommunities = utils.mapNodesToCommunities("./data/community.dat");
+				Map<Integer, List<Integer>> actualCommunities = utils.mapNodesToCommunities(EVALUATION_DATASET);
 				Metrics metrics = new Metrics();
 				double NMI = metrics.normalizedMutualInformation(this.nodesCnt, actualCommunities, predictedCommunities);
 				logger.info("NMI value: " + NMI);
@@ -235,7 +242,6 @@ public class ClusteringBenchmark implements Benchmark {
 	
 	private void sparkseeClusteringBenchmark(String dbPath) throws IOException, ExecutionException {
 		GraphDatabase sparkseeGraphDatabase = new SparkseeGraphDatabase();
-		sparkseeGraphDatabase.setClusteringWorkload(true);
 		sparkseeGraphDatabase.open(dbPath);
 		int runs = 1;
 		int numberOfLoops = 2;
@@ -246,19 +252,21 @@ public class ClusteringBenchmark implements Benchmark {
 				numberOfLoops = 1;
 			}
 			for(int j = 0; j < numberOfLoops; j ++) {
-				long start = System.currentTimeMillis();
 				int cacheSize = cacheSizes.get(i);
 				logger.info("Graph Database: Sparksee, Dataset: " + SYNTH_DATASET + ", Cache Size: " + cacheSize);				
+				
+				long start = System.currentTimeMillis();
 				LouvainMethod louvainMethodCache = new LouvainMethod(sparkseeGraphDatabase, cacheSize, IS_RANDOMIZED);
 				louvainMethodCache.computeModularity();
 				double sparkseeTime = (System.currentTimeMillis() - start) / 1000.0;
+				
 				out.write(cacheSize + "," + sparkseeTime);
 				out.write("\n");
 				
 				//evaluation with NMI
 				Map<Integer, List<Integer>> predictedCommunities = sparkseeGraphDatabase.mapCommunities(louvainMethodCache.getN());
 				Utils utils = new Utils();
-				Map<Integer, List<Integer>> actualCommunities = utils.mapNodesToCommunities("./data/community.dat");
+				Map<Integer, List<Integer>> actualCommunities = utils.mapNodesToCommunities(EVALUATION_DATASET);
 				Metrics metrics = new Metrics();
 				double NMI = metrics.normalizedMutualInformation(this.nodesCnt, actualCommunities, predictedCommunities);
 				logger.info("NMI value: " + NMI);

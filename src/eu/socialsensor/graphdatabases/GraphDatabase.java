@@ -179,11 +179,5 @@ public interface GraphDatabase {
 	 * 			the nodes each community has.
 	 */
 	public Map<Integer, List<Integer>> mapCommunities(int numberOfCommunities);
-	
-	/**
-	 * Should be called when the clustering workload is executed. Always call before
-	 * open the graph database
-	 * @param isCluteringWorkload
-	 */
-	public void setClusteringWorkload(boolean isCluteringWorkload);	
+
 }

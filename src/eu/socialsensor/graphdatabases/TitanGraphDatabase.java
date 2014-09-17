@@ -2,7 +2,6 @@ package eu.socialsensor.graphdatabases;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -11,17 +10,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.configuration.BaseConfiguration;
-import org.apache.commons.configuration.Configuration;
-
 import com.google.common.collect.Iterables;
 import com.thinkaurelius.titan.core.PropertyKey;
-import com.thinkaurelius.titan.core.Titan;
 import com.thinkaurelius.titan.core.TitanFactory;
 import com.thinkaurelius.titan.core.TitanGraph;
 import com.thinkaurelius.titan.core.schema.TitanManagement;
 import com.thinkaurelius.titan.core.util.TitanCleanup;
-import com.thinkaurelius.titan.graphdb.configuration.GraphDatabaseConfiguration;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.util.wrappers.batch.BatchGraph;
@@ -46,9 +40,7 @@ public class TitanGraphDatabase implements GraphDatabase{
 	
 	public static final String INSERTION_TIMES_OUTPUT_PATH = "data/titan.insertion.times";
 	public static final String STORAGE_BACKEND = "local";
-	
-	private boolean clusteringWorkload = false;
-	
+		
 	double totalWeight;
 	
 	public TitanGraph titanGraph;
@@ -358,11 +350,6 @@ public class TitanGraphDatabase implements GraphDatabase{
 			communities.put(i, vertices);
 		}
 		return communities;
-	}
-
-	@Override
-	public void setClusteringWorkload(boolean isClusteringWorkload) {
-		this.clusteringWorkload = isClusteringWorkload;
 	}
 	
 	private void createSchema() {

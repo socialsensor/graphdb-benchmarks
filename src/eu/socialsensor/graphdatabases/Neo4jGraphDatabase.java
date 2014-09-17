@@ -32,7 +32,6 @@ import com.google.common.collect.Iterables;
 import eu.socialsensor.insert.Insertion;
 import eu.socialsensor.insert.Neo4jMassiveInsertion;
 import eu.socialsensor.insert.Neo4jSingleInsertion;
-import eu.socialsensor.main.GraphDatabaseBenchmark;
 import eu.socialsensor.query.Neo4jQuery;
 import eu.socialsensor.query.Query;
 import eu.socialsensor.utils.Utils;
@@ -51,9 +50,7 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 	IndexDefinition indexDefinition = null;
 		
 	private BatchInserter inserter = null;
-	
-	private boolean clusteringWorkload = false;
-	
+		
 	public static enum RelTypes implements RelationshipType {
 	    SIMILAR
 	}
@@ -443,8 +440,4 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 		return communities;
 	}
 	
-	@Override
-	public void setClusteringWorkload(boolean isClusteringWorkload) {
-		this.clusteringWorkload = isClusteringWorkload;
-	}
 }

@@ -85,6 +85,8 @@ public class OrientMassiveInsertion extends OrientAbstractInsertion {
       reader.close();
     } catch (IOException ioe) {
       ioe.printStackTrace();
+    } finally {
+    	orientGraph.declareIntent(null);
     }
   }
 
