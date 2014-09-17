@@ -73,18 +73,7 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 	
 	@Override
 	public void open(String dbPath) {
-		neo4jGraph = new GraphDatabaseFactory().newEmbeddedDatabase(dbPath);
-		try(Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
-						
-			if(clusteringWorkload) {
-				schema = neo4jGraph.schema();
-				indexDefinition = schema.indexFor(NODE_LABEL).on("community").create();
-				indexDefinition = schema.indexFor(NODE_LABEL).on("nodeCommunity").create();
-			}
-			tx.success();
-			tx.close();
-		}
-		
+		neo4jGraph = new GraphDatabaseFactory().newEmbeddedDatabase(dbPath);		
 		try(Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
 			neo4jGraph.schema().awaitIndexesOnline(10l, TimeUnit.MINUTES);
 			tx.success();
@@ -99,6 +88,8 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 		try(Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
 			schema = neo4jGraph.schema();
 			indexDefinition = schema.indexFor(NODE_LABEL).on("nodeId").create();
+			indexDefinition = schema.indexFor(NODE_LABEL).on("community").create();
+			indexDefinition = schema.indexFor(NODE_LABEL).on("nodeCommunity").create();
 			tx.success();
 			tx.close();
 		}
@@ -115,6 +106,8 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 		config.put("neostore.propertystore.db.strings.mapped_memory", "250M");
 		inserter = BatchInserters.inserter(dbPath, config);
 		inserter.createDeferredSchemaIndex(NODE_LABEL).on("nodeId").create();
+		inserter.createDeferredSchemaIndex(NODE_LABEL).on("community").create();
+		inserter.createDeferredSchemaIndex(NODE_LABEL).on("nodeCommunity").create();
 	}
 	
 	@Override
