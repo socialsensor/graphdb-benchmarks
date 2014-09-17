@@ -57,14 +57,12 @@ public class TitanGraphDatabase implements GraphDatabase{
 	
 	public static void main(String args[]) throws FileNotFoundException {
 		GraphDatabase titanGraphDatabase = new TitanGraphDatabase();
+//		titanGraphDatabase.createGraphForMassiveLoad(GraphDatabaseBenchmark.TITANDB_PATH);
+//		titanGraphDatabase.massiveModeLoading("data/enronEdges.txt");
+//		titanGraphDatabase.shutdownMassiveGraph();
+		
 		titanGraphDatabase.open(GraphDatabaseBenchmark.TITANDB_PATH);
-		
-		titanGraphDatabase.initCommunityProperty();
-		
-		PrintWriter writer = new PrintWriter("/home/sotbeis/Desktop/titan.txt");
-		writer.println(titanGraphDatabase.getNodeWeight(15237));
-		writer.close();
-		
+		titanGraphDatabase.shorestPathQuery();
 		titanGraphDatabase.shutdown();
 	}
 	
@@ -84,10 +82,7 @@ public class TitanGraphDatabase implements GraphDatabase{
 				.set("storage.transactions", false)
 				.set("storage.directory", dbPath)
 				.open();
-		TitanManagement titanManagement = titanGraph.getManagementSystem();
-		PropertyKey nodeId = titanManagement.makePropertyKey("nodeId").dataType(String.class).make();
-		titanManagement.buildIndex("nodeId", Vertex.class).addKey(nodeId).buildCompositeIndex();
-		titanManagement.commit();
+		createSchema();
 	}
 	
 	@Override
@@ -97,11 +92,7 @@ public class TitanGraphDatabase implements GraphDatabase{
 				.set("storage.directory", dbPath)
 				.set("storage.batch-loading", true)
 				.open();
-		TitanManagement titanManagement = titanGraph.getManagementSystem();
-		PropertyKey nodeId = titanManagement.makePropertyKey("nodeId").dataType(String.class).make();
-		titanManagement.buildIndex("nodeId", Vertex.class).addKey(nodeId).buildCompositeIndex();
-		titanManagement.makeEdgeLabel("similar").make();
-		titanManagement.commit();
+		createSchema();
 		
 		batchGraph = new BatchGraph<TitanGraph>(titanGraph, VertexIDType.STRING, 1000);
 		batchGraph.setVertexIdKey("nodeId");
@@ -372,5 +363,20 @@ public class TitanGraphDatabase implements GraphDatabase{
 	@Override
 	public void setClusteringWorkload(boolean isClusteringWorkload) {
 		this.clusteringWorkload = isClusteringWorkload;
+	}
+	
+	private void createSchema() {
+		TitanManagement titanManagement = titanGraph.getManagementSystem();
+		PropertyKey nodeId = titanManagement.makePropertyKey("nodeId").dataType(String.class).make();
+		PropertyKey community = titanManagement.makePropertyKey("community").dataType(Integer.class).make();
+		PropertyKey nodeCommunity = titanManagement.makePropertyKey("nodeCommunity").dataType(Integer.class).make();
+		
+		titanManagement.buildIndex("nodeId", Vertex.class).addKey(nodeId).buildCompositeIndex();
+		titanManagement.buildIndex("community", Vertex.class).addKey(community).buildCompositeIndex();
+		titanManagement.buildIndex("nodeCommunity", Vertex.class).addKey(nodeCommunity).buildCompositeIndex();
+		
+		titanManagement.makeEdgeLabel("similar").make();
+		
+		titanManagement.commit();
 	}
 }
