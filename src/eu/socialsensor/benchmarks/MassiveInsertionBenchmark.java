@@ -1,8 +1,5 @@
 package eu.socialsensor.benchmarks;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -80,11 +77,11 @@ public class MassiveInsertionBenchmark implements Benchmark{
 	@SuppressWarnings("unused")
 	private void orientdbMassiveInsertionBenchmark() {
 		GraphDatabase orientGraphDatabase = new OrientGraphDatabase();
-		orientGraphDatabase.createGraphForMassiveLoad(GraphDatabaseBenchmark.ORIENTDB_PATH);
 		long start = System.currentTimeMillis();
+		orientGraphDatabase.createGraphForMassiveLoad(GraphDatabaseBenchmark.ORIENTDB_PATH);
 		orientGraphDatabase.massiveModeLoading(datasetDir);
-		long orientTime = System.currentTimeMillis() - start;
 		orientGraphDatabase.shutdownMassiveGraph();
+		long orientTime = System.currentTimeMillis() - start;
 		orientGraphDatabase.delete(GraphDatabaseBenchmark.ORIENTDB_PATH);
 		orientTimes[orientScenarioCount] = orientTime / 1000.0;
 		orientScenarioCount++;
@@ -93,11 +90,11 @@ public class MassiveInsertionBenchmark implements Benchmark{
 	@SuppressWarnings("unused")
 	private void titanMassiveInsertionBenchmark() {
 		GraphDatabase titanGraphDatabase = new TitanGraphDatabase();
-		titanGraphDatabase.createGraphForMassiveLoad(GraphDatabaseBenchmark.TITANDB_PATH);
 		long start = System.currentTimeMillis();
+		titanGraphDatabase.createGraphForMassiveLoad(GraphDatabaseBenchmark.TITANDB_PATH);
 		titanGraphDatabase.massiveModeLoading(datasetDir);
-		long titanTime = System.currentTimeMillis() - start;
 		titanGraphDatabase.shutdownMassiveGraph();
+		long titanTime = System.currentTimeMillis() - start;
 		titanGraphDatabase.delete(GraphDatabaseBenchmark.TITANDB_PATH);
 		titanTimes[titanScenarioCount] = titanTime / 1000.0;
 		titanScenarioCount++;
@@ -106,11 +103,11 @@ public class MassiveInsertionBenchmark implements Benchmark{
 	@SuppressWarnings("unused")
 	private void neo4jMassiveInsertionBenchmark() {
 		GraphDatabase neo4jGraphDatabase = new Neo4jGraphDatabase();
-		neo4jGraphDatabase.createGraphForMassiveLoad(GraphDatabaseBenchmark.NEO4JDB_PATH);
 		long start = System.currentTimeMillis();
+		neo4jGraphDatabase.createGraphForMassiveLoad(GraphDatabaseBenchmark.NEO4JDB_PATH);
 		neo4jGraphDatabase.massiveModeLoading(datasetDir);
-		long neo4jTime = System.currentTimeMillis() - start;
 		neo4jGraphDatabase.shutdownMassiveGraph();
+		long neo4jTime = System.currentTimeMillis() - start;
 		neo4jGraphDatabase.delete(GraphDatabaseBenchmark.NEO4JDB_PATH);
 		neo4jTimes[neo4jScenarioCount] = neo4jTime / 1000.0;
 		neo4jScenarioCount++;
@@ -119,11 +116,11 @@ public class MassiveInsertionBenchmark implements Benchmark{
 	@SuppressWarnings("unused")
 	private void sparkseeMassiveInsertionBenchmark() {
 		GraphDatabase sparkseeGraphDatabase = new SparkseeGraphDatabase();
-		sparkseeGraphDatabase.createGraphForMassiveLoad(GraphDatabaseBenchmark.SPARKSEEDB_PATH);
 		long start = System.currentTimeMillis();
+		sparkseeGraphDatabase.createGraphForMassiveLoad(GraphDatabaseBenchmark.SPARKSEEDB_PATH);
 		sparkseeGraphDatabase.massiveModeLoading(datasetDir);
-		long sparkseeTime = System.currentTimeMillis() - start;
 		sparkseeGraphDatabase.shutdownMassiveGraph();
+		long sparkseeTime = System.currentTimeMillis() - start;
 		sparkseeGraphDatabase.delete(GraphDatabaseBenchmark.SPARKSEEDB_PATH);
 		sparkseeTimes[sparkseeScenarioCount] = sparkseeTime / 1000.0;
 		sparkseeScenarioCount++;

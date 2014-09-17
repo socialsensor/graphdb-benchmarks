@@ -56,7 +56,6 @@ public class Neo4jSingleInsertion implements Insertion {
 		try {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(datasetDir)));
 			String line;
-			int edgeCounter = 0;
 			int lineCounter = 1;
 			long start = System.currentTimeMillis();
 			long duration;
@@ -74,10 +73,9 @@ public class Neo4jSingleInsertion implements Insertion {
 						tx.close();
 					}
 					
-					if(edgeCounter == 1000) {
+					if(lineCounter % 1000 == 0) {
 						duration = System.currentTimeMillis() - start;
 						insertionTimes.add((double) duration);
-						edgeCounter = 0;
 						start = System.currentTimeMillis();
 					}
 					

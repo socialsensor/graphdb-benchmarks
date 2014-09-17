@@ -1,5 +1,7 @@
 package eu.socialsensor.query;
 
+import java.util.List;
+
 import com.orientechnologies.orient.core.command.OBasicCommandContext;
 import com.orientechnologies.orient.core.db.record.OIdentifiable;
 import com.orientechnologies.orient.graph.sql.functions.OSQLFunctionShortestPath;
@@ -9,8 +11,6 @@ import com.tinkerpop.blueprints.impls.orient.OrientExtendedGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import eu.socialsensor.benchmarks.FindShortestPathBenchmark;
 
-import java.util.List;
-
 /**
  * Query implementation for OrientDB graph database
  * 
@@ -18,7 +18,6 @@ import java.util.List;
  * @email sotbeis@iti.gr
  */
 public class OrientQuery implements Query {
-
   private OrientExtendedGraph orientGraph = null;
 
   public OrientQuery(OrientExtendedGraph orientGraph) {

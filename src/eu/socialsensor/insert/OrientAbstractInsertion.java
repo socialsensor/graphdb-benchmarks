@@ -24,6 +24,7 @@ import org.apache.log4j.Logger;
 
 import com.orientechnologies.orient.core.db.record.OIdentifiable;
 import com.orientechnologies.orient.core.index.OIndex;
+import com.tinkerpop.blueprints.TransactionalGraph;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientExtendedGraph;
 import com.tinkerpop.blueprints.impls.orient.asynch.OrientGraphAsynch;
@@ -36,37 +37,42 @@ import com.tinkerpop.blueprints.impls.orient.asynch.OrientGraphAsynch;
  * 
  */
 public abstract class OrientAbstractInsertion implements Insertion {
+	
+	public static String INSERTION_TIMES_OUTPUT_PATH = null;
 
-  public static String          INSERTION_TIMES_OUTPUT_PATH = null;
+	protected OrientExtendedGraph orientGraph = null;
+	protected Logger logger = Logger.getLogger(OrientAbstractInsertion.class);
 
-  protected int                 nodesCounter                = 0;
-  protected OrientExtendedGraph orientGraph                 = null;
-  protected Logger              logger                      = Logger.getLogger(OrientAbstractInsertion.class);
+	protected OIndex index;
 
-  protected OIndex              index;
+	public OrientAbstractInsertion(OrientExtendedGraph orientGraph) {
+		this.orientGraph = orientGraph;
+	}
 
-  public OrientAbstractInsertion(OrientExtendedGraph orientGraph) {
-    this.orientGraph = orientGraph;
-  }
+	protected Vertex getOrCreate(final String value) {
+		final int key = Integer.parseInt(value);
 
-  protected Vertex getOrCreate(final String value) {
-    final int key = Integer.parseInt(value);
+		Vertex v;
+		if (orientGraph instanceof OrientGraphAsynch) {
+			v = ((OrientGraphAsynch) orientGraph).addOrUpdateVertex(key, "nodeId", key);
+		} 
+		else {
+			if (index == null) {
+				index = orientGraph.getRawGraph().getMetadata().getIndexManager().getIndex("V.nodeId");
+			}
+				
+			final OIdentifiable rec = (OIdentifiable) index.get(key);
+			if (rec != null) {
+				return orientGraph.getVertex(rec);
+			}
+			
+			v = orientGraph.addVertex(key, "nodeId", key);
+      
+			if (orientGraph instanceof TransactionalGraph) {
+				((TransactionalGraph) orientGraph).commit();
+			}
+		}
 
-    Vertex v;
-    if (orientGraph instanceof OrientGraphAsynch) {
-      v = ((OrientGraphAsynch) orientGraph).addOrUpdateVertex(key, "nodeId", key);
-    } else {
-      if (index == null)
-        index = orientGraph.getRawGraph().getMetadata().getIndexManager().getIndex("V.nodeId");
-
-      final OIdentifiable rec = (OIdentifiable) index.get(key);
-      if (rec != null)
-        return orientGraph.getVertex(rec);
-
-      nodesCounter++;
-      v = orientGraph.addVertex(key, "nodeId", key);
-    }
-
-    return v;
-  }
+		return v;
+	}
 }

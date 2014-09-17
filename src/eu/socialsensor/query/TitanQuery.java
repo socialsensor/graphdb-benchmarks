@@ -50,8 +50,10 @@ public class TitanQuery implements Query {
 	@Override
 	public void findNeighborsOfAllNodes() {
 		for(Vertex v : titanGraph.getVertices()) {
-			@SuppressWarnings("unused")
 			GremlinPipeline<String, Vertex> pipe = new GremlinPipeline<String, Vertex>(v).both("similar");
+			Iterator<Vertex> neighbors = pipe.iterator();
+			while(neighbors.hasNext()) {
+			}
 		}		
 	}
 	
@@ -60,16 +62,15 @@ public class TitanQuery implements Query {
 		for(Edge e : titanGraph.getEdges()) {
 			GremlinPipeline<String, Vertex> getNodesPipe = new GremlinPipeline<String, Vertex>(e).bothV();
 			Iterator<Vertex> vertexIter = getNodesPipe.iterator();
-			@SuppressWarnings("unused")
-			Vertex startNode = vertexIter.next();
-			@SuppressWarnings("unused")
-			Vertex endNode = vertexIter.next();
+			while(vertexIter.hasNext()) {
+			}
 		}
 	}
 	
 	@Override
 	public void findShortestPaths() {
 		Vertex v1 = titanGraph.getVertices("nodeId", 1).iterator().next();
+		
 		for(int i : FindShortestPathBenchmark.generatedNodes) {
 			final Vertex v2 = titanGraph.getVertices("nodeId", i).iterator().next();
 			@SuppressWarnings("rawtypes")
@@ -84,7 +85,8 @@ public class TitanQuery implements Query {
 					})
 					.path();
 			@SuppressWarnings("unused")
-			int length = pathPipe.iterator().next().size();
+			int length = pathPipe.iterator().next().size() - 1;
+			
 		}
 	}
 	

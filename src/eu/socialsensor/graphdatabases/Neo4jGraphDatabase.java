@@ -32,7 +32,6 @@ import com.google.common.collect.Iterables;
 import eu.socialsensor.insert.Insertion;
 import eu.socialsensor.insert.Neo4jMassiveInsertion;
 import eu.socialsensor.insert.Neo4jSingleInsertion;
-import eu.socialsensor.main.GraphDatabaseBenchmark;
 import eu.socialsensor.query.Neo4jQuery;
 import eu.socialsensor.query.Query;
 import eu.socialsensor.utils.Utils;
@@ -51,9 +50,7 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 	IndexDefinition indexDefinition = null;
 		
 	private BatchInserter inserter = null;
-	
-	private boolean clusteringWorkload = false;
-	
+		
 	public static enum RelTypes implements RelationshipType {
 	    SIMILAR
 	}
@@ -62,25 +59,18 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 	
 	public static void main(String args[]) {
 		Neo4jGraphDatabase test = new Neo4jGraphDatabase();
-		test.createGraphForMassiveLoad(GraphDatabaseBenchmark.NEO4JDB_PATH);
-		test.massiveModeLoading("./data/livejournalEdges.txt");
-		test.shutdownMassiveGraph();
+//		test.createGraphForMassiveLoad("Neo4jYoutube");
+//		test.massiveModeLoading("./data/youtubeEdges.txt");
+//		test.shutdownMassiveGraph();
+		
+		test.open("Neo4jYoutube");
+		test.neighborsOfAllNodesQuery();
+		test.shutdown();
 	}
 	
 	@Override
 	public void open(String dbPath) {
-		neo4jGraph = new GraphDatabaseFactory().newEmbeddedDatabase(dbPath);
-		try(Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
-						
-			if(clusteringWorkload) {
-				schema = neo4jGraph.schema();
-				indexDefinition = schema.indexFor(NODE_LABEL).on("community").create();
-				indexDefinition = schema.indexFor(NODE_LABEL).on("nodeCommunity").create();
-			}
-			tx.success();
-			tx.close();
-		}
-		
+		neo4jGraph = new GraphDatabaseFactory().newEmbeddedDatabase(dbPath);		
 		try(Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
 			neo4jGraph.schema().awaitIndexesOnline(10l, TimeUnit.MINUTES);
 			tx.success();
@@ -95,6 +85,8 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 		try(Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
 			schema = neo4jGraph.schema();
 			indexDefinition = schema.indexFor(NODE_LABEL).on("nodeId").create();
+			indexDefinition = schema.indexFor(NODE_LABEL).on("community").create();
+			indexDefinition = schema.indexFor(NODE_LABEL).on("nodeCommunity").create();
 			tx.success();
 			tx.close();
 		}
@@ -111,6 +103,8 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 		config.put("neostore.propertystore.db.strings.mapped_memory", "250M");
 		inserter = BatchInserters.inserter(dbPath, config);
 		inserter.createDeferredSchemaIndex(NODE_LABEL).on("nodeId").create();
+		inserter.createDeferredSchemaIndex(NODE_LABEL).on("community").create();
+		inserter.createDeferredSchemaIndex(NODE_LABEL).on("nodeCommunity").create();
 	}
 	
 	@Override
@@ -446,8 +440,4 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 		return communities;
 	}
 	
-	@Override
-	public void setClusteringWorkload(boolean isClusteringWorkload) {
-		this.clusteringWorkload = isClusteringWorkload;
-	}
 }

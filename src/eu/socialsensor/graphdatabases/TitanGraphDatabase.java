@@ -2,7 +2,6 @@ package eu.socialsensor.graphdatabases;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -11,17 +10,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.configuration.BaseConfiguration;
-import org.apache.commons.configuration.Configuration;
-
 import com.google.common.collect.Iterables;
 import com.thinkaurelius.titan.core.PropertyKey;
-import com.thinkaurelius.titan.core.Titan;
 import com.thinkaurelius.titan.core.TitanFactory;
 import com.thinkaurelius.titan.core.TitanGraph;
 import com.thinkaurelius.titan.core.schema.TitanManagement;
 import com.thinkaurelius.titan.core.util.TitanCleanup;
-import com.thinkaurelius.titan.graphdb.configuration.GraphDatabaseConfiguration;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.util.wrappers.batch.BatchGraph;
@@ -46,9 +40,7 @@ public class TitanGraphDatabase implements GraphDatabase{
 	
 	public static final String INSERTION_TIMES_OUTPUT_PATH = "data/titan.insertion.times";
 	public static final String STORAGE_BACKEND = "local";
-	
-	private boolean clusteringWorkload = false;
-	
+		
 	double totalWeight;
 	
 	public TitanGraph titanGraph;
@@ -57,14 +49,12 @@ public class TitanGraphDatabase implements GraphDatabase{
 	
 	public static void main(String args[]) throws FileNotFoundException {
 		GraphDatabase titanGraphDatabase = new TitanGraphDatabase();
+//		titanGraphDatabase.createGraphForMassiveLoad(GraphDatabaseBenchmark.TITANDB_PATH);
+//		titanGraphDatabase.massiveModeLoading("data/enronEdges.txt");
+//		titanGraphDatabase.shutdownMassiveGraph();
+		
 		titanGraphDatabase.open(GraphDatabaseBenchmark.TITANDB_PATH);
-		
-		titanGraphDatabase.initCommunityProperty();
-		
-		PrintWriter writer = new PrintWriter("/home/sotbeis/Desktop/titan.txt");
-		writer.println(titanGraphDatabase.getNodeWeight(15237));
-		writer.close();
-		
+		titanGraphDatabase.shorestPathQuery();
 		titanGraphDatabase.shutdown();
 	}
 	
@@ -84,10 +74,7 @@ public class TitanGraphDatabase implements GraphDatabase{
 				.set("storage.transactions", false)
 				.set("storage.directory", dbPath)
 				.open();
-		TitanManagement titanManagement = titanGraph.getManagementSystem();
-		PropertyKey nodeId = titanManagement.makePropertyKey("nodeId").dataType(String.class).make();
-		titanManagement.buildIndex("nodeId", Vertex.class).addKey(nodeId).buildCompositeIndex();
-		titanManagement.commit();
+		createSchema();
 	}
 	
 	@Override
@@ -97,11 +84,7 @@ public class TitanGraphDatabase implements GraphDatabase{
 				.set("storage.directory", dbPath)
 				.set("storage.batch-loading", true)
 				.open();
-		TitanManagement titanManagement = titanGraph.getManagementSystem();
-		PropertyKey nodeId = titanManagement.makePropertyKey("nodeId").dataType(String.class).make();
-		titanManagement.buildIndex("nodeId", Vertex.class).addKey(nodeId).buildCompositeIndex();
-		titanManagement.makeEdgeLabel("similar").make();
-		titanManagement.commit();
+		createSchema();
 		
 		batchGraph = new BatchGraph<TitanGraph>(titanGraph, VertexIDType.STRING, 1000);
 		batchGraph.setVertexIdKey("nodeId");
@@ -368,9 +351,19 @@ public class TitanGraphDatabase implements GraphDatabase{
 		}
 		return communities;
 	}
-
-	@Override
-	public void setClusteringWorkload(boolean isClusteringWorkload) {
-		this.clusteringWorkload = isClusteringWorkload;
+	
+	private void createSchema() {
+		TitanManagement titanManagement = titanGraph.getManagementSystem();
+		PropertyKey nodeId = titanManagement.makePropertyKey("nodeId").dataType(String.class).make();
+		PropertyKey community = titanManagement.makePropertyKey("community").dataType(Integer.class).make();
+		PropertyKey nodeCommunity = titanManagement.makePropertyKey("nodeCommunity").dataType(Integer.class).make();
+		
+		titanManagement.buildIndex("nodeId", Vertex.class).addKey(nodeId).buildCompositeIndex();
+		titanManagement.buildIndex("community", Vertex.class).addKey(community).buildCompositeIndex();
+		titanManagement.buildIndex("nodeCommunity", Vertex.class).addKey(nodeCommunity).buildCompositeIndex();
+		
+		titanManagement.makeEdgeLabel("similar").make();
+		
+		titanManagement.commit();
 	}
 }

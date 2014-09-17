@@ -42,7 +42,7 @@ public class OrientSingleInsertion extends OrientAbstractInsertion {
       String line;
       int lineCounter = 1;
       Vertex srcVertex, dstVertex;
-
+      int edgeCounter = 0;
       long start = System.currentTimeMillis();
       long duration;
       while ((line = reader.readLine()) != null) {
@@ -50,37 +50,34 @@ public class OrientSingleInsertion extends OrientAbstractInsertion {
           String[] parts = line.split("\t");
 
           srcVertex = getOrCreate(parts[0]);
-
-          if (nodesCounter == 1000) {
-            duration = System.currentTimeMillis() - start;
-            insertionTimes.add((double) duration);
-            nodesCounter = 0;
-            start = System.currentTimeMillis();
-          }
-
           dstVertex = getOrCreate(parts[1]);
 
           orientGraph.addEdge(null, srcVertex, dstVertex, "similar");
 
-          if (nodesCounter == 1000) {
-            duration = System.currentTimeMillis() - start;
-            insertionTimes.add((double) duration);
-            nodesCounter = 0;
-            start = System.currentTimeMillis();
+          if (orientGraph instanceof TransactionalGraph) {
+            ((TransactionalGraph) orientGraph).commit();
           }
-
           if (orientGraph instanceof TransactionalGraph)
             ((TransactionalGraph) orientGraph).commit();
+
+          if (lineCounter % 1000 == 0) {
+            duration = System.currentTimeMillis() - start;
+            insertionTimes.add((double) duration);
+            edgeCounter = 0;
+            start = System.currentTimeMillis();
+          }
         }
 
         lineCounter++;
       }
 
-      if (orientGraph instanceof TransactionalGraph)
+      if (orientGraph instanceof TransactionalGraph) {
         ((TransactionalGraph) orientGraph).commit();
+      }
 
       duration = System.currentTimeMillis() - start;
       insertionTimes.add((double) duration);
+
       reader.close();
     } catch (IOException ioe) {
       System.out.println(ioe);

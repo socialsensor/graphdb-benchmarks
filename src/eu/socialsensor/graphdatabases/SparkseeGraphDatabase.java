@@ -420,8 +420,4 @@ public class SparkseeGraphDatabase implements GraphDatabase {
 		return communities;
 	}
 
-	@Override
-	public void setClusteringWorkload(boolean isClusteringWorkload) {
-		this.clusteringWorkload = isClusteringWorkload;
-	}
 }

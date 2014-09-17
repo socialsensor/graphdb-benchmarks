@@ -44,7 +44,6 @@ import eu.socialsensor.utils.Utils;
 public class OrientGraphDatabase implements GraphDatabase {
 
   private OrientExtendedGraph graph              = null;
-  private boolean             clusteringWorkload = false;
 
   public OrientGraphDatabase() {
     OGlobalConfiguration.STORAGE_COMPRESSION_METHOD.setValue("nothing");
@@ -53,13 +52,25 @@ public class OrientGraphDatabase implements GraphDatabase {
 
   public static void main(String args[]) {
     GraphDatabase db = new OrientGraphDatabase();
-    db.createGraphForSingleLoad(GraphDatabaseBenchmark.ORIENTDB_PATH);
-    long start = System.currentTimeMillis();
-    db.singleModeLoading("enronEdges.txt");
-    long time = System.currentTimeMillis() - start;
-    db.shutdownMassiveGraph();
-    db.delete(GraphDatabaseBenchmark.ORIENTDB_PATH);
-    System.out.println(time / 1000.0);
+//    db.createGraphForMassiveLoad(GraphDatabaseBenchmark.ORIENTDB_PATH);
+//    long start = System.currentTimeMillis();
+//    db.massiveModeLoading("data/enronEdges.txt");
+//    long time = System.currentTimeMillis() - start;
+//    db.shutdownMassiveGraph();
+////    db.delete(GraphDatabaseBenchmark.ORIENTDB_PATH);
+//    System.out.println(time / 1000.0);
+//    
+//    db.createGraphForSingleLoad(GraphDatabaseBenchmark.ORIENTDB_PATH);
+//    long start = System.currentTimeMillis();
+//    db.singleModeLoading("data/enronEdges.txt");
+//    long time = System.currentTimeMillis() - start;
+//    System.out.println(time / 1000.0);
+//    db.shutdown();
+    
+    db.open(GraphDatabaseBenchmark.ORIENTDB_PATH);
+    db.shorestPathQuery();
+    
+    db.shutdown();
   }
 
   @Override
@@ -345,11 +356,6 @@ public class OrientGraphDatabase implements GraphDatabase {
       communities.put(i, vertices);
     }
     return communities;
-  }
-
-  @Override
-  public void setClusteringWorkload(boolean isClusteringWorkload) {
-    this.clusteringWorkload = isClusteringWorkload;
   }
 
   protected void createSchema() {
