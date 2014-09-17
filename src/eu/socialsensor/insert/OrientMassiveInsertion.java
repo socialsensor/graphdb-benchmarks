@@ -1,5 +1,12 @@
 package eu.socialsensor.insert;
 
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+import org.apache.log4j.Level;
+
 import com.orientechnologies.common.util.OCallable;
 import com.orientechnologies.orient.core.db.ODatabaseRecordThreadLocal;
 import com.orientechnologies.orient.core.intent.OIntentMassiveInsert;
@@ -9,12 +16,6 @@ import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientExtendedGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientGraphNoTx;
 import com.tinkerpop.blueprints.impls.orient.asynch.OrientGraphAsynch;
-import org.apache.log4j.Level;
-
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
 
 /**
  * Implementation of massive Insertion in OrientDB graph database
@@ -85,6 +86,8 @@ public class OrientMassiveInsertion extends OrientAbstractInsertion {
       reader.close();
     } catch (IOException ioe) {
       ioe.printStackTrace();
+    } finally {
+      orientGraph.declareIntent(null);
     }
   }
 

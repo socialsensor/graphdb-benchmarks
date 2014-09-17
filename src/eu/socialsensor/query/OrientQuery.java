@@ -1,6 +1,8 @@
 package eu.socialsensor.query;
 
-import com.orientechnologies.orient.core.sql.OCommandSQL;
+import com.orientechnologies.orient.core.command.OBasicCommandContext;
+import com.orientechnologies.orient.core.db.record.OIdentifiable;
+import com.orientechnologies.orient.graph.sql.functions.OSQLFunctionShortestPath;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientExtendedGraph;
@@ -44,14 +46,22 @@ public class OrientQuery implements Query {
 
   @Override
   public void findShortestPaths() {
-    Vertex v1 = orientGraph.getVertices("nodeId", "1").iterator().next();
-    for (int i : FindShortestPathBenchmark.generatedNodes) {
-      final Vertex v2 = orientGraph.getVertices("nodeId", String.valueOf(i)).iterator().next();
+    for (int k = 0; k < 3; ++k) {
+      final long start = System.currentTimeMillis();
 
-      List<OrientVertex> result = orientGraph
-          .command(new OCommandSQL("SELECT shortestPath(" + v1.getId() + "," + v2.getId() + ")")).execute();
-      int length = result.size();
+      OrientVertex v1 = (OrientVertex) orientGraph.getVertices("nodeId", 1).iterator().next();
+      for (int i : FindShortestPathBenchmark.generatedNodes) {
+        final OrientVertex v2 = (OrientVertex) orientGraph.getVertices("nodeId", i).iterator().next();
+
+        List<OIdentifiable> result = (List<OIdentifiable>) new OSQLFunctionShortestPath().execute(orientGraph, null, null,
+            new Object[] { v1.getRecord(), v2.getRecord(), Direction.OUT, 5 }, new OBasicCommandContext());
+
+        int length = result.size();
+
+        System.out.printf("\nORIENTDB SP(%s,%s): %d", 1, i, length);
+      }
+
+      System.out.printf("\nORIENTDB TOTAL: " + (System.currentTimeMillis() - start));
     }
-
   }
 }

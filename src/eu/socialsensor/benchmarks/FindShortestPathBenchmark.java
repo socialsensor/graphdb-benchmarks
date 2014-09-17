@@ -1,14 +1,5 @@
 package eu.socialsensor.benchmarks;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.HashSet;
-import java.util.Random;
-import java.util.Set;
-
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-
 import eu.socialsensor.graphdatabases.GraphDatabase;
 import eu.socialsensor.graphdatabases.Neo4jGraphDatabase;
 import eu.socialsensor.graphdatabases.OrientGraphDatabase;
@@ -17,6 +8,14 @@ import eu.socialsensor.graphdatabases.TitanGraphDatabase;
 import eu.socialsensor.main.GraphDatabaseBenchmark;
 import eu.socialsensor.utils.PermuteMethod;
 import eu.socialsensor.utils.Utils;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.HashSet;
+import java.util.Random;
+import java.util.Set;
 
 /**
  * FindShortestPathBenchmark implementation
@@ -51,7 +50,7 @@ public class FindShortestPathBenchmark implements Benchmark {
 		generatedNodes = new HashSet<Integer>();
 		int max = 300;
 		int min = 2;
-		int numberOfGeneratedNodes = 1000;
+		int numberOfGeneratedNodes = 100;
 		while(generatedNodes.size() < numberOfGeneratedNodes) {
 			int randomNum = rand.nextInt((max - min) +1) + min;
 			generatedNodes.add(randomNum);

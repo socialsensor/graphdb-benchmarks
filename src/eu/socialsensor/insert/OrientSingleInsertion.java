@@ -1,19 +1,18 @@
 package eu.socialsensor.insert;
 
+import com.tinkerpop.blueprints.TransactionalGraph;
+import com.tinkerpop.blueprints.Vertex;
+import com.tinkerpop.blueprints.impls.orient.OrientExtendedGraph;
+import eu.socialsensor.benchmarks.SingleInsertionBenchmark;
+import eu.socialsensor.utils.Utils;
+import org.apache.log4j.Level;
+
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.log4j.Level;
-
-import com.tinkerpop.blueprints.Vertex;
-import com.tinkerpop.blueprints.impls.orient.OrientExtendedGraph;
-
-import eu.socialsensor.benchmarks.SingleInsertionBenchmark;
-import eu.socialsensor.utils.Utils;
 
 /**
  * Implementation of single Insertion in OrientDB graph database
@@ -69,9 +68,16 @@ public class OrientSingleInsertion extends OrientAbstractInsertion {
             nodesCounter = 0;
             start = System.currentTimeMillis();
           }
+
+          if (orientGraph instanceof TransactionalGraph)
+            ((TransactionalGraph) orientGraph).commit();
         }
+
         lineCounter++;
       }
+
+      if (orientGraph instanceof TransactionalGraph)
+        ((TransactionalGraph) orientGraph).commit();
 
       duration = System.currentTimeMillis() - start;
       insertionTimes.add((double) duration);
