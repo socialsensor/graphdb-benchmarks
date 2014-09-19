@@ -49,7 +49,7 @@ public class FindShortestPathBenchmark implements Benchmark {
 		
 		Random rand = new Random();
 		generatedNodes = new HashSet<Integer>();
-		int max = 300;
+		int max = 10000;
 		int min = 2;
 		int numberOfGeneratedNodes = 1000;
 		while(generatedNodes.size() < numberOfGeneratedNodes) {
@@ -67,6 +67,7 @@ public class FindShortestPathBenchmark implements Benchmark {
 			for(Method permutation : permutations.next()) {
 				try {
 					permutation.invoke(this, null);
+					utils.clearGC();
 				} catch (IllegalAccessException | IllegalArgumentException
 						| InvocationTargetException e) {
 					e.printStackTrace();

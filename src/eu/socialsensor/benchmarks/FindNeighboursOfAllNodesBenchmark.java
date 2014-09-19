@@ -51,6 +51,7 @@ public class FindNeighboursOfAllNodesBenchmark implements Benchmark {
 			for(Method permutation : permutations.next()) {
 				try {
 					permutation.invoke(this, null);
+					utils.clearGC();
 				} catch (IllegalAccessException | IllegalArgumentException
 						| InvocationTargetException e) {
 					e.printStackTrace();

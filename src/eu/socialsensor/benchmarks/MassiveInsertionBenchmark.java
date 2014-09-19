@@ -1,5 +1,6 @@
 package eu.socialsensor.benchmarks;
 
+import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -59,6 +60,8 @@ public class MassiveInsertionBenchmark implements Benchmark{
 			for(Method permutation : permutations.next()) {
 				try {
 					permutation.invoke(this, null);
+					utils.clearGC();
+					
 				} catch (IllegalAccessException | IllegalArgumentException
 						| InvocationTargetException e) {
 					e.printStackTrace();
