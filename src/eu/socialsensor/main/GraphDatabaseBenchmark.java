@@ -35,10 +35,10 @@ public class GraphDatabaseBenchmark {
 	public static boolean NEO4J_SELECTED = false;
 	public static boolean SPARKSEE_SELECTED = false;
 			
-	public final static String ORIENTDB_PATH = "data/OrientDB";
-	public final static String TITANDB_PATH = "data/TitanDB";
-	public final static String NEO4JDB_PATH = "data/Neo4jDB";	
-	public final static String SPARKSEEDB_PATH = "data/SparkseeDB";
+	public final static String ORIENTDB_PATH = "graphDBs/OrientDB";
+	public final static String TITANDB_PATH = "graphDBs/TitanDB";
+	public final static String NEO4JDB_PATH = "graphDBs/Neo4jDB";	
+	public final static String SPARKSEEDB_PATH = "graphDBs/SparkseeDB";
 	
 	public final static String MASSIVE_INSERTION_BENCHMARK = "MIW";
 	public final static String SINGLE_INSERTION_BENCHMARK = "SIW";

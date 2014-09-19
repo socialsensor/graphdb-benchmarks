@@ -69,8 +69,8 @@ public class TitanSingleInsertion implements Insertion {
 				if(lineCounter > 4) {
 					String[] parts = line.split("\t");
 					
-					srcVertex = getOrCreate(parts[0]);
-					dstVertex = getOrCreate(parts[1]);
+					srcVertex = getOrCreate(Integer.valueOf(parts[0]));
+					dstVertex = getOrCreate(Integer.valueOf(parts[1]));
 					
 					titanGraph.addEdge(null, srcVertex, dstVertex, "similar");
 					titanGraph.commit();
@@ -99,7 +99,7 @@ public class TitanSingleInsertion implements Insertion {
 		utils.writeTimes(insertionTimes, TitanSingleInsertion.INSERTION_TIMES_OUTPUT_PATH+"."+count);
 	}
 	
-	private Vertex getOrCreate(String nodeId) {
+	private Vertex getOrCreate(Integer nodeId) {
 		Vertex v;
 		if(titanGraph.query().has("nodeId", Compare.EQUAL, nodeId).vertices().iterator()
 				.hasNext()) {

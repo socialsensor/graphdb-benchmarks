@@ -1,6 +1,8 @@
 package eu.socialsensor.graphdatabases;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -43,34 +45,22 @@ import eu.socialsensor.utils.Utils;
  */
 public class OrientGraphDatabase implements GraphDatabase {
 
-  private OrientExtendedGraph graph              = null;
+  private OrientExtendedGraph graph = null;
 
   public OrientGraphDatabase() {
     OGlobalConfiguration.STORAGE_COMPRESSION_METHOD.setValue("nothing");
-    // OGlobalConfiguration.RID_BAG_EMBEDDED_TO_SBTREEBONSAI_THRESHOLD.setValue(20);
   }
 
   public static void main(String args[]) {
     GraphDatabase db = new OrientGraphDatabase();
 //    db.createGraphForMassiveLoad(GraphDatabaseBenchmark.ORIENTDB_PATH);
-//    long start = System.currentTimeMillis();
-//    db.massiveModeLoading("data/enronEdges.txt");
-//    long time = System.currentTimeMillis() - start;
+//    db.massiveModeLoading("datasets/synthetic/network5000.dat");
 //    db.shutdownMassiveGraph();
-////    db.delete(GraphDatabaseBenchmark.ORIENTDB_PATH);
-//    System.out.println(time / 1000.0);
-//    
-//    db.createGraphForSingleLoad(GraphDatabaseBenchmark.ORIENTDB_PATH);
-//    long start = System.currentTimeMillis();
-//    db.singleModeLoading("data/enronEdges.txt");
-//    long time = System.currentTimeMillis() - start;
-//    System.out.println(time / 1000.0);
-//    db.shutdown();
     
     db.open(GraphDatabaseBenchmark.ORIENTDB_PATH);
-    db.shorestPathQuery();
-    
-    db.shutdown();
+//    db.shorestPathQuery();
+//    
+//    db.shutdown();
   }
 
   @Override
@@ -399,29 +389,9 @@ public class OrientGraphDatabase implements GraphDatabase {
   }
 
   private OrientExtendedGraph getGraph(final String dbPath) {
-    // OGlobalConfiguration.USE_WAL.setValue(false);
     OrientExtendedGraph g;
-    // OGlobalConfiguration.RID_BAG_EMBEDDED_TO_SBTREEBONSAI_THRESHOLD.setValue(-1);
-
-    // OrientBatchGraph g = new OrientBatchGraph(new OrientGraph("plocal:" + dbPath), VertexIDType.NUMBER, 10000);
-
-    // final OrientGraph g = new OrientGraph("plocal:" + dbPath);
-    // g.setUseLog(false);
-    // g.declareIntent(new OIntentMassiveInsert());
-
-    // if (clusteringWorkload) {
-
     OrientGraphFactory graphFactory = new OrientGraphFactory("plocal:" + dbPath);
     g = graphFactory.getTx().setUseLog(false);
-
-    // } else {
-    // OrientGraphAsynch g = new OrientGraphAsynch("plocal:" + dbPath);
-    // g.setKeyFieldName("nodeId");
-    // g.setCache(1000000);
-    // g.setOutStats(System.out);
-    // g.setConflictStrategy("automerge");
-    // g.declareIntent(new OIntentMassiveInsert());
-    // }
     return g;
   }
 }
