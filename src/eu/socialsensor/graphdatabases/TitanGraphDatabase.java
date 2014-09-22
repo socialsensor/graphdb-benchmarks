@@ -2,6 +2,7 @@ package eu.socialsensor.graphdatabases;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -16,6 +17,7 @@ import com.thinkaurelius.titan.core.TitanFactory;
 import com.thinkaurelius.titan.core.TitanGraph;
 import com.thinkaurelius.titan.core.schema.TitanManagement;
 import com.thinkaurelius.titan.core.util.TitanCleanup;
+import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.util.wrappers.batch.BatchGraph;
@@ -48,14 +50,15 @@ public class TitanGraphDatabase implements GraphDatabase{
 	
 	
 	public static void main(String args[]) throws FileNotFoundException {
-		GraphDatabase titanGraphDatabase = new TitanGraphDatabase();
+//		GraphDatabase titanGraphDatabase = new TitanGraphDatabase();
+		
 //		titanGraphDatabase.createGraphForMassiveLoad(GraphDatabaseBenchmark.TITANDB_PATH);
-//		titanGraphDatabase.massiveModeLoading("data/enronEdges.txt");
+//		titanGraphDatabase.massiveModeLoading("datasets/real/enronEdges.txt");
 //		titanGraphDatabase.shutdownMassiveGraph();
 		
-		titanGraphDatabase.open(GraphDatabaseBenchmark.TITANDB_PATH);
-		titanGraphDatabase.shorestPathQuery();
-		titanGraphDatabase.shutdown();
+//		titanGraphDatabase.open(GraphDatabaseBenchmark.TITANDB_PATH);
+//		titanGraphDatabase.shorestPathQuery();
+//		titanGraphDatabase.shutdown();
 	}
 	
 	@Override
@@ -86,7 +89,7 @@ public class TitanGraphDatabase implements GraphDatabase{
 				.open();
 		createSchema();
 		
-		batchGraph = new BatchGraph<TitanGraph>(titanGraph, VertexIDType.STRING, 1000);
+		batchGraph = new BatchGraph<TitanGraph>(titanGraph, VertexIDType.NUMBER, 10000);
 		batchGraph.setVertexIdKey("nodeId");
 		batchGraph.setLoadingFromScratch(true);
 	}
@@ -167,13 +170,20 @@ public class TitanGraphDatabase implements GraphDatabase{
 	
 	@Override
 	public Set<Integer> getNeighborsIds(int nodeId) {
+//		Set<Integer> neighbours = new HashSet<Integer>();
+//	    Vertex vertex = titanGraph.getVertices("nodeId", nodeId).iterator().next();
+//	    for (Vertex v : vertex.getVertices(Direction.IN, "similar")) {
+//	      Integer neighborId = v.getProperty("nodeId");
+//	      neighbours.add(neighborId);
+//	    }
+//	    return neighbours;
 		Set<Integer> neighbors = new HashSet<Integer>();
-		Vertex vertex = titanGraph.getVertices("nodeId", String.valueOf(nodeId)).iterator().next();
+		Vertex vertex = titanGraph.getVertices("nodeId", nodeId).iterator().next();
 		GremlinPipeline<String, Vertex> pipe = new GremlinPipeline<String, Vertex>(vertex).out("similar");
 		Iterator<Vertex> iter = pipe.iterator();
 		while(iter.hasNext()) {
-			String neighborId = iter.next().getProperty("nodeId");
-			neighbors.add(Integer.valueOf(neighborId));
+			Integer neighborId = iter.next().getProperty("nodeId");
+			neighbors.add(neighborId);
 		}
 		return neighbors;
 	}
@@ -181,17 +191,21 @@ public class TitanGraphDatabase implements GraphDatabase{
 	
 	@Override
 	public double getNodeWeight(int nodeId) {
-		Vertex vertex = titanGraph.getVertices("nodeId", String.valueOf(nodeId)).iterator().next();
+		Vertex vertex = titanGraph.getVertices("nodeId", nodeId).iterator().next();
 		double weight = getNodeOutDegree(vertex);
 		return weight;
 	}
 	
 	public double getNodeInDegree(Vertex vertex) {
+//		Iterable<Vertex> result = vertex.getVertices(Direction.IN, "similar");
+//		return (double)Iterables.size(result);
 		GremlinPipeline<String, Vertex> pipe = new GremlinPipeline<String, Vertex>(vertex).in("similar");
 		return (double)pipe.count();
 	}
 
 	public double getNodeOutDegree(Vertex vertex) {
+//		Iterable<Vertex> result = vertex.getVertices(Direction.OUT, "similar");
+//		return (double)Iterables.size(result);
 		GremlinPipeline<String, Vertex> pipe = new GremlinPipeline<String, Vertex>(vertex).out("similar");
 		return (double)pipe.count();
 	}
@@ -211,6 +225,12 @@ public class TitanGraphDatabase implements GraphDatabase{
 		Set<Integer> communities = new HashSet<>();
 		Iterable<Vertex> vertices = titanGraph.getVertices("nodeCommunity", nodeCommunities);
 		for(Vertex vertex : vertices) {
+//			for(Vertex v : vertex.getVertices(Direction.OUT, "similar")) {
+//				int community = v.getProperty("community");
+//				if(!communities.contains(community)) {
+//					communities.add(community);
+//				}
+//			}
 			GremlinPipeline<String, Vertex> pipe = new GremlinPipeline<String, Vertex>(vertex).out("similar");
 			Iterator<Vertex> iter = pipe.iterator();
 			while(iter.hasNext()) {
@@ -226,8 +246,8 @@ public class TitanGraphDatabase implements GraphDatabase{
 		Set<Integer> nodes = new HashSet<Integer>();
 		Iterable<Vertex> iter = titanGraph.getVertices("community", community);
 		for(Vertex v : iter) {
-			String nodeIdString = v.getProperty("nodeId");
-			nodes.add(Integer.valueOf(nodeIdString));
+			Integer nodeId = v.getProperty("nodeId");
+			nodes.add(nodeId);
 		}
 		return nodes;
 	}
@@ -237,8 +257,8 @@ public class TitanGraphDatabase implements GraphDatabase{
 		Set<Integer> nodes = new HashSet<Integer>();
 		Iterable<Vertex> iter = titanGraph.getVertices("nodeCommunity", nodeCommunity);
 		for(Vertex v : iter) {
-			String nodeIdString = v.getProperty("nodeId");
-			nodes.add(Integer.valueOf(nodeIdString));
+			Integer nodeId = v.getProperty("nodeId");
+			nodes.add(nodeId);
 		}
 		return nodes;
 	}
@@ -249,13 +269,18 @@ public class TitanGraphDatabase implements GraphDatabase{
 		Iterable<Vertex> vertices = titanGraph.getVertices("nodeCommunity", vertexCommunity);
 		Iterable<Vertex> comVertices = titanGraph.getVertices("community", communityVertices);
 		for(Vertex vertex : vertices) {
-			GremlinPipeline<String, Vertex> pipe = new GremlinPipeline<String, Vertex>(vertex).out("similar");
-			Iterator<Vertex> iter = pipe.iterator();
-			while(iter.hasNext()) {
-				if(Iterables.contains(comVertices, iter.next())){
-					edges++;
-				}
+			for(Vertex v : vertex.getVertices(Direction.OUT, "similar")) {
+				if (Iterables.contains(comVertices, v)) {
+			          edges++;
+			        }
 			}
+//			GremlinPipeline<String, Vertex> pipe = new GremlinPipeline<String, Vertex>(vertex).out("similar");
+//			Iterator<Vertex> iter = pipe.iterator();
+//			while(iter.hasNext()) {
+//				if(Iterables.contains(comVertices, iter.next())){
+//					edges++;
+//				}
+//			}
 		}
 		return edges;
 	}
@@ -332,7 +357,9 @@ public class TitanGraphDatabase implements GraphDatabase{
 		Set<Integer> nodeCommunities = new HashSet<Integer>();
 		for(Vertex v : vertices) {
 			int nodeCommunity = v.getProperty("nodeCommunity");
-			nodeCommunities.add(nodeCommunity);
+			if (!nodeCommunities.contains(nodeCommunity)) {
+		        nodeCommunities.add(nodeCommunity);
+		      }
 		}
 		return nodeCommunities.size();
 	}
@@ -344,8 +371,8 @@ public class TitanGraphDatabase implements GraphDatabase{
 			Iterator<Vertex> verticesIter = titanGraph.getVertices("community", i).iterator();
 			List<Integer> vertices = new ArrayList<Integer>();
 			while(verticesIter.hasNext()) {
-				String nodeIdString = verticesIter.next().getProperty("nodeId");
-				vertices.add(Integer.valueOf(nodeIdString));
+				Integer nodeId = verticesIter.next().getProperty("nodeId");
+				vertices.add(nodeId);
 			}
 			communities.put(i, vertices);
 		}
@@ -354,7 +381,7 @@ public class TitanGraphDatabase implements GraphDatabase{
 	
 	private void createSchema() {
 		TitanManagement titanManagement = titanGraph.getManagementSystem();
-		PropertyKey nodeId = titanManagement.makePropertyKey("nodeId").dataType(String.class).make();
+		PropertyKey nodeId = titanManagement.makePropertyKey("nodeId").dataType(Integer.class).make();
 		PropertyKey community = titanManagement.makePropertyKey("community").dataType(Integer.class).make();
 		PropertyKey nodeCommunity = titanManagement.makePropertyKey("nodeCommunity").dataType(Integer.class).make();
 		

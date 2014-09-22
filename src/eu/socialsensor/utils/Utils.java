@@ -8,6 +8,7 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -195,6 +196,15 @@ public class Utils {
 			}
 			return factorial;
 		}
+	}
+	
+	public void clearGC() {
+		Object obj = new Object();
+	    WeakReference<Object> ref = new WeakReference<Object>(obj);
+	    obj = null;
+	    while(ref.get() != null) {
+	    	System.gc();
+	    }
 	}
 
 	public void createDatabases(String dataset) {

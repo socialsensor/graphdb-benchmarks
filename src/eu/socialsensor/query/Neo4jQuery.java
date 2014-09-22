@@ -70,7 +70,7 @@ public class Neo4jQuery implements Query {
 	@Override
 	public void findShortestPaths() {
 		try(Transaction tx = neo4jGraph.beginTx()) {
-			PathFinder<Path> finder = GraphAlgoFactory.shortestPath(Traversal.expanderForTypes(Neo4jGraphDatabase.RelTypes.SIMILAR),20);
+			PathFinder<Path> finder = GraphAlgoFactory.shortestPath(Traversal.expanderForTypes(Neo4jGraphDatabase.RelTypes.SIMILAR),5);
 			Node n1 = neo4jGraph.findNodesByLabelAndProperty(Neo4jGraphDatabase.NODE_LABEL, "nodeId", "1").iterator().next();
 			for(int i : FindShortestPathBenchmark.generatedNodes) {
 				Node n2 = neo4jGraph.findNodesByLabelAndProperty(Neo4jGraphDatabase.NODE_LABEL, "nodeId", String.valueOf(i)).iterator().next();

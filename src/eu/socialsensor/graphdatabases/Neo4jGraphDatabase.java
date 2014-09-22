@@ -58,14 +58,14 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 	public static Label NODE_LABEL = DynamicLabel.label("Node");
 	
 	public static void main(String args[]) {
-		Neo4jGraphDatabase test = new Neo4jGraphDatabase();
+//		Neo4jGraphDatabase test = new Neo4jGraphDatabase();
 //		test.createGraphForMassiveLoad("Neo4jYoutube");
 //		test.massiveModeLoading("./data/youtubeEdges.txt");
 //		test.shutdownMassiveGraph();
 		
-		test.open("Neo4jYoutube");
-		test.neighborsOfAllNodesQuery();
-		test.shutdown();
+//		test.open("Neo4jYoutube");
+//		test.neighborsOfAllNodesQuery();
+//		test.shutdown();
 	}
 	
 	@Override

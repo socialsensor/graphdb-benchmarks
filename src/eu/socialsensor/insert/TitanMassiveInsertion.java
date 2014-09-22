@@ -56,8 +56,8 @@ public class TitanMassiveInsertion implements Insertion {
 				if(lineCounter > 4) {
 					String[] parts = line.split("\t");
 					
-					srcVertex = getOrCreate(parts[0]);
-					dstVertex = getOrCreate(parts[1]);
+					srcVertex = getOrCreate(Integer.valueOf(parts[0]));
+					dstVertex = getOrCreate(Integer.valueOf(parts[1]));
 					
 					srcVertex.addEdge("similar", dstVertex);
 				}
@@ -70,7 +70,7 @@ public class TitanMassiveInsertion implements Insertion {
 		}
 	}
 	
-	private Vertex getOrCreate(String value) {
+	private Vertex getOrCreate(Integer value) {
 		Vertex vertex = batchGraph.getVertex(value);
 		if(vertex == null) {
 			vertex = batchGraph.addVertex(value);

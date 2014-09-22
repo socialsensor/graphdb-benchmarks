@@ -1,10 +1,14 @@
 package eu.socialsensor.query;
 
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.List;
 
+import com.thinkaurelius.titan.core.TitanEdge;
 import com.thinkaurelius.titan.core.TitanFactory;
 import com.thinkaurelius.titan.core.TitanGraph;
+import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.gremlin.java.GremlinPipeline;
@@ -48,23 +52,35 @@ public class TitanQuery implements Query {
 	}
 	
 	@Override
+	@SuppressWarnings("unused")
 	public void findNeighborsOfAllNodes() {
-		for(Vertex v : titanGraph.getVertices()) {
-			GremlinPipeline<String, Vertex> pipe = new GremlinPipeline<String, Vertex>(v).both("similar");
-			Iterator<Vertex> neighbors = pipe.iterator();
-			while(neighbors.hasNext()) {
+		for (Vertex v : titanGraph.getVertices()) {
+			for (Vertex vv : v.getVertices(Direction.BOTH, "similar")) {
 			}
-		}		
+		}
 	}
 	
 	@Override
+	@SuppressWarnings("unused")
 	public void findNodesOfAllEdges() {
-		for(Edge e : titanGraph.getEdges()) {
-			GremlinPipeline<String, Vertex> getNodesPipe = new GremlinPipeline<String, Vertex>(e).bothV();
-			Iterator<Vertex> vertexIter = getNodesPipe.iterator();
-			while(vertexIter.hasNext()) {
+		
+		try {
+			PrintWriter writer = new PrintWriter("orient");
+			
+			for(Edge e : titanGraph.getEdges()) {
+				Vertex srcVertex = e.getVertex(Direction.OUT);
+				Vertex dstVertex = e.getVertex(Direction.IN);
+				
+				writer.println(srcVertex.getProperty("nodeId") + "\t" + dstVertex.getProperty("nodeId"));
 			}
+			
+			writer.close();
+			
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+		
 	}
 	
 	@Override
@@ -85,7 +101,7 @@ public class TitanQuery implements Query {
 					})
 					.path();
 			@SuppressWarnings("unused")
-			int length = pathPipe.iterator().next().size() - 1;
+			int length = pathPipe.iterator().next().size();
 			
 		}
 	}
