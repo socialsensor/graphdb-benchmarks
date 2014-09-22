@@ -21,15 +21,51 @@ To run the project firstly you should download one of the above datasets. You ca
 
 Results
 -------
-We list some of the results from our evaluation. The first table depicts the results of MIW and WQ with the Livejournal dataset.
+Below we list the results of MIW and QW for each dataset. The time is measured in seconds.
 
 | Dataset | Workload | Titan | OrientDB | Neo4j |
 | ------- | -------- | ----- | -------- | ----- |
-|   LJ    |    MIW   |720.179|2485.529  |**229.465**|
-|   LJ    |   QW-FN  |352.968|**68.176**|109.494|
-|   LJ    |   QW-FA  |504.909|341.306   |**44.510**|
-|   LJ    |   QW-FS  |31.01  |47.183    |0.479  |
+|   EN    |    MIW   |9.36   |62.77     |**6.77**|
+|   AM    |    MIW   |34.00  |97.00     |**10.61**|
+|   YT    |    MIW   |104.27 |252.15    |**24.69**|
+|   LJ    |    MIW   |       |          |         |
+|                                                 |
+|   EN    |  QW-FN   |2.75   |1.15      |**0.61** |
+|   AM    |  QW-FN   |8.56   |6.63      |**1.74** |
+|   YT    |  QW-FN   |29.56  |21.32     |**5.98** |
+|   LJ    |  QW-FN   |       |          |         |
+|                                                 |
+|   EN    |  QW-FA   |       |          |         |
+|   AM    |  QW-FA   |       |          |         |
+|   YT    |  QW-FA   |       |          |         |
+|   LJ    |  QW-FA   |       |          |         |
+|                                                 |
+|   EN    |  QW-FS   |       |          |         |
+|   AM    |  QW-FS   |       |          |         |
+|   YT    |  QW-FS   |9.21   |15.33     |**0.31** |
+|   LJ    |  QW-FS   |       |          |         |
 
+Below we list the results of the CW for graphs with 1,000, 5,000 and 10,0000 nodes. Here the time is also measured in seconds.
+
+| Graph-Cache   | Titan | OrientDB | Neo4j |
+| -----------   | ----- | -------- | ----- |
+|Graph1000-5%   |2.49   |**0.91**  |2.88   |
+|Graph1000-10%  |1.48   |**0.61**  |2.12   |
+|Graph1000-15%  |1.35   |**0.57**  |2.03   |
+|Graph1000-20%  |1.32   |**0.52**  |1.91   |
+|Graph1000-25%  |1.30   |**0.50**  |1.69   |
+|                                          |
+|Graph5000-5%   |16.62  |**5.85**  |14.06  |
+|Graph5000-10%  |15.84  |**5.63**  |13.18  |
+|Graph5000-15%  |15.15  |**4.78**  |12.96  |
+|Graph5000-20%  |14.24  |**4.51**  |12.89  |
+|Graph5000-25%  |14.10  |**4.60**  |12.19  |
+|                                          |
+|Graph10000-5%  |49.45  |**18.26** |37.37  |
+|Graph10000-10% |46.97  |**17.73** |35.50  |
+|Graph10000-15% |47.84  |**17.47** |34.70  |
+|Graph10000-20% |44.86  |**17.03** |37.62  |
+|Graph10000-25% |44.01  |**16.87** |33.18  |
 
 
 Contact
