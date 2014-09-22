@@ -50,19 +50,15 @@ public class TitanGraphDatabase implements GraphDatabase{
 	
 	
 	public static void main(String args[]) throws FileNotFoundException {
-		GraphDatabase titanGraphDatabase = new TitanGraphDatabase();
+//		GraphDatabase titanGraphDatabase = new TitanGraphDatabase();
 		
 //		titanGraphDatabase.createGraphForMassiveLoad(GraphDatabaseBenchmark.TITANDB_PATH);
-//		titanGraphDatabase.massiveModeLoading("datasets/synthetic/network5000.dat");
+//		titanGraphDatabase.massiveModeLoading("datasets/real/enronEdges.txt");
 //		titanGraphDatabase.shutdownMassiveGraph();
 		
-		titanGraphDatabase.open(GraphDatabaseBenchmark.TITANDB_PATH);
+//		titanGraphDatabase.open(GraphDatabaseBenchmark.TITANDB_PATH);
 //		titanGraphDatabase.shorestPathQuery();
-		titanGraphDatabase.shutdown();
-	}
-	
-	public void test(GraphDatabase graph) throws FileNotFoundException {
-		
+//		titanGraphDatabase.shutdown();
 	}
 	
 	@Override
@@ -71,7 +67,6 @@ public class TitanGraphDatabase implements GraphDatabase{
 				.set("storage.backend", "berkeleyje")
 				.set("storage.transactions", false)
 				.set("storage.directory", dbPath)
-				.set("cache.db-cache-size", 0.1)
 				.open();
 	}
 	
@@ -81,7 +76,6 @@ public class TitanGraphDatabase implements GraphDatabase{
 				.set("storage.backend", "berkeleyje")
 				.set("storage.transactions", false)
 				.set("storage.directory", dbPath)
-				.set("cache.db-cache-size", 0.1)
 				.open();
 		createSchema();
 	}
@@ -92,8 +86,6 @@ public class TitanGraphDatabase implements GraphDatabase{
 				.set("storage.backend", "berkeleyje")
 				.set("storage.directory", dbPath)
 				.set("storage.batch-loading", true)
-				.set("cache.db-cache",true)
-				.set("cache.db-cache-size", 0.1)
 				.open();
 		createSchema();
 		

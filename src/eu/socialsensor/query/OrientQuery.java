@@ -4,6 +4,7 @@ import com.orientechnologies.orient.core.command.OBasicCommandContext;
 import com.orientechnologies.orient.core.db.record.OIdentifiable;
 import com.orientechnologies.orient.graph.sql.functions.OSQLFunctionShortestPath;
 import com.tinkerpop.blueprints.Direction;
+import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientExtendedGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
@@ -13,6 +14,8 @@ import com.tinkerpop.pipes.branch.LoopPipe.LoopBundle;
 
 import eu.socialsensor.benchmarks.FindShortestPathBenchmark;
 
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.List;
 
 /**
@@ -43,9 +46,22 @@ public class OrientQuery implements Query {
 	@Override
 	@SuppressWarnings("unused")
 	public void findNodesOfAllEdges() {
-		for (Vertex v : orientGraph.getVertices()) {
-			for (Vertex vv : v.getVertices(Direction.BOTH)) {
+		
+		try {
+			PrintWriter writer = new PrintWriter("orient");
+			
+			for(Edge e : orientGraph.getEdges()) {
+				Vertex srcVertex = e.getVertex(Direction.OUT);
+				Vertex dstVertex = e.getVertex(Direction.IN);
+				
+				writer.println(srcVertex.getProperty("nodeId") + "\t" + dstVertex.getProperty("nodeId"));
 			}
+			
+			writer.close();
+			
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 
@@ -62,24 +78,6 @@ public class OrientQuery implements Query {
 	        		new OBasicCommandContext());
 
 	        int length = result.size();
-	      }
-		
-//		Vertex v1 = orientGraph.getVertices("nodeId", "1").iterator().next();
-//		for(int i : FindShortestPathBenchmark.generatedNodes) {
-//			final Vertex v2 = orientGraph.getVertices("nodeId", i).iterator().next();
-//			@SuppressWarnings("rawtypes")
-//			final GremlinPipeline<String, List> pathPipe = new GremlinPipeline<String, List>(v1)
-//					.as("similar")
-//					.out("similar")
-//					.loop("similar", new PipeFunction<LoopBundle<Vertex>, Boolean>() {
-//						//@Override
-//						public Boolean compute(LoopBundle<Vertex> bundle) {
-//							return bundle.getLoops() < 5 && !bundle.getObject().equals(v2);
-//						}
-//					})
-//					.path();
-//			@SuppressWarnings("unused")
-//			int length = pathPipe.iterator().next().size() - 1;
-//		}
+	      }		
 	}
 }

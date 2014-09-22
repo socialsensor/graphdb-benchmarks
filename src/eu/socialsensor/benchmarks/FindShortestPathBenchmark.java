@@ -49,9 +49,9 @@ public class FindShortestPathBenchmark implements Benchmark {
 		
 		Random rand = new Random();
 		generatedNodes = new HashSet<Integer>();
-		int max = 10000;
+		int max = 1000;
 		int min = 2;
-		int numberOfGeneratedNodes = 1000;
+		int numberOfGeneratedNodes = 100;
 		while(generatedNodes.size() < numberOfGeneratedNodes) {
 			int randomNum = rand.nextInt((max - min) +1) + min;
 			generatedNodes.add(randomNum);

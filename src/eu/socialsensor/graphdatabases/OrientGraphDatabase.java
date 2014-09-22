@@ -46,20 +46,21 @@ import eu.socialsensor.utils.Utils;
 public class OrientGraphDatabase implements GraphDatabase {
 
   private OrientExtendedGraph graph = null;
+  private String useLightWeightEdges = "false";
 
   public OrientGraphDatabase() {
     OGlobalConfiguration.STORAGE_COMPRESSION_METHOD.setValue("nothing");
+    useLightWeightEdges = GraphDatabaseBenchmark.inputPropertiesFile.getProperty("ORIENTDB_LW_EDGES");
   }
 
   public static void main(String args[]) {
     GraphDatabase db = new OrientGraphDatabase();
 //    db.createGraphForMassiveLoad(GraphDatabaseBenchmark.ORIENTDB_PATH);
-//    db.massiveModeLoading("datasets/synthetic/network5000.dat");
+//    db.massiveModeLoading("datasets/real/enronEdges.txt");
 //    db.shutdownMassiveGraph();
     
-    db.open(GraphDatabaseBenchmark.ORIENTDB_PATH);
+//    db.open(GraphDatabaseBenchmark.ORIENTDB_PATH);
 //    db.shorestPathQuery();
-//    
 //    db.shutdown();
   }
 
@@ -137,7 +138,6 @@ public class OrientGraphDatabase implements GraphDatabase {
   public void shorestPathQuery() {
     Query orientQuery = new OrientQuery(this.graph);
     orientQuery.findShortestPaths();
-
   }
 
   @Override
@@ -392,6 +392,9 @@ public class OrientGraphDatabase implements GraphDatabase {
     OrientExtendedGraph g;
     OrientGraphFactory graphFactory = new OrientGraphFactory("plocal:" + dbPath);
     g = graphFactory.getTx().setUseLog(false);
+    if(useLightWeightEdges.equals("true")) {
+    	((OrientGraph)g).setUseLightweightEdges(true);
+    }
     return g;
   }
 }
