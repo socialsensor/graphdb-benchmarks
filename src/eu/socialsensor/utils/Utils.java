@@ -217,13 +217,15 @@ public class Utils {
 			titanGraphDatabase.createGraphForMassiveLoad(GraphDatabaseBenchmark.TITANDB_PATH);
 			titanGraphDatabase.massiveModeLoading(dataset);
 			titanGraphDatabase.shutdownMassiveGraph();
+			clearGC();
 		}
-		
+				
 		if(GraphDatabaseBenchmark.ORIENTDB_SELECTED) {
 			GraphDatabase orientGraphDatabase = new OrientGraphDatabase();
 			orientGraphDatabase.createGraphForMassiveLoad(GraphDatabaseBenchmark.ORIENTDB_PATH);
 			orientGraphDatabase.massiveModeLoading(dataset);
 			orientGraphDatabase.shutdownMassiveGraph();
+			clearGC();
 		}
 		
 		if(GraphDatabaseBenchmark.NEO4J_SELECTED) {
@@ -231,6 +233,7 @@ public class Utils {
 			neo4jGraphDatabase.createGraphForMassiveLoad(GraphDatabaseBenchmark.NEO4JDB_PATH);
 			neo4jGraphDatabase.massiveModeLoading(dataset);
 			neo4jGraphDatabase.shutdownMassiveGraph();
+			clearGC();
 		}
 		
 		if(GraphDatabaseBenchmark.SPARKSEE_SELECTED) {
@@ -238,6 +241,7 @@ public class Utils {
 			sparkseeGraphDatabase.createGraphForMassiveLoad(GraphDatabaseBenchmark.SPARKSEEDB_PATH);
 			sparkseeGraphDatabase.massiveModeLoading(dataset);
 			sparkseeGraphDatabase.shutdownMassiveGraph();
+			clearGC();
 		}
 	}
 	
