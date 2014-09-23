@@ -3,7 +3,6 @@ package eu.socialsensor.benchmarks;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -168,13 +167,6 @@ public class ClusteringBenchmark implements Benchmark {
 				Metrics metrics = new Metrics();
 				double NMI = metrics.normalizedMutualInformation(this.nodesCnt, actualCommunities, predictedCommunities);
 				logger.info("NMI value: " + NMI);
-				PrintWriter writer =  new PrintWriter("titan");
-				for(Map.Entry<Integer, List<Integer>> entry : predictedCommunities.entrySet()) {
-					writer.println("community: " + entry.getKey());
-					writer.println("=================");
-					writer.println("nodes: " + entry.getValue());
-				}
-				writer.close();
 			}
 			runs++;
 		}
@@ -211,13 +203,6 @@ public class ClusteringBenchmark implements Benchmark {
 				Metrics metrics = new Metrics();
 				double NMI = metrics.normalizedMutualInformation(this.nodesCnt, actualCommunities, predictedCommunities);
 				logger.info("NMI value: " + NMI);
-				PrintWriter writer =  new PrintWriter("orientdb");
-				for(Map.Entry<Integer, List<Integer>> entry : predictedCommunities.entrySet()) {
-					writer.println("community: " + entry.getKey());
-					writer.println("=================");
-					writer.println("nodes: " + entry.getValue());
-				}
-				writer.close();
 			}
 			runs++;
 		}
