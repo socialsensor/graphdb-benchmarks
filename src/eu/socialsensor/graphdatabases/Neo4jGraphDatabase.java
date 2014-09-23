@@ -439,5 +439,20 @@ public class Neo4jGraphDatabase implements GraphDatabase {
 		}
 		return communities;
 	}
+
+	@Override
+	public boolean nodeExists(int nodeId) {
+		try(Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
+			ResourceIterable<Node> nodesIter = neo4jGraph.findNodesByLabelAndProperty(NODE_LABEL, "nodeId", nodeId);
+			if(nodesIter.iterator().hasNext()) {
+				tx.success();
+				tx.close();
+				return true;
+			}
+			tx.success();
+			tx.close();
+		}
+		return false;
+	}
 	
 }

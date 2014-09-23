@@ -419,5 +419,19 @@ public class SparkseeGraphDatabase implements GraphDatabase {
 		}
 		return communities;
 	}
+	
+	@Override
+	public boolean nodeExists(int nodeId) {
+		Objects nodes = sparkseeGraph.select(nodeAttribute, Condition.Equal, value.setInteger(nodeId));
+		ObjectsIterator nodesIter = nodes.iterator();
+		if(nodesIter.hasNext()) {
+			nodesIter.close();
+			nodes.close();
+			return true;
+		}
+		nodesIter.close();
+		nodes.close();
+		return false;
+	}
 
 }

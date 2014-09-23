@@ -45,18 +45,11 @@ public class FindShortestPathBenchmark implements Benchmark {
 		
 		logger.setLevel(Level.INFO);
 		logger.info("Executing Find Shortest Path Benchmark . . . .");
-		
-		Random rand = new Random();
-		generatedNodes = new HashSet<Integer>();
-		int max = 1000;
-		int min = 2;
-		int numberOfGeneratedNodes = 100;
-		while(generatedNodes.size() < numberOfGeneratedNodes) {
-			int randomNum = rand.nextInt((max - min) +1) + min;
-			generatedNodes.add(randomNum);
-		}
-		
 		Utils utils = new Utils();
+		generateRandomNodes();
+		
+		utils.clearGC();
+		
 		Class<FindShortestPathBenchmark> c = FindShortestPathBenchmark.class;
 		Method[] methods = utils.filter(c.getDeclaredMethods(), "FindShortestPathBenchmark");
 		PermuteMethod permutations = new PermuteMethod(methods);
@@ -128,6 +121,38 @@ public class FindShortestPathBenchmark implements Benchmark {
 		sparkseeGraphDatabase.shutdown();
 		sparkseeTimes[sparkseeScenarioCount] = sparkseeTime / 1000.0;
 		sparkseeScenarioCount++;
+	}
+	
+	public void generateRandomNodes() {
+		Random rand = new Random();
+		generatedNodes = new HashSet<Integer>();
+		int max = 1000;
+		int min = 2;
+		int numberOfGeneratedNodes = 100;
+		GraphDatabase graphDatabase = null;
+		if(GraphDatabaseBenchmark.TITAN_SELECTED) {
+			graphDatabase = new TitanGraphDatabase();
+			graphDatabase.open(GraphDatabaseBenchmark.TITANDB_PATH);
+		}
+		else if(GraphDatabaseBenchmark.ORIENTDB_SELECTED) {
+			graphDatabase = new OrientGraphDatabase();
+			graphDatabase.open(GraphDatabaseBenchmark.ORIENTDB_PATH);
+		}
+		else if(GraphDatabaseBenchmark.NEO4J_SELECTED) {
+			graphDatabase = new Neo4jGraphDatabase();
+			graphDatabase.open(GraphDatabaseBenchmark.NEO4JDB_PATH);
+		}
+		else if(GraphDatabaseBenchmark.SPARKSEE_SELECTED) {
+			graphDatabase = new SparkseeGraphDatabase();
+			graphDatabase.open(GraphDatabaseBenchmark.SPARKSEEDB_PATH);
+		}
+		while(generatedNodes.size() < numberOfGeneratedNodes) {
+			int randomNum = rand.nextInt((max - min) +1) + min;
+			if(graphDatabase.nodeExists(randomNum)) {
+				generatedNodes.add(randomNum);
+			}
+		}
+		graphDatabase.shutdown();
 	}
 
 }

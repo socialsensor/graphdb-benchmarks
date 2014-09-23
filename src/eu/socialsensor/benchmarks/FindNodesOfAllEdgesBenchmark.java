@@ -78,8 +78,6 @@ public class FindNodesOfAllEdgesBenchmark implements Benchmark {
 		orientGraphDatabase.shutdown();
 		orientTimes[orientScenarioCount] = orientTime / 1000.0;
 		orientScenarioCount++;
-		
-		System.out.println("orientTime: " + orientTime / 1000.0);
 	}
 	
 	@SuppressWarnings("unused")
@@ -92,8 +90,6 @@ public class FindNodesOfAllEdgesBenchmark implements Benchmark {
 		titanGraphDatabase.shutdown();
 		titanTimes[titanScenarioCount] = titanTime / 1000.0;
 		titanScenarioCount++;
-		
-		System.out.println("titanTime: " + titanTime / 1000.0);
 	}
 	
 	@SuppressWarnings("unused")
@@ -106,10 +102,8 @@ public class FindNodesOfAllEdgesBenchmark implements Benchmark {
 		neo4jGraphDatabase.shutdown();
 		neo4jTimes[neo4jScenarioCount] = neo4jTime / 1000.0;
 		neo4jScenarioCount++;
-		System.out.println("neo4jTime: " + neo4jTime / 1000.0);
 	}
 	
-//	@SuppressWarnings("unused")
 	public void sparkseeFindNodesOfAllEdgesBenchmark() {
 		GraphDatabase sparkseeGraphDatabase = new SparkseeGraphDatabase();
 		sparkseeGraphDatabase.open(GraphDatabaseBenchmark.SPARKSEEDB_PATH);

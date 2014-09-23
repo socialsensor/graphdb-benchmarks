@@ -179,5 +179,12 @@ public interface GraphDatabase {
 	 * 			the nodes each community has.
 	 */
 	public Map<Integer, List<Integer>> mapCommunities(int numberOfCommunities);
+	
+	/**
+	 * 
+	 * @param nodeId
+	 * @return return true if node exist, false if not
+	 */
+	public boolean nodeExists(int nodeId);
 
 }
