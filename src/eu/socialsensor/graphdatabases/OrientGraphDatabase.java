@@ -1,8 +1,6 @@
 package eu.socialsensor.graphdatabases;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -44,25 +42,25 @@ import eu.socialsensor.utils.Utils;
  * @email sotbeis@iti.gr
  */
 public class OrientGraphDatabase implements GraphDatabase {
+	
+	private OrientExtendedGraph graph = null;
+	private String useLightWeightEdges = "true";
 
-  private OrientExtendedGraph graph = null;
-  private String useLightWeightEdges = "false";
+	public OrientGraphDatabase() {
+		OGlobalConfiguration.STORAGE_COMPRESSION_METHOD.setValue("nothing");
+		useLightWeightEdges = GraphDatabaseBenchmark.inputPropertiesFile.getProperty("ORIENTDB_LW_EDGES");
+	}
 
-  public OrientGraphDatabase() {
-    OGlobalConfiguration.STORAGE_COMPRESSION_METHOD.setValue("nothing");
-    useLightWeightEdges = GraphDatabaseBenchmark.inputPropertiesFile.getProperty("ORIENTDB_LW_EDGES");
-  }
-
-  public static void main(String args[]) {
-    GraphDatabase db = new OrientGraphDatabase();
-//    db.createGraphForMassiveLoad(GraphDatabaseBenchmark.ORIENTDB_PATH);
-//    db.massiveModeLoading("datasets/real/enronEdges.txt");
-//    db.shutdownMassiveGraph();
+	public static void main(String args[]) {
+		GraphDatabase db = new OrientGraphDatabase();
+//		db.createGraphForMassiveLoad(GraphDatabaseBenchmark.ORIENTDB_PATH);
+//		db.massiveModeLoading("datasets/real/amazonEdges.txt");
+//    	db.shutdownMassiveGraph();
     
-//    db.open(GraphDatabaseBenchmark.ORIENTDB_PATH);
-//    db.shorestPathQuery();
-//    db.shutdown();
-  }
+		db.open(GraphDatabaseBenchmark.ORIENTDB_PATH);
+		db.shorestPathQuery();
+		db.shutdown();
+	}
 
   @Override
   public void open(String dbPath) {
@@ -176,12 +174,14 @@ public class OrientGraphDatabase implements GraphDatabase {
   }
 
   public double getNodeInDegree(Vertex vertex) {
-    OMultiCollectionIterator result = (OMultiCollectionIterator) vertex.getVertices(Direction.IN, "similar");
+    @SuppressWarnings("rawtypes")
+	OMultiCollectionIterator result = (OMultiCollectionIterator) vertex.getVertices(Direction.IN, "similar");
     return (double) result.size();
   }
 
   public double getNodeOutDegree(Vertex vertex) {
-    OMultiCollectionIterator result = (OMultiCollectionIterator) vertex.getVertices(Direction.OUT, "similar");
+    @SuppressWarnings("rawtypes")
+	OMultiCollectionIterator result = (OMultiCollectionIterator) vertex.getVertices(Direction.OUT, "similar");
     return (double) result.size();
   }
 
@@ -365,7 +365,8 @@ public class OrientGraphDatabase implements GraphDatabase {
 
   private void createSchemaInternal(OrientExtendedGraph g) {
     ((OrientGraph) g).executeOutsideTx(new OCallable<Object, OrientBaseGraph>() {
-      @Override
+      @SuppressWarnings({ "unchecked", "rawtypes" })
+	@Override
       public Object call(final OrientBaseGraph g) {
         OrientVertexType v = g.getVertexBaseType();
         v.createProperty("nodeId", OType.INTEGER);
@@ -382,7 +383,6 @@ public class OrientGraphDatabase implements GraphDatabase {
             "INTEGER"));
 
         g.createKeyIndex("nodeId", Vertex.class, new Parameter("type", "UNIQUE_HASH_INDEX"), new Parameter("keytype", "INTEGER"));
-        // , new Parameter("metadata.mergeKeys", true));
         return null;
       }
     });
@@ -392,9 +392,15 @@ public class OrientGraphDatabase implements GraphDatabase {
     OrientExtendedGraph g;
     OrientGraphFactory graphFactory = new OrientGraphFactory("plocal:" + dbPath);
     g = graphFactory.getTx().setUseLog(false);
-    if(useLightWeightEdges.equals("true")) {
-    	((OrientGraph)g).setUseLightweightEdges(true);
+    if(useLightWeightEdges.equals("false")) {
+    	((OrientGraph)g).setUseLightweightEdges(false);
     }
     return g;
   }
+
+@Override
+public boolean nodeExists(int nodeId) {
+	Iterable<Vertex> iter = graph.getVertices("nodeId", nodeId);
+	return iter.iterator().hasNext();
+}
 }

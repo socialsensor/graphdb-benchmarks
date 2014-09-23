@@ -393,4 +393,10 @@ public class TitanGraphDatabase implements GraphDatabase{
 		
 		titanManagement.commit();
 	}
+
+	@Override
+	public boolean nodeExists(int nodeId) {
+		Iterable<Vertex> iter = titanGraph.getVertices("nodeId", nodeId);
+		return iter.iterator().hasNext();
+	}
 }
