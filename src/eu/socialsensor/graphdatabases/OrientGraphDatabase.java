@@ -62,87 +62,90 @@ public class OrientGraphDatabase implements GraphDatabase {
 		db.shutdown();
 	}
 
-  @Override
-  public void open(String dbPath) {
-    graph = getGraph(dbPath);
-  }
+	@Override
+	public void open(String dbPath) {
+		graph = getGraph(dbPath);
+	}
 
-  @Override
-  public void createGraphForSingleLoad(String dbPath) {
-    OGlobalConfiguration.STORAGE_KEEP_OPEN.setValue(false);
-    graph = getGraph(dbPath);
-    try {
-      createSchema();
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-  }
+	@Override
+	public void createGraphForSingleLoad(String dbPath) {
+		OGlobalConfiguration.STORAGE_KEEP_OPEN.setValue(false);
+		graph = getGraph(dbPath);
+		try {
+			createSchema();
+		} 
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
-  @Override
-  public void createGraphForMassiveLoad(String dbPath) {
-    OGlobalConfiguration.STORAGE_KEEP_OPEN.setValue(false);
-    graph = getGraph(dbPath);
-    try {
-      createSchema();
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-  }
+	@Override
+	public void createGraphForMassiveLoad(String dbPath) {
+		OGlobalConfiguration.STORAGE_KEEP_OPEN.setValue(false);
+		graph = getGraph(dbPath);
+		try {
+			createSchema();
+		} 
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
-  @Override
-  public void massiveModeLoading(String dataPath) {
-    Insertion orientMassiveInsertion = new OrientMassiveInsertion(this.graph);
-    orientMassiveInsertion.createGraph(dataPath);
-  }
+	@Override
+	public void massiveModeLoading(String dataPath) {
+		Insertion orientMassiveInsertion = new OrientMassiveInsertion(this.graph);
+		orientMassiveInsertion.createGraph(dataPath);
+	}
 
-  @Override
-  public void singleModeLoading(String dataPath) {
-    Insertion orientSingleInsertion = new OrientSingleInsertion(this.graph);
-    orientSingleInsertion.createGraph(dataPath);
-  }
+	@Override
+	public void singleModeLoading(String dataPath) {
+		Insertion orientSingleInsertion = new OrientSingleInsertion(this.graph);
+		orientSingleInsertion.createGraph(dataPath);
+	}
 
-  @Override
-  public void shutdown() {
-    if (graph != null) {
-      graph.shutdown();
-      graph = null;
-    }
-  }
+	@Override
+	public void shutdown() {
+		if (graph != null) {
+			graph.shutdown();
+			graph = null;
+		}
+	}
 
-  @Override
-  public void delete(String dbPath) {
-    OrientGraphNoTx g = new OrientGraphNoTx("plocal:" + dbPath);
-    g.drop();
+	@Override
+	public void delete(String dbPath) {
+		OrientGraphNoTx g = new OrientGraphNoTx("plocal:" + dbPath);
+		g.drop();
 
-    try {
-      Thread.sleep(6000);
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
+		try {
+			Thread.sleep(6000);
+		} 
+		catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 
-    Utils utils = new Utils();
-    utils.deleteRecursively(new File(dbPath));
-  }
+		Utils utils = new Utils();
+		utils.deleteRecursively(new File(dbPath));
+	}
 
-  @Override
-  public void shutdownMassiveGraph() {
-    if (graph != null) {
-      graph.shutdown();
-      graph = null;
-    }
-  }
+	@Override
+	public void shutdownMassiveGraph() {
+		if (graph != null) {
+			graph.shutdown();
+			graph = null;
+		}
+	}
 
-  @Override
-  public void shorestPathQuery() {
-    Query orientQuery = new OrientQuery(this.graph);
-    orientQuery.findShortestPaths();
-  }
+	@Override
+	public void shorestPathQuery() {
+		Query orientQuery = new OrientQuery(this.graph);
+		orientQuery.findShortestPaths();
+	}
 
-  @Override
-  public void neighborsOfAllNodesQuery() {
-    Query orientQuery = new OrientQuery(this.graph);
-    orientQuery.findNeighborsOfAllNodes();
-  }
+	@Override
+	public void neighborsOfAllNodesQuery() {
+		Query orientQuery = new OrientQuery(this.graph);
+		orientQuery.findNeighborsOfAllNodes();
+	}
 
   @Override
   public void nodesOfAllEdgesQuery() {
@@ -348,59 +351,61 @@ public class OrientGraphDatabase implements GraphDatabase {
     return communities;
   }
 
-  protected void createSchema() {
-    OrientExtendedGraph g = graph;
+  	protected void createSchema() {
+  		OrientExtendedGraph g = graph;
 
-    if (g instanceof OrientGraphAsynch) {
-      ((OrientGraphAsynch) g).execute(new OCallable<Object, OrientBaseGraph>() {
-        @Override
-        public Object call(OrientBaseGraph g) {
-          createSchemaInternal(g);
-          return null;
-        }
-      });
-    } else
-      createSchemaInternal(g);
-  }
+  		if (g instanceof OrientGraphAsynch) {
+  			((OrientGraphAsynch) g).execute(new OCallable<Object, OrientBaseGraph>() {
+  				@Override
+  				public Object call(OrientBaseGraph g) {
+  					createSchemaInternal(g);
+  					return null;
+  				}
+  			});
+  		} 
+  		else
+  			createSchemaInternal(g);
+  	}
 
-  private void createSchemaInternal(OrientExtendedGraph g) {
-    ((OrientGraph) g).executeOutsideTx(new OCallable<Object, OrientBaseGraph>() {
-      @SuppressWarnings({ "unchecked", "rawtypes" })
-	@Override
-      public Object call(final OrientBaseGraph g) {
-        OrientVertexType v = g.getVertexBaseType();
-        v.createProperty("nodeId", OType.INTEGER);
-        v.createEdgeProperty(Direction.OUT, "similar", OType.LINKBAG);
-        v.createEdgeProperty(Direction.IN, "similar", OType.LINKBAG);
+  	private void createSchemaInternal(OrientExtendedGraph g) {
+  		((OrientGraph) g).executeOutsideTx(new OCallable<Object, OrientBaseGraph>() {
+  			@SuppressWarnings({ "unchecked", "rawtypes" })
+  			@Override
+  			public Object call(final OrientBaseGraph g) {
+  				OrientVertexType v = g.getVertexBaseType();
+  				v.createProperty("nodeId", OType.INTEGER);
+  				v.createEdgeProperty(Direction.OUT, "similar", OType.LINKBAG);
+  				v.createEdgeProperty(Direction.IN, "similar", OType.LINKBAG);
 
-        OrientEdgeType similar = g.createEdgeType("similar");
-        similar.createProperty("out", OType.LINK, v);
-        similar.createProperty("in", OType.LINK, v);
+  				OrientEdgeType similar = g.createEdgeType("similar");
+  				similar.createProperty("out", OType.LINK, v);
+  				similar.createProperty("in", OType.LINK, v);
 
-        g.createKeyIndex("community", Vertex.class, new Parameter("type", "NOTUNIQUE_HASH_INDEX"), new Parameter("keytype",
-            "INTEGER"));
-        g.createKeyIndex("nodeCommunity", Vertex.class, new Parameter("type", "NOTUNIQUE_HASH_INDEX"), new Parameter("keytype",
-            "INTEGER"));
+  				g.createKeyIndex("community", Vertex.class, new Parameter("type", "NOTUNIQUE_HASH_INDEX"), 
+  						new Parameter("keytype", "INTEGER"));
+  				g.createKeyIndex("nodeCommunity", Vertex.class, new Parameter("type", "NOTUNIQUE_HASH_INDEX"), 
+  						new Parameter("keytype", "INTEGER"));
 
-        g.createKeyIndex("nodeId", Vertex.class, new Parameter("type", "UNIQUE_HASH_INDEX"), new Parameter("keytype", "INTEGER"));
-        return null;
-      }
-    });
-  }
+  				g.createKeyIndex("nodeId", Vertex.class, new Parameter("type", "UNIQUE_HASH_INDEX"), 
+  						new Parameter("keytype", "INTEGER"));
+  				return null;
+  			}
+  		});
+  	}
 
-  private OrientExtendedGraph getGraph(final String dbPath) {
-    OrientExtendedGraph g;
-    OrientGraphFactory graphFactory = new OrientGraphFactory("plocal:" + dbPath);
-    g = graphFactory.getTx().setUseLog(false);
-    if(useLightWeightEdges.equals("false")) {
-    	((OrientGraph)g).setUseLightweightEdges(false);
-    }
-    return g;
-  }
+  	private OrientExtendedGraph getGraph(final String dbPath) {
+  		OrientExtendedGraph g;
+  		OrientGraphFactory graphFactory = new OrientGraphFactory("plocal:" + dbPath);
+  		g = graphFactory.getTx().setUseLog(false);
+  		if(useLightWeightEdges.equals("false")) {
+  			((OrientGraph)g).setUseLightweightEdges(false);
+  		}
+  		return g;
+  	}
 
-@Override
-public boolean nodeExists(int nodeId) {
-	Iterable<Vertex> iter = graph.getVertices("nodeId", nodeId);
-	return iter.iterator().hasNext();
-}
+  	@Override
+  	public boolean nodeExists(int nodeId) {
+  		Iterable<Vertex> iter = graph.getVertices("nodeId", nodeId);
+  		return iter.iterator().hasNext();
+  	}
 }
