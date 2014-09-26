@@ -15,6 +15,7 @@ import com.sparsity.sparksee.gdb.Session;
 import com.sparsity.sparksee.gdb.Value;
 
 import eu.socialsensor.benchmarks.SingleInsertionBenchmark;
+import eu.socialsensor.graphdatabases.SparkseeGraphDatabase;
 import eu.socialsensor.utils.Utils;
 
 public class SparkseeSingleInsertion implements Insertion {
@@ -25,6 +26,8 @@ public class SparkseeSingleInsertion implements Insertion {
 	
 	Session session = null;
 	Graph sparkseeGraph = null;
+	
+	Value value = new Value();
 	
 	private Logger logger = Logger.getLogger(SparkseeSingleInsertion.class);
 	
@@ -44,56 +47,28 @@ public class SparkseeSingleInsertion implements Insertion {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(datasetDir)));
 			String line;
 			int lineCounter = 1;
-			int nodesCounter = 0;
 			long start = System.currentTimeMillis();
 			long duration;
 			long srcNode, dstNode;
 			
-			int nodeType = sparkseeGraph.findType("node");
-			int nodeAttribute = sparkseeGraph.findAttribute(nodeType, "nodeId");
-			int edgeType = sparkseeGraph.findType("similar");
-			
-			Value value = new Value();
 			while((line = reader.readLine()) != null) {
 				if(lineCounter > 4) {
 					String[] parts = line.split("\t");
 					
-					srcNode = sparkseeGraph.findObject(nodeAttribute, value.setString(parts[0]));
-					if(srcNode == 0) {
-						session.begin();
-						srcNode = sparkseeGraph.newNode(nodeType);
-						sparkseeGraph.setAttribute(srcNode, nodeAttribute, value.setString(parts[0]));
-						session.commit();
-						nodesCounter++;
-					}
-					
-					if(nodesCounter == 1000) {
-						duration = System.currentTimeMillis() - start;
-						insertionTimes.add((double) duration);
-						nodesCounter = 0;
-						start = System.currentTimeMillis();
-					}
-					
-					dstNode = sparkseeGraph.findObject(nodeAttribute, value.setString(parts[1]));
-					if(dstNode == 0) {
-						session.begin();
-						dstNode = sparkseeGraph.newNode(nodeType);
-						sparkseeGraph.setAttribute(dstNode, nodeAttribute, value.setString(parts[1]));
-						session.commit();
-						nodesCounter++;
-					}
-					
-					if(nodesCounter == 1000) {
-						duration = System.currentTimeMillis() - start;
-						insertionTimes.add((double) duration);
-						nodesCounter = 0;
-						start = System.currentTimeMillis();
-					}
+					srcNode = sparkseeGraph.findOrCreateObject(SparkseeGraphDatabase.NODE_ATTRIBUTE, 
+							value.setString(parts[0]));
+					dstNode = sparkseeGraph.findOrCreateObject(SparkseeGraphDatabase.NODE_ATTRIBUTE, 
+							value.setString(parts[1]));
 					
 					session.begin();
-					sparkseeGraph.newEdge(edgeType, srcNode, dstNode);
+					sparkseeGraph.newEdge(SparkseeGraphDatabase.EDGE_TYPE, srcNode, dstNode);
 					session.commit();
 					
+					if(lineCounter % 1000 ==0) {
+						duration = System.currentTimeMillis() - start;
+						insertionTimes.add((double) duration);
+						start = System.currentTimeMillis();
+					}					
 				}
 				lineCounter++;
 			}
@@ -108,6 +83,5 @@ public class SparkseeSingleInsertion implements Insertion {
 		Utils utils = new Utils();
 		utils.writeTimes(insertionTimes, SparkseeSingleInsertion.INSERTION_TIMES_OUTPUT_PATH+"."+count);
 	}
-		
-
+	
 }
