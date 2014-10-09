@@ -23,27 +23,27 @@ Results
 -------
 Below we list the results of MIW and QW for each dataset. The time is measured in seconds.
 
-| Dataset | Workload | Titan | OrientDB | Neo4j |
-| ------- | -------- | ----- | -------- | ----- |
-|   EN    |    MIW   |9.36   |62.77     |**6.77**|
-|   AM    |    MIW   |34.00  |97.00     |**10.61**|
-|   YT    |    MIW   |104.27 |252.15    |**24.69**|
-|   LJ    |    MIW   |       |          |         |
-|                                                 |
-|   EN    |  QW-FN   |2.75   |1.15      |**0.61** |
-|   AM    |  QW-FN   |8.56   |6.63      |**1.74** |
-|   YT    |  QW-FN   |29.56  |21.32     |**5.98** |
-|   LJ    |  QW-FN   |       |          |         |
-|                                                 |
-|   EN    |  QW-FA   |       |          |         |
-|   AM    |  QW-FA   |       |          |         |
-|   YT    |  QW-FA   |       |          |         |
-|   LJ    |  QW-FA   |       |          |         |
-|                                                 |
-|   EN    |  QW-FS   |       |          |         |
-|   AM    |  QW-FS   |       |          |         |
-|   YT    |  QW-FS   |9.21   |15.33     |**0.31** |
-|   LJ    |  QW-FS   |       |          |         |
+| Dataset | Workload | Titan | OrientDB | Neo4j    |
+| ------- | -------- | ----- | -------- | -----    |
+|   EN    |    MIW   |9.36   |62.77     |**6.77**  |
+|   AM    |    MIW   |34.00  |97.00     |**10.61** |
+|   YT    |    MIW   |104.27 |252.15    |**24.69** |
+|   LJ    |    MIW   |663.03 |9416.74   |**349.55**|
+|                                                  |
+|   EN    |  QW-FN   |1.87   |**0.56**  |0.95  |
+|   AM    |  QW-FN   |6.47   |3.50      |**1.85**  |
+|   YT    |  QW-FN   |20.71  |9.34      |**4.51**  |
+|   LJ    |  QW-FN   |213.41 |303.09    |**47.07** |
+|                                                  |
+|   EN    |  QW-FA   |3.78   |0.71     |**0.16**  |
+|   AM    |  QW-FA   |13.77  |2.30     |**0.36**  |
+|   YT    |  QW-FA   |42.82  |6.15     |**1.46**  |
+|   LJ    |  QW-FA   |460.25 |518.12   |**16.53** |
+|                                                  |
+|   EN    |  QW-FS   |1.63   |3.09      |**0.16**  |
+|   AM    |  QW-FS   |0.12   |83.29     |**0.302** |
+|   YT    |  QW-FS   |24.87  |23.47     |**0.08**  |
+|   LJ    |  QW-FS   |123.50 |86.87     |**18.13** |
 
 Below we list the results of the CW for graphs with 1,000, 5,000 and 10,0000 nodes. Here the time is also measured in seconds.
 
@@ -66,7 +66,12 @@ Below we list the results of the CW for graphs with 1,000, 5,000 and 10,0000 nod
 |Graph10000-15% |47.84  |**17.47** |34.70  |
 |Graph10000-20% |44.86  |**17.03** |37.62  |
 |Graph10000-25% |44.01  |**16.87** |33.18  |
-
+|                                          |
+|Graph50000-5%  |694.18 |**269.07**|372.42 |
+|Graph50000-10% |677.30 |**256.19**|370.36 |
+|Graph50000-15% |665.26 |**252.62**|364.51 |
+|Graph50000-20% |664.10 |**251.84**|353.68 |
+|Graph50000-25% |643.50 |**248.51**|348.81 |
 
 Contact
 -------
