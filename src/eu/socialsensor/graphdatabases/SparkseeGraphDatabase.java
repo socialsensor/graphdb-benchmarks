@@ -39,8 +39,9 @@ import eu.socialsensor.utils.Utils;
 public class SparkseeGraphDatabase implements GraphDatabase {
 	
 	public static final String INSERTION_TIMES_OUTPUT_PATH = "data/sparksee.insertion.times";
-	private static final String LICENCE_KEY = "D5WY4-NXXGP-EF1Z0-JER78";
 	
+	private static String SPARKSEE_LICENCE_KEY;
+
 	private boolean readOnly = false;
 
 	double totalWeight;
@@ -63,22 +64,23 @@ public class SparkseeGraphDatabase implements GraphDatabase {
 	
 	public static void main(String args[]) {
 		SparkseeGraphDatabase sparkseeGraphDatabase = new SparkseeGraphDatabase();
-		
-//		sparkseeGraphDatabase.createGraphForMassiveLoad(GraphDatabaseBenchmark.SPARKSEEDB_PATH);
-//		sparkseeGraphDatabase.massiveModeLoading("datasets/real/livejournalEdges.txt");
-//		sparkseeGraphDatabase.shutdownMassiveGraph();
-		
+				
 		sparkseeGraphDatabase.open(GraphDatabaseBenchmark.SPARKSEEDB_PATH);
 		System.out.println(sparkseeGraphDatabase.getNodeCount());
 		System.out.println(sparkseeGraphDatabase.getGraphWeightSum());
 		sparkseeGraphDatabase.shutdown();
 	}
 	
+	public SparkseeGraphDatabase() {
+		SparkseeGraphDatabase.SPARKSEE_LICENCE_KEY = GraphDatabaseBenchmark.inputPropertiesFile
+				.getProperty("SPARKSEE_LICENCE_KEY");
+	}
+	
 	@Override
 	public void open(String dbPath) {
 		try {
 			sparkseeConfig = new SparkseeConfig();
-			sparkseeConfig.setLicense(LICENCE_KEY);
+			sparkseeConfig.setLicense(SparkseeGraphDatabase.SPARKSEE_LICENCE_KEY);
 			sparksee = new Sparksee(sparkseeConfig);
 			this.database = sparksee.open(dbPath + "/SparkseeDB.gdb", readOnly);
 			this.session = database.newSession();
@@ -95,7 +97,7 @@ public class SparkseeGraphDatabase implements GraphDatabase {
 		try {
 			new File(GraphDatabaseBenchmark.SPARKSEEDB_PATH).mkdir();
 			sparkseeConfig = new SparkseeConfig();
-			sparkseeConfig.setLicense(LICENCE_KEY);
+			sparkseeConfig.setLicense(SparkseeGraphDatabase.SPARKSEE_LICENCE_KEY);
 			sparksee = new Sparksee(sparkseeConfig);
 			database = sparksee.create(dbPath + "/SparkseeDB.gdb", "SparkseeDB");
 			session = database.newSession();
@@ -114,7 +116,7 @@ public class SparkseeGraphDatabase implements GraphDatabase {
 		try {
 			new File(GraphDatabaseBenchmark.SPARKSEEDB_PATH).mkdir();
 			sparkseeConfig = new SparkseeConfig();
-			sparkseeConfig.setLicense(LICENCE_KEY);
+			sparkseeConfig.setLicense(SparkseeGraphDatabase.SPARKSEE_LICENCE_KEY);
 			sparksee = new Sparksee(sparkseeConfig);
 			database = sparksee.create(dbPath + "/SparkseeDB.gdb", "SparkseeDB");
 			session = database.newSession();
