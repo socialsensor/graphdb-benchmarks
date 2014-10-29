@@ -124,9 +124,7 @@ public class MassiveInsertionBenchmark implements Benchmark{
 		long start = System.currentTimeMillis();
 		sparkseeGraphDatabase.massiveModeLoading(datasetDir);
 		long sparkseeTime = System.currentTimeMillis() - start;
-		System.out.println(sparkseeTime / 1000.0);
-		sparkseeGraphDatabase.shutdownMassiveGraph();
-		
+		sparkseeGraphDatabase.shutdownMassiveGraph();		
 		sparkseeGraphDatabase.delete(GraphDatabaseBenchmark.SPARKSEEDB_PATH);
 		sparkseeTimes[sparkseeScenarioCount] = sparkseeTime / 1000.0;
 		sparkseeScenarioCount++;
