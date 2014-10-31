@@ -4,7 +4,7 @@ The project graphdb-benchmarks is a benchmark between three popular graph dataas
 
 - *Clustering Workload (CW)*: CW consists of a well-known community detection algorithm for modularity optimization, the Louvain Method. We adapt the algorithm on top of the benchmarked graph databases and employ cache techniques to take advantage of both graph database capabilities and in-memory execution speed. We measure the time the algorithm needs to converge.
 - *Massive Insertion Workload (MIW)*: we create the graph database and configure it for massive loading, then we populate it with a particular dataset. We measure the time for the creation of the whole graph.
-- *Single Insertion Workload (SIW)*: we create the graph database and load it with a particular dataset. Every object insertion (node or edge) is committed directly and the graph is constructed incrementally. We measure the insertion time per block, which consists of one thousand nodes and the edges that appear during the insertion of these nodes.
+- *Single Insertion Workload (SIW)*: we create the graph database and load it with a particular dataset. Every object insertion (node or edge) is committed directly and the graph is constructed incrementally. We measure the insertion time per block, which consists of one thousand edges and the nodes that appear during the insertion of these edges.
 - *Query Workload (QW)*: we execute three common queries:
   * FindNeighbours (FN): finds the neighbours of all nodes.
   * FindAdjacentNodes (FA): finds the adjacent nodes of all edges.
@@ -21,31 +21,10 @@ To run the project firstly you should download one of the above datasets. You ca
 
 Results
 -------
-Below we list the results of MIW and QW for each dataset. The time is measured in seconds.
+This section contains the results of each benchmark. All the measurements are in seconds.
 
-| Dataset | Workload | Titan | OrientDB | Neo4j    |
-| ------- | -------- | ----- | -------- | -----    |
-|   EN    |    MIW   |9.36   |62.77     |**6.77**  |
-|   AM    |    MIW   |34.00  |97.00     |**10.61** |
-|   YT    |    MIW   |104.27 |252.15    |**24.69** |
-|   LJ    |    MIW   |663.03 |9416.74   |**349.55**|
-|                                                  |
-|   EN    |  QW-FN   |1.87   |**0.56**  |0.95  |
-|   AM    |  QW-FN   |6.47   |3.50      |**1.85**  |
-|   YT    |  QW-FN   |20.71  |9.34      |**4.51**  |
-|   LJ    |  QW-FN   |213.41 |303.09    |**47.07** |
-|                                                  |
-|   EN    |  QW-FA   |3.78   |0.71     |**0.16**  |
-|   AM    |  QW-FA   |13.77  |2.30     |**0.36**  |
-|   YT    |  QW-FA   |42.82  |6.15     |**1.46**  |
-|   LJ    |  QW-FA   |460.25 |518.12   |**16.53** |
-|                                                  |
-|   EN    |  QW-FS   |1.63   |3.09      |**0.16**  |
-|   AM    |  QW-FS   |0.12   |83.29     |**0.302** |
-|   YT    |  QW-FS   |24.87  |23.47     |**0.08**  |
-|   LJ    |  QW-FS   |123.50 |86.87     |**18.13** |
-
-Below we list the results of the CW for graphs with 1,000, 5,000 and 10,0000 nodes. Here the time is also measured in seconds.
+### CW results
+Below we list the results of the CW for graphs with 1,000, 5,000 and 10,0000 nodes.
 
 | Graph-Cache | Titan | OrientDB | Neo4j |
 | ----------- | ----- | -------- | ----- |
@@ -97,6 +76,34 @@ Below we list the results of the CW for graphs with 1,000, 5,000 and 10,0000 nod
 |Graph50k-20% |610.40 |**230.76**|337.36 |
 |Graph50k-25% |596.29 |**230.03**|332.01 |
 |Graph50k-30% |580.44 |**226.31**|325.88 |
+
+###MIW & QW results
+Below we list the results of MIW and QW for each dataset.
+
+| Dataset | Workload | Titan | OrientDB | Neo4j    |
+| ------- | -------- | ----- | -------- | -----    |
+|   EN    |    MIW   |9.36   |62.77     |**6.77**  |
+|   AM    |    MIW   |34.00  |97.00     |**10.61** |
+|   YT    |    MIW   |104.27 |252.15    |**24.69** |
+|   LJ    |    MIW   |663.03 |9416.74   |**349.55**|
+|                                                  |
+|   EN    |  QW-FN   |1.87   |**0.56**  |0.95      |
+|   AM    |  QW-FN   |6.47   |3.50      |**1.85**  |
+|   YT    |  QW-FN   |20.71  |9.34      |**4.51**  |
+|   LJ    |  QW-FN   |213.41 |303.09    |**47.07** |
+|                                                  |
+|   EN    |  QW-FA   |3.78   |0.71     |**0.16**   |
+|   AM    |  QW-FA   |13.77  |2.30     |**0.36**   |
+|   YT    |  QW-FA   |42.82  |6.15     |**1.46**   |
+|   LJ    |  QW-FA   |460.25 |518.12   |**16.53**  |
+|                                                  |
+|   EN    |  QW-FS   |1.63   |3.09      |**0.16**  |
+|   AM    |  QW-FS   |0.12   |83.29     |**0.302** |
+|   YT    |  QW-FS   |24.87  |23.47     |**0.08**  |
+|   LJ    |  QW-FS   |123.50 |86.87     |**18.13** |
+
+###SIW results
+Below we list the results of SIW for each dataset.
 
 Contact
 -------
