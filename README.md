@@ -23,7 +23,8 @@ Results
 -------
 This section contains the results of each benchmark. All the measurements are in seconds.
 
-#####CW results
+
+####CW results
 Below we list the results of the CW for graphs with 1,000, 5,000 and 10,0000 nodes.
 
 | Graph-Cache | Titan | OrientDB | Neo4j |
@@ -77,7 +78,8 @@ Below we list the results of the CW for graphs with 1,000, 5,000 and 10,0000 nod
 |Graph50k-25% |596.29 |**230.03**|332.01 |
 |Graph50k-30% |580.44 |**226.31**|325.88 |
 
-#####MIW & QW results
+
+####MIW & QW results
 Below we list the results of MIW and QW for each dataset.
 
 | Dataset | Workload | Titan | OrientDB | Neo4j    |
@@ -102,7 +104,8 @@ Below we list the results of MIW and QW for each dataset.
 |   YT    |  QW-FS   |24.87  |23.47     |**0.08**  |
 |   LJ    |  QW-FS   |123.50 |86.87     |**18.13** |
 
-#####SIW results
+
+####SIW results
 Below we list the results of SIW for each dataset.
 ![alt text](https://raw.githubusercontent.com/socialsensor/graphdb-benchmarks/master/images/SIWEnron.png "Logo Title Text 1")
 ![alt text](https://raw.githubusercontent.com/socialsensor/graphdb-benchmarks/master/images/SIWAmazon.png "Logo2 Title Text 1")
