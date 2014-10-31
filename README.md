@@ -30,7 +30,7 @@ This section contains the results of each benchmark. All the measurements are in
 
 
 ####CW results
-Below we list the results of the CW for graphs with 1,000, 5,000 and 10,0000 nodes.
+Below we list the results of the CW for graphs with 1,000, 5,000, 10,0000, 20,000, 30,000, 40,000, 50,000 nodes.
 
 | Graph-Cache | Titan | OrientDB | Neo4j |
 | ----------- | ----- | -------- | ----- |
@@ -120,4 +120,4 @@ Below we list the results of SIW for each dataset.
 
 Contact
 -------
-For more information or support, please contact: sotbeis@iti.gr or sot.beis@gmail.com
+For more information or support, please contact: sotbeis@iti.gr, sot.beis@gmail.com or papadop@iti.gr.
