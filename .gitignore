@@ -4,3 +4,5 @@ target/*
 /data
 /.project
 /.gitignore
+/.settings
+/.classpath
