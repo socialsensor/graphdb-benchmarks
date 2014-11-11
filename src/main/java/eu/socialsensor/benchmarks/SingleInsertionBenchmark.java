@@ -62,8 +62,13 @@ public class SingleInsertionBenchmark implements Benchmark {
 					permutation.invoke(this, null);
 					utils.clearGC();
 				} 
-				catch (IllegalAccessException | IllegalArgumentException
-						| InvocationTargetException e) {
+				catch (IllegalAccessException e) {
+					e.printStackTrace();
+				}
+				catch (IllegalArgumentException e) {
+					e.printStackTrace();
+				}
+				catch (InvocationTargetException e) {
 					e.printStackTrace();
 				}
 			}
