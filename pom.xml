@@ -41,7 +41,8 @@
    		<connection>scm:git:git@github.com:socialsensor/graphdb-benchmarks.git</connection>
  		<developerConnection>scm:git:git@github.com:socialsensor/graphdb-benchmarks.git</developerConnection>
    		<url>git@github.com:socialsensor/graphdb-benchmarks.git</url>
-  	</scm>
+  	  <tag>graphdb-benchmarks-0.1</tag>
+  </scm>
   
     <properties>
         <blueprints.version>2.6.0</blueprints.version>
@@ -271,8 +272,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.1</version>
                 <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
+                    <source>1.6</source>
+                    <target>1.6</target>
                 </configuration>
             </plugin>
             

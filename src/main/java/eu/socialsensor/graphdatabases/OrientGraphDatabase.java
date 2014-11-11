@@ -200,7 +200,7 @@ public class OrientGraphDatabase implements GraphDatabase {
 
   @Override
 	public Set<Integer> getCommunitiesConnectedToNodeCommunities( int nodeCommunities) {
-     Set<Integer> communities = new HashSet<>();
+     Set<Integer> communities = new HashSet<Integer>();
      Iterable<Vertex> vertices = graph.getVertices("nodeCommunity", nodeCommunities);
 		for(Vertex vertex : vertices) {
       for( Vertex v : vertex.getVertices(Direction.OUT, "similar")) {
