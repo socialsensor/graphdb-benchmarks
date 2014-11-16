@@ -1,21 +1,15 @@
 package eu.socialsensor.insert;
 
+import com.orientechnologies.orient.core.config.OGlobalConfiguration;
+import com.orientechnologies.orient.graph.batch.OGraphBatchInsertSimple;
+import com.tinkerpop.blueprints.impls.orient.OrientGraphNoTx;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-
-import org.apache.log4j.Level;
-
-import com.orientechnologies.common.util.OCallable;
-import com.orientechnologies.orient.core.db.ODatabaseRecordThreadLocal;
-import com.orientechnologies.orient.core.intent.OIntentMassiveInsert;
-import com.tinkerpop.blueprints.TransactionalGraph;
-import com.tinkerpop.blueprints.Vertex;
-import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
-import com.tinkerpop.blueprints.impls.orient.OrientExtendedGraph;
-import com.tinkerpop.blueprints.impls.orient.OrientGraphNoTx;
-import com.tinkerpop.blueprints.impls.orient.asynch.OrientGraphAsynch;
 
 /**
  * Implementation of massive Insertion in OrientDB graph database
@@ -24,70 +18,56 @@ import com.tinkerpop.blueprints.impls.orient.asynch.OrientGraphAsynch;
  * @email sotbeis@iti.gr
  * 
  */
-public class OrientMassiveInsertion extends OrientAbstractInsertion {
+public class OrientMassiveInsertion {
+  protected final String url;
+  protected Logger       logger = Logger.getLogger(OrientMassiveInsertion.class);
 
-  public OrientMassiveInsertion(OrientExtendedGraph orientGraph) {
-    super(orientGraph);
+  public OrientMassiveInsertion(final String iURL) {
+    url = iURL;
 
-    if (orientGraph instanceof OrientGraphAsynch)
-      ((OrientGraphAsynch) orientGraph).execute(new OCallable<Object, OrientBaseGraph>() {
-        @Override
-        public Object call(OrientBaseGraph iArgument) {
-          for (int i = 0; i < 16; ++i) {
-            iArgument.getVertexBaseType().addCluster("v_" + i);
-            iArgument.getEdgeBaseType().addCluster("e_" + i);
-          }
-          return null;
-        }
-      });
-    else {
-      OrientGraphNoTx g = new OrientGraphNoTx(orientGraph.getRawGraph().getURL());
-      for (int i = 0; i < 16; ++i) {
-        g.getVertexBaseType().addCluster("v_" + i);
-        g.getEdgeBaseType().addCluster("e_" + i);
-      }
-      g.shutdown();
-      ODatabaseRecordThreadLocal.INSTANCE.set(orientGraph.getRawGraph());
+    OGlobalConfiguration.ENVIRONMENT_CONCURRENT.setValue(false);
+
+    OrientGraphNoTx g = new OrientGraphNoTx(url);
+    for (int i = 0; i < 16; ++i) {
+      g.getVertexBaseType().addCluster("v_" + i);
+      g.getEdgeBaseType().addCluster("e_" + i);
     }
-
+    g.shutdown();
   }
 
-  @Override
   public void createGraph(String datasetDir) {
     logger.setLevel(Level.INFO);
     logger.info("Loading data in massive mode in OrientDB database . . . .");
-    orientGraph.declareIntent(new OIntentMassiveInsert());
+
+    final OGraphBatchInsertSimple g = new OGraphBatchInsertSimple(url);
+    g.setAverageEdgeNumberPerNode(40);
+    g.setEstimatedEntries(1000000);
+    g.begin();
+
     try {
       BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(datasetDir)));
       String line;
       int lineCounter = 1;
-      Vertex srcVertex, dstVertex;
+      long srcVertex, dstVertex;
       while ((line = reader.readLine()) != null) {
         if (lineCounter > 4) {
           String[] parts = line.split("\t");
 
-          srcVertex = getOrCreate(parts[0]);
+          srcVertex = Long.parseLong(parts[0]);
           if (parts[0].equals(parts[1]))
             dstVertex = srcVertex;
           else
-            dstVertex = getOrCreate(parts[1]);
+            dstVertex = Long.parseLong(parts[0]);
 
-          orientGraph.addEdge(null, srcVertex, dstVertex, "similar");
+          g.createEdge(srcVertex, dstVertex);
         }
         lineCounter++;
-
-        if (orientGraph instanceof TransactionalGraph && lineCounter % 1000 == 0)
-          ((TransactionalGraph) orientGraph).commit();
       }
-
-      if (orientGraph instanceof TransactionalGraph)
-        ((TransactionalGraph) orientGraph).commit();
-
       reader.close();
+      g.end();
+
     } catch (IOException ioe) {
       ioe.printStackTrace();
-    } finally {
-      orientGraph.declareIntent(null);
     }
   }
 
