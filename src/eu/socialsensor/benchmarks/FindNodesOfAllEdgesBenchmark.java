@@ -8,11 +8,9 @@ import eu.socialsensor.graphdatabases.TitanGraphDatabase;
 import eu.socialsensor.main.GraphDatabaseBenchmark;
 import eu.socialsensor.utils.PermuteMethod;
 import eu.socialsensor.utils.Utils;
-
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
@@ -53,8 +51,7 @@ public class FindNodesOfAllEdgesBenchmark implements Benchmark {
 				try {
 					permutation.invoke(this, null);
 					utils.clearGC();
-				} catch (IllegalAccessException | IllegalArgumentException
-						| InvocationTargetException e) {
+        } catch (Exception e) {
 					e.printStackTrace();
 				}
 				
