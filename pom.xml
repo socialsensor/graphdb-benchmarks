@@ -1,17 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    
     <modelVersion>4.0.0</modelVersion>
     <groupId>eu.socialsensor</groupId>
     <artifactId>graphdb-benchmarks</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.1-SNAPSHOT</version>
+    
     <name>graphdb-benchmarks</name>
     <url>https://github.com/socialsensor/graphdb-benchmarks</url>
     <description>Performance benchmark between popular graph databases.</description>
+    
+    <parent>
+  		<groupId>org.sonatype.oss</groupId>
+  		<artifactId>oss-parent</artifactId>
+  		<version>7</version>
+  	</parent>
+  	
     <organization>
         <name>SocialSensor</name>
         <url>http://www.socialsensor.eu/</url>
     </organization>
+    
     <developers>
         <developer>
             <id>sarovios</id>
@@ -19,6 +28,7 @@
             <email>sotbeis@iti.gr</email>
         </developer>
     </developers>
+    
     <licenses>
         <license>
             <name>The Apache Software License, Version 2.0</name>
@@ -26,24 +36,19 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
-    <!-- required to include Tinkerpop SNAPSHOT dependencies -->
-    <repositories>
-        <repository>
-            <id>sonatype-nexus-snapshots</id>
-            <name>Sonatype Nexus Snapshots</name>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
+    
+    <scm>
+   		<connection>scm:git:git@github.com:socialsensor/graphdb-benchmarks.git</connection>
+ 		<developerConnection>scm:git:git@github.com:socialsensor/graphdb-benchmarks.git</developerConnection>
+   		<url>git@github.com:socialsensor/graphdb-benchmarks.git</url>
+  	  <tag>graphdb-benchmarks-0.1</tag>
+  </scm>
+  
     <properties>
         <blueprints.version>2.6.0</blueprints.version>
         <orientdb.version>2.0-SNAPSHOT</orientdb.version>
     </properties>
+    
     <dependencies>
         <dependency>
             <groupId>colt</groupId>
@@ -146,11 +151,11 @@
         <!--      <artifactId>neo4j-lucene-index</artifactId> -->
         <!--      <version>2.1.0-M01</version> -->
         <!--    </dependency> -->
-        <dependency>
-            <groupId>org.neo4j</groupId>
-            <artifactId>neo4j</artifactId>
-            <version>2.1.3</version>
-        </dependency>
+<!--         <dependency> -->
+<!--             <groupId>org.neo4j</groupId> -->
+<!--             <artifactId>neo4j</artifactId> -->
+<!--             <version>2.1.3</version> -->
+<!--         </dependency> -->
         <dependency>
             <groupId>com.orientechnologies</groupId>
             <artifactId>orient-commons</artifactId>
@@ -221,18 +226,97 @@
             <artifactId>sparkseejava</artifactId>
             <version>5.0.0</version>
         </dependency>
+
+
+        <dependency>
+        	<groupId>org.neo4j</groupId>
+        	<artifactId>neo4j</artifactId>
+        	<version>2.1.3</version>
+        </dependency>
     </dependencies>
+    
+    
     <build>
-        <sourceDirectory>src</sourceDirectory>
+        
+        <pluginManagement>
+        	<plugins>
+           		<plugin>
+                     <groupId>org.apache.maven.plugins</groupId>
+                     <artifactId>maven-release-plugin</artifactId>
+                     <version>2.5</version>
+                     <configuration>
+                          <useReleaseProfile>false</useReleaseProfile>
+                          <releaseProfiles>release</releaseProfiles>
+                          <goals>deploy</goals>
+                     </configuration>
+                </plugin>
+          	</plugins>
+		</pluginManagement>
+		
         <plugins>
+        
+           	<plugin>
+				<groupId>org.sonatype.plugins</groupId>
+				<artifactId>nexus-staging-maven-plugin</artifactId>
+				<version>1.6.3</version>
+				<extensions>true</extensions>
+				<configuration>
+					<serverId>sonatype-nexus-staging</serverId>
+					<nexusUrl>https://oss.sonatype.org/</nexusUrl>
+					<autoReleaseAfterClose>true</autoReleaseAfterClose>
+				</configuration>
+			</plugin>
+			
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.1</version>
                 <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
+                    <source>1.6</source>
+                    <target>1.6</target>
                 </configuration>
             </plugin>
+            
+            <plugin>
+      			<groupId>org.apache.maven.plugins</groupId>
+       			<artifactId>maven-source-plugin</artifactId>
+      			<executions>
+        			<execution>
+            			<id>attach-sources</id>
+               			<goals>
+                			<goal>jar-no-fork</goal>
+           				</goals>
+          			</execution>
+    			</executions>
+   	 	 	</plugin>
+   	 	 	
+   	 	 	<plugin>
+     			<groupId>org.apache.maven.plugins</groupId>
+  				<artifactId>maven-javadoc-plugin</artifactId>
+    			<executions>
+        			<execution>
+          				<id>attach-javadocs</id>
+             			<goals>
+              				<goal>jar</goal>
+              			</goals>
+       				</execution>
+   				</executions>
+      		</plugin>
+      		
+      		<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-gpg-plugin</artifactId>
+				<version>1.5</version>
+				<executions>
+					<execution>
+						<id>sign-artifacts</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			
         </plugins>
     </build>
 </project>

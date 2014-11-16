@@ -12,6 +12,8 @@ import com.sparsity.sparksee.gdb.Graph;
 import com.sparsity.sparksee.gdb.Session;
 import com.sparsity.sparksee.gdb.Value;
 
+import eu.socialsensor.graphdatabases.SparkseeGraphDatabase;
+
 public class SparkseeMassiveInsertion implements Insertion {
 	
 	private Logger logger = Logger.getLogger(SparkseeMassiveInsertion.class);
@@ -34,10 +36,6 @@ public class SparkseeMassiveInsertion implements Insertion {
 			int lineCounter = 1;
 			long srcNode, dstNode;
 			
-			int nodeType = sparkseeGraph.findType("node");
-			int nodeAttribute = sparkseeGraph.findAttribute(nodeType, "nodeId");
-			int edgeType = sparkseeGraph.findType("similar");
-			
 			Value value = new Value();
 			int operations = 0;
 			session.begin();
@@ -45,10 +43,12 @@ public class SparkseeMassiveInsertion implements Insertion {
 				if(lineCounter > 4) {
 					String[] parts = line.split("\t");
 					
-					srcNode = sparkseeGraph.findOrCreateObject(nodeAttribute, value.setString(parts[0]));
-					dstNode = sparkseeGraph.findOrCreateObject(nodeAttribute, value.setString(parts[1]));
+					srcNode = sparkseeGraph.findOrCreateObject(SparkseeGraphDatabase.NODE_ATTRIBUTE, 
+							value.setString(parts[0]));
+					dstNode = sparkseeGraph.findOrCreateObject(SparkseeGraphDatabase.NODE_ATTRIBUTE, 
+							value.setString(parts[1]));
 					
-					sparkseeGraph.newEdge(edgeType, srcNode, dstNode);
+					sparkseeGraph.newEdge(SparkseeGraphDatabase.EDGE_TYPE, srcNode, dstNode);
 					
 					operations++;
 					if(operations == 10000) {

@@ -51,7 +51,7 @@ public class GraphDatabaseBenchmark {
 	public static int SCENARIOS = 0;
 	
 	public static String RESULTS_PATH;
-	
+		
 	public static Properties inputPropertiesFile = new Properties();
 	
 	/**
@@ -73,8 +73,7 @@ public class GraphDatabaseBenchmark {
 				input = new FileInputStream(args[0]);
 			}
 			inputPropertiesFile.load(input);
-			String realDataset = inputPropertiesFile.getProperty("REAL_DATASET");
-			String syntheticDataset = inputPropertiesFile.getProperty("SYNTHETIC_DATASET");
+			String dataset = inputPropertiesFile.getProperty("DATASET");
 			String benchmarkProperty = inputPropertiesFile.getProperty("BENCHMARK");
 			String selectedDatabases = inputPropertiesFile.getProperty("DATABASES");
 			String benchmarkClass = null;
@@ -95,33 +94,33 @@ public class GraphDatabaseBenchmark {
 				logger.info("Massive Insertion Benchmark Selected");
 				benchmarkClass = inputPropertiesFile.getProperty("MIW_CLASS");
 				constructor = Class.forName(benchmarkClass).getConstructor(String.class);
-				benchmark = (Benchmark) constructor.newInstance(realDataset);
+				benchmark = (Benchmark) constructor.newInstance(dataset);
 			}
 			else if(benchmarkProperty.equals(SINGLE_INSERTION_BENCHMARK)) {
 				logger.info("Single Insertion Benchmark Selected");
 				benchmarkClass = inputPropertiesFile.getProperty("SIW_CLASS");
 				constructor = Class.forName(benchmarkClass).getConstructor(String.class);
-				benchmark = (Benchmark) constructor.newInstance(realDataset);
+				benchmark = (Benchmark) constructor.newInstance(dataset);
 			}
 			else {
 				if(benchmarkProperty.equals(FIND_NEIGHBOURS_BENCHMARK)) {
 					logger.info("Find Neighbours of All Nodes Benchmark Selected");
-					utils.createDatabases(realDataset);
+					utils.createDatabases(dataset);
 					benchmarkClass = inputPropertiesFile.getProperty("QW-FN_CLASS");
 				}
 				else if(benchmarkProperty.equals(FIND_ADJACENT_NODES_BENCHMARK)) {
 					logger.info("Find Adjacent Nodes of All Edges Benchmark Selected");
-					utils.createDatabases(realDataset);
+					utils.createDatabases(dataset);
 					benchmarkClass = inputPropertiesFile.getProperty("QW-FA_CLASS");
 				}
 				else if(benchmarkProperty.equals(FIND_SHORTEST_PATH_BENCHMARK)) {
 					logger.info("Find Shortest Path Benchmark Selected");
-					utils.createDatabases(realDataset);
+					utils.createDatabases(dataset);
 					benchmarkClass = inputPropertiesFile.getProperty("QW-FS_CLASS");
 				}
 				else if(benchmarkProperty.equals(CLUSTERING_BENCHMARK)) {
 					logger.info("Clustering Benchmark Selected");
-					utils.createDatabases(syntheticDataset);
+					utils.createDatabases(dataset);
 					benchmarkClass = inputPropertiesFile.getProperty("CW_CLASS");
 				}
 				constructor = Class.forName(benchmarkClass).getConstructor();
@@ -129,6 +128,7 @@ public class GraphDatabaseBenchmark {
 			}
 			benchmark.startBenchmark();
 			utils.deleteDatabases();
+			input.close();
 		} 
 		catch (FileNotFoundException e) {
 			e.printStackTrace();

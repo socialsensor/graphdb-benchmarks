@@ -12,6 +12,7 @@ import eu.socialsensor.insert.TitanSingleInsertion;
 import eu.socialsensor.main.GraphDatabaseBenchmark;
 import eu.socialsensor.utils.PermuteMethod;
 import eu.socialsensor.utils.Utils;
+
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
@@ -61,8 +62,13 @@ public class SingleInsertionBenchmark implements Benchmark {
 					permutation.invoke(this, null);
 					utils.clearGC();
 				} 
-				catch (IllegalAccessException | IllegalArgumentException
-						| InvocationTargetException e) {
+				catch (IllegalAccessException e) {
+					e.printStackTrace();
+				}
+				catch (IllegalArgumentException e) {
+					e.printStackTrace();
+				}
+				catch (InvocationTargetException e) {
 					e.printStackTrace();
 				}
 			}
@@ -138,7 +144,12 @@ public class SingleInsertionBenchmark implements Benchmark {
 	private void sparkseeSingleInsertionBenchmark() {
 		GraphDatabase sparkseeGraphDatabase = new SparkseeGraphDatabase();
 		sparkseeGraphDatabase.createGraphForSingleLoad(GraphDatabaseBenchmark.SPARKSEEDB_PATH);
+		long start = System.currentTimeMillis();
 		sparkseeGraphDatabase.singleModeLoading(DATASET_PATH);
+		long time = System.currentTimeMillis() - start;
+		System.out.println(time / 1000.0);
+		System.out.println(sparkseeGraphDatabase.getNodeCount());
+		System.out.println(sparkseeGraphDatabase.getGraphWeightSum());
 		sparkseeGraphDatabase.shutdown();
 		sparkseeGraphDatabase.delete(GraphDatabaseBenchmark.SPARKSEEDB_PATH);
 	}

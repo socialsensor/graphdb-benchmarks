@@ -25,6 +25,7 @@ import com.sparsity.sparksee.gdb.Value;
 import eu.socialsensor.insert.Insertion;
 import eu.socialsensor.insert.SparkseeMassiveInsertion;
 import eu.socialsensor.insert.SparkseeSingleInsertion;
+import eu.socialsensor.main.GraphDatabaseBenchmark;
 import eu.socialsensor.query.Query;
 import eu.socialsensor.query.SparkseeQuery;
 import eu.socialsensor.utils.Utils;
@@ -39,45 +40,52 @@ public class SparkseeGraphDatabase implements GraphDatabase {
 	
 	public static final String INSERTION_TIMES_OUTPUT_PATH = "data/sparksee.insertion.times";
 	
+	private static String SPARKSEE_LICENCE_KEY;
+
 	private boolean readOnly = false;
-	private boolean clusteringWorkload = false;
-	
+
 	double totalWeight;
 	
-	SparkseeConfig sparkseeConfig = new SparkseeConfig();
-	Sparksee sparksee =  new Sparksee(sparkseeConfig);
+	SparkseeConfig sparkseeConfig;
+	Sparksee sparksee;
 	Database database;
 	Session session;
 	Graph sparkseeGraph;
 	
-	int nodeType;
+	public static int NODE_ATTRIBUTE;
+	public static int COMMUNITY_ATTRIBUTE;
+	public static int NODE_COMMUNITY_ATTRIBUTE;
 	
-	int nodeAttribute;
-	int communityAttribute;
-	int nodeCommunityAttribute;
+	public static int NODE_TYPE;
 	
-	int edgeType;
+	public static int EDGE_TYPE;
 	
 	Value value = new Value();
 	
 	public static void main(String args[]) {
+		SparkseeGraphDatabase sparkseeGraphDatabase = new SparkseeGraphDatabase();
+				
+		sparkseeGraphDatabase.open(GraphDatabaseBenchmark.SPARKSEEDB_PATH);
+		System.out.println(sparkseeGraphDatabase.getNodeCount());
+		System.out.println(sparkseeGraphDatabase.getGraphWeightSum());
+		sparkseeGraphDatabase.shutdown();
+	}
+	
+	public SparkseeGraphDatabase() {
+		SparkseeGraphDatabase.SPARKSEE_LICENCE_KEY = GraphDatabaseBenchmark.inputPropertiesFile
+				.getProperty("SPARKSEE_LICENCE_KEY");
 	}
 	
 	@Override
 	public void open(String dbPath) {
 		try {
+			sparkseeConfig = new SparkseeConfig();
+			sparkseeConfig.setLicense(SparkseeGraphDatabase.SPARKSEE_LICENCE_KEY);
+			sparksee = new Sparksee(sparkseeConfig);
 			this.database = sparksee.open(dbPath + "/SparkseeDB.gdb", readOnly);
 			this.session = database.newSession();
 			this.sparkseeGraph = session.getGraph();
-			
-			this.nodeType = sparkseeGraph.findType("node");
-			this.nodeAttribute = sparkseeGraph.findAttribute(nodeType, "nodeId");
-			this.edgeType = sparkseeGraph.findType("similar");
-			
-			if(clusteringWorkload) {
-				this.communityAttribute = sparkseeGraph.newAttribute(nodeType, "community", DataType.Integer, AttributeKind.Indexed);
-				this.nodeCommunityAttribute = sparkseeGraph.newAttribute(nodeType, "nodeCommunity", DataType.Integer, AttributeKind.Indexed);
-			}
+			createSchema();
 		}
 		catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -87,13 +95,14 @@ public class SparkseeGraphDatabase implements GraphDatabase {
 	@Override
 	public void createGraphForSingleLoad(String dbPath) {
 		try {
-			new File("data/SparkseeDB").mkdir();
+			new File(GraphDatabaseBenchmark.SPARKSEEDB_PATH).mkdir();
+			sparkseeConfig = new SparkseeConfig();
+			sparkseeConfig.setLicense(SparkseeGraphDatabase.SPARKSEE_LICENCE_KEY);
+			sparksee = new Sparksee(sparkseeConfig);
 			database = sparksee.create(dbPath + "/SparkseeDB.gdb", "SparkseeDB");
 			session = database.newSession();
 			sparkseeGraph = session.getGraph();
-			int node = sparkseeGraph.newNodeType("node");
-			sparkseeGraph.newAttribute(node, "nodeId", DataType.String, AttributeKind.Unique);
-			sparkseeGraph.newEdgeType("similar", true, false);
+			createSchema();
 		} 
 		catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -105,17 +114,28 @@ public class SparkseeGraphDatabase implements GraphDatabase {
 	public void createGraphForMassiveLoad(String dbPath) {
 		//maybe some more configuration?
 		try {
-			new File("data/SparkseeDB").mkdir();
+			new File(GraphDatabaseBenchmark.SPARKSEEDB_PATH).mkdir();
+			sparkseeConfig = new SparkseeConfig();
+			sparkseeConfig.setLicense(SparkseeGraphDatabase.SPARKSEE_LICENCE_KEY);
+			sparksee = new Sparksee(sparkseeConfig);
 			database = sparksee.create(dbPath + "/SparkseeDB.gdb", "SparkseeDB");
 			session = database.newSession();
 			sparkseeGraph = session.getGraph();
-			int node = sparkseeGraph.newNodeType("node");
-			sparkseeGraph.newAttribute(node, "nodeId", DataType.String, AttributeKind.Unique);
-			sparkseeGraph.newEdgeType("similar", true, false);
+			createSchema();
 		} 
 		catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	private void createSchema() {
+		NODE_TYPE = sparkseeGraph.newNodeType("node");
+		NODE_ATTRIBUTE = sparkseeGraph.newAttribute(NODE_TYPE, "nodeId", DataType.String, AttributeKind.Unique);
+		EDGE_TYPE = sparkseeGraph.newEdgeType("similar", true, false);
+		COMMUNITY_ATTRIBUTE = sparkseeGraph.newAttribute(NODE_TYPE, "community", DataType.Integer, 
+				AttributeKind.Indexed);
+		NODE_COMMUNITY_ATTRIBUTE = sparkseeGraph.newAttribute(NODE_TYPE, "nodeCommunity", 
+				DataType.Integer, AttributeKind.Indexed);
 	}
 	
 	@Override
@@ -187,12 +207,12 @@ public class SparkseeGraphDatabase implements GraphDatabase {
 	@Override
 	public Set<Integer> getNeighborsIds(int nodeId) {
 		Set<Integer> neighbors = new HashSet<Integer>();
-		long nodeID = sparkseeGraph.findObject(nodeAttribute, value.setString(String.valueOf(nodeId)));
-		Objects neighborsObjects = sparkseeGraph.neighbors(nodeID, edgeType, EdgesDirection.Outgoing);
+		long nodeID = sparkseeGraph.findObject(NODE_ATTRIBUTE, value.setString(String.valueOf(nodeId)));
+		Objects neighborsObjects = sparkseeGraph.neighbors(nodeID, EDGE_TYPE, EdgesDirection.Outgoing);
 		ObjectsIterator neighborsIter = neighborsObjects.iterator();
 		while(neighborsIter.hasNext()) {
 			long neighborID = neighborsIter.next();
-			Value neighborNodeID = sparkseeGraph.getAttribute(neighborID, nodeAttribute);
+			Value neighborNodeID = sparkseeGraph.getAttribute(neighborID, NODE_ATTRIBUTE);
 			neighbors.add(Integer.valueOf(neighborNodeID.getString()));
 		}
 		neighborsIter.close();
@@ -202,17 +222,17 @@ public class SparkseeGraphDatabase implements GraphDatabase {
 
 	@Override
 	public double getNodeWeight(int nodeId) {
-		long nodeID = sparkseeGraph.findObject(nodeAttribute, value.setString(String.valueOf(nodeId)));
+		long nodeID = sparkseeGraph.findObject(NODE_ATTRIBUTE, value.setString(String.valueOf(nodeId)));
 		return getNodeOutDegree(nodeID);
 	}
 	
 	public double getNodeInDegree(long node) {
-		long inDegree = sparkseeGraph.degree(node, edgeType, EdgesDirection.Ingoing);
+		long inDegree = sparkseeGraph.degree(node, EDGE_TYPE, EdgesDirection.Ingoing);
 		return (double)inDegree;
 	}
 
 	public double getNodeOutDegree(long node) {
-		long outDegree = sparkseeGraph.degree(node, edgeType, EdgesDirection.Outgoing);
+		long outDegree = sparkseeGraph.degree(node, EDGE_TYPE, EdgesDirection.Outgoing);
 		return (double)outDegree;
 	}
 
@@ -220,12 +240,12 @@ public class SparkseeGraphDatabase implements GraphDatabase {
 	public void initCommunityProperty() {
 		int communityCounter = 0;
 		//basic or indexed attribute?
-		Objects nodes = sparkseeGraph.select(nodeType);
+		Objects nodes = sparkseeGraph.select(NODE_TYPE);
 		ObjectsIterator nodesIter = nodes.iterator();
 		while(nodesIter.hasNext()) {
 			long nodeID = nodesIter.next();
-			sparkseeGraph.setAttribute(nodeID, communityAttribute, value.setInteger(communityCounter));
-			sparkseeGraph.setAttribute(nodeID, nodeCommunityAttribute, value.setInteger(communityCounter));
+			sparkseeGraph.setAttribute(nodeID, COMMUNITY_ATTRIBUTE, value.setInteger(communityCounter));
+			sparkseeGraph.setAttribute(nodeID, NODE_COMMUNITY_ATTRIBUTE, value.setInteger(communityCounter));
 			communityCounter++;
 		}
 		nodesIter.close();
@@ -235,15 +255,15 @@ public class SparkseeGraphDatabase implements GraphDatabase {
 	@Override
 	public Set<Integer> getCommunitiesConnectedToNodeCommunities(int nodeCommunities) {
 		Set<Integer> communities = new HashSet<Integer>();
-		Objects nodes = sparkseeGraph.select(nodeCommunityAttribute, Condition.Equal, value.setInteger(nodeCommunities));
+		Objects nodes = sparkseeGraph.select(NODE_COMMUNITY_ATTRIBUTE, Condition.Equal, value.setInteger(nodeCommunities));
 		ObjectsIterator nodesIter = nodes.iterator();
 		while(nodesIter.hasNext()) {
 			long nodeID = nodesIter.next();
-			Objects neighbors = sparkseeGraph.neighbors(nodeID, edgeType, EdgesDirection.Outgoing);
+			Objects neighbors = sparkseeGraph.neighbors(nodeID, EDGE_TYPE, EdgesDirection.Outgoing);
 			ObjectsIterator neighborsIter = neighbors.iterator();
 			while(neighborsIter.hasNext()) {
 				long neighborID = neighborsIter.next();
-				Value community = sparkseeGraph.getAttribute(neighborID, communityAttribute);
+				Value community = sparkseeGraph.getAttribute(neighborID, COMMUNITY_ATTRIBUTE);
 				communities.add(community.getInteger());
 			}
 			neighborsIter.close();
@@ -257,10 +277,10 @@ public class SparkseeGraphDatabase implements GraphDatabase {
 	@Override
 	public Set<Integer> getNodesFromCommunity(int community) {
 		Set<Integer> nodesFromCommunity = new HashSet<Integer>();
-		Objects nodes = sparkseeGraph.select(communityAttribute, Condition.Equal, value.setInteger(community));
+		Objects nodes = sparkseeGraph.select(COMMUNITY_ATTRIBUTE, Condition.Equal, value.setInteger(community));
 		ObjectsIterator nodesIter = nodes.iterator();
 		while(nodesIter.hasNext()) {
-			Value nodeId = sparkseeGraph.getAttribute(nodesIter.next(), nodeAttribute);
+			Value nodeId = sparkseeGraph.getAttribute(nodesIter.next(), NODE_ATTRIBUTE);
 			nodesFromCommunity.add(Integer.valueOf(nodeId.getString()));
 		}
 		nodesIter.close();
@@ -271,10 +291,11 @@ public class SparkseeGraphDatabase implements GraphDatabase {
 	@Override
 	public Set<Integer> getNodesFromNodeCommunity(int nodeCommunity) {
 		Set<Integer> nodesFromNodeCommunity = new HashSet<Integer>();
-		Objects nodes = sparkseeGraph.select(nodeCommunityAttribute, Condition.Equal, value.setInteger(nodeCommunity));
+		Objects nodes = sparkseeGraph.select(NODE_COMMUNITY_ATTRIBUTE, Condition.Equal, 
+				value.setInteger(nodeCommunity));
 		ObjectsIterator nodesIter = nodes.iterator();
 		while(nodesIter.hasNext()) {
-			Value nodeId = sparkseeGraph.getAttribute(nodesIter.next(), nodeAttribute);
+			Value nodeId = sparkseeGraph.getAttribute(nodesIter.next(), NODE_ATTRIBUTE);
 			nodesFromNodeCommunity.add(Integer.valueOf(nodeId.getString()));
 		}
 		nodesIter.close();
@@ -285,12 +306,14 @@ public class SparkseeGraphDatabase implements GraphDatabase {
 	@Override
 	public double getEdgesInsideCommunity(int nodeCommunity, int communityNode) {
 		double edges = 0;
-		Objects nodesFromNodeCommunitiy = sparkseeGraph.select(nodeCommunityAttribute, Condition.Equal, value.setInteger(nodeCommunity));
-		Objects nodesFromCommunity = sparkseeGraph.select(communityAttribute, Condition.Equal, value.setInteger(communityNode));
+		Objects nodesFromNodeCommunitiy = sparkseeGraph.select(NODE_COMMUNITY_ATTRIBUTE, Condition.Equal, 
+				value.setInteger(nodeCommunity));
+		Objects nodesFromCommunity = sparkseeGraph.select(COMMUNITY_ATTRIBUTE, Condition.Equal, 
+				value.setInteger(communityNode));
 		ObjectsIterator nodesFromNodeCommunityIter = nodesFromNodeCommunitiy.iterator();
 		while(nodesFromNodeCommunityIter.hasNext()) {
 			long nodeID = nodesFromNodeCommunityIter.next();
-			Objects neighbors = sparkseeGraph.neighbors(nodeID, edgeType, EdgesDirection.Outgoing);
+			Objects neighbors = sparkseeGraph.neighbors(nodeID, EDGE_TYPE, EdgesDirection.Outgoing);
 			ObjectsIterator neighborsIter = neighbors.iterator();
 			while(neighborsIter.hasNext()) {
 				if(nodesFromCommunity.contains(neighborsIter.next())) {
@@ -309,7 +332,7 @@ public class SparkseeGraphDatabase implements GraphDatabase {
 	@Override
 	public double getCommunityWeight(int community) {
 		double communityWeight = 0;
-		Objects nodesFromCommunity = sparkseeGraph.select(communityAttribute, Condition.Equal, value.setInteger(community));
+		Objects nodesFromCommunity = sparkseeGraph.select(COMMUNITY_ATTRIBUTE, Condition.Equal, value.setInteger(community));
 		ObjectsIterator nodesFromCommunityIter = nodesFromCommunity.iterator();
 		if(nodesFromCommunity.size() > 1) {
 			while(nodesFromCommunityIter.hasNext()) {
@@ -324,7 +347,8 @@ public class SparkseeGraphDatabase implements GraphDatabase {
 	@Override
 	public double getNodeCommunityWeight(int nodeCommunity) {
 		double nodeCommunityWeight = 0;
-		Objects nodesFromNodeCommunity = sparkseeGraph.select(nodeCommunityAttribute, Condition.Equal, value.setInteger(nodeCommunity));
+		Objects nodesFromNodeCommunity = sparkseeGraph.select(NODE_COMMUNITY_ATTRIBUTE, Condition.Equal, 
+				value.setInteger(nodeCommunity));
 		ObjectsIterator nodesFromNodeCommunityIter = nodesFromNodeCommunity.iterator();
 		if(nodesFromNodeCommunity.size() > 1) {
 			while(nodesFromNodeCommunityIter.hasNext()) {
@@ -338,10 +362,10 @@ public class SparkseeGraphDatabase implements GraphDatabase {
 
 	@Override
 	public void moveNode(int nodeCommunity, int toCommunity) {
-		Objects fromNodes = sparkseeGraph.select(nodeCommunityAttribute, Condition.Equal, value.setInteger(nodeCommunity));
+		Objects fromNodes = sparkseeGraph.select(NODE_COMMUNITY_ATTRIBUTE, Condition.Equal, value.setInteger(nodeCommunity));
 		ObjectsIterator fromNodesIter = fromNodes.iterator();
 		while(fromNodesIter.hasNext()) {
-			sparkseeGraph.setAttribute(fromNodesIter.next(), communityAttribute, value.setInteger(toCommunity));
+			sparkseeGraph.setAttribute(fromNodesIter.next(), COMMUNITY_ATTRIBUTE, value.setInteger(toCommunity));
 		}
 		fromNodesIter.close();
 		fromNodes.close();
@@ -356,18 +380,18 @@ public class SparkseeGraphDatabase implements GraphDatabase {
 	public int reInitializeCommunities() {
 		Map<Integer, Integer> initCommunities = new HashMap<Integer, Integer>();
 		int communityCounter = 0;
-		Objects nodes = sparkseeGraph.select(nodeType);
+		Objects nodes = sparkseeGraph.select(NODE_TYPE);
 		ObjectsIterator nodesIter = nodes.iterator();
 		while(nodesIter.hasNext()) {
 			long nodeID = nodesIter.next();
-			Value communityId = sparkseeGraph.getAttribute(nodeID, communityAttribute);
+			Value communityId = sparkseeGraph.getAttribute(nodeID, COMMUNITY_ATTRIBUTE);
 			if(!initCommunities.containsKey(communityId.getInteger())) {
 				initCommunities.put(communityId.getInteger(), communityCounter);
 				communityCounter++;
 			}
 			int newCommunityId = initCommunities.get(communityId.getInteger());
-			sparkseeGraph.setAttribute(nodeID, communityAttribute, value.setInteger(newCommunityId));
-			sparkseeGraph.setAttribute(nodeID, nodeCommunityAttribute, value.setInteger(newCommunityId));
+			sparkseeGraph.setAttribute(nodeID, COMMUNITY_ATTRIBUTE, value.setInteger(newCommunityId));
+			sparkseeGraph.setAttribute(nodeID, NODE_COMMUNITY_ATTRIBUTE, value.setInteger(newCommunityId));
 		}
 		nodesIter.close();
 		nodes.close();
@@ -376,25 +400,25 @@ public class SparkseeGraphDatabase implements GraphDatabase {
 	
 	@Override
 	public int getCommunity(int nodeCommunity) {
-		long nodeID = sparkseeGraph.findObject(nodeCommunityAttribute, value.setInteger(nodeCommunity));
-		Value communityId = sparkseeGraph.getAttribute(nodeID, communityAttribute);
+		long nodeID = sparkseeGraph.findObject(NODE_COMMUNITY_ATTRIBUTE, value.setInteger(nodeCommunity));
+		Value communityId = sparkseeGraph.getAttribute(nodeID, COMMUNITY_ATTRIBUTE);
 		return communityId.getInteger();
 	}
 	
 	@Override
 	public int getCommunityFromNode(int nodeId) {
-		long nodeID = sparkseeGraph.findObject(nodeAttribute, value.setString(String.valueOf(nodeId)));
-		Value communityId = sparkseeGraph.getAttribute(nodeID, communityAttribute);
+		long nodeID = sparkseeGraph.findObject(NODE_ATTRIBUTE, value.setString(String.valueOf(nodeId)));
+		Value communityId = sparkseeGraph.getAttribute(nodeID, COMMUNITY_ATTRIBUTE);
 		return communityId.getInteger();
 	}
 
 	@Override
 	public int getCommunitySize(int community) {
-		Objects nodesFromCommunities = sparkseeGraph.select(communityAttribute, Condition.Equal, value.setInteger(community));
+		Objects nodesFromCommunities = sparkseeGraph.select(COMMUNITY_ATTRIBUTE, Condition.Equal, value.setInteger(community));
 		ObjectsIterator nodesFromCommunitiesIter = nodesFromCommunities.iterator();
 		Set<Integer> nodeCommunities = new HashSet<Integer>();
 		while(nodesFromCommunitiesIter.hasNext()) {
-			Value nodeCommunityId = sparkseeGraph.getAttribute(nodesFromCommunitiesIter.next(), nodeCommunityAttribute);
+			Value nodeCommunityId = sparkseeGraph.getAttribute(nodesFromCommunitiesIter.next(), NODE_COMMUNITY_ATTRIBUTE);
 			nodeCommunities.add(nodeCommunityId.getInteger());
 		}
 		nodesFromCommunitiesIter.close();
@@ -406,11 +430,11 @@ public class SparkseeGraphDatabase implements GraphDatabase {
 	public Map<Integer, List<Integer>> mapCommunities(int numberOfCommunities) {
 		Map<Integer, List<Integer>> communities = new HashMap<Integer, List<Integer>>();
 		for(int i = 0; i < numberOfCommunities; i++) {
-			Objects nodesFromCommunity = sparkseeGraph.select(communityAttribute, Condition.Equal, value.setInteger(i));
+			Objects nodesFromCommunity = sparkseeGraph.select(COMMUNITY_ATTRIBUTE, Condition.Equal, value.setInteger(i));
 			ObjectsIterator nodesFromCommunityIter = nodesFromCommunity.iterator();
 			List<Integer> nodes = new ArrayList<Integer>();
 			while(nodesFromCommunityIter.hasNext()) {
-				Value nodeId = sparkseeGraph.getAttribute(nodesFromCommunityIter.next(), nodeAttribute);
+				Value nodeId = sparkseeGraph.getAttribute(nodesFromCommunityIter.next(), NODE_ATTRIBUTE);
 				nodes.add(Integer.valueOf(nodeId.getString()));
 			}
 			communities.put(i, nodes);
@@ -422,7 +446,7 @@ public class SparkseeGraphDatabase implements GraphDatabase {
 	
 	@Override
 	public boolean nodeExists(int nodeId) {
-		Objects nodes = sparkseeGraph.select(nodeAttribute, Condition.Equal, value.setInteger(nodeId));
+		Objects nodes = sparkseeGraph.select(NODE_ATTRIBUTE, Condition.Equal, value.setInteger(nodeId));
 		ObjectsIterator nodesIter = nodes.iterator();
 		if(nodesIter.hasNext()) {
 			nodesIter.close();

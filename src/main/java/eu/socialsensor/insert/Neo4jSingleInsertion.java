@@ -67,10 +67,20 @@ public class Neo4jSingleInsertion implements Insertion {
 					srcNode = getOrCreate(parts[0]);
 					dstNode = getOrCreate(parts[1]);
 					
-					try (Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
+					Transaction tx = null;
+					try {
+						tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin();
 						srcNode.createRelationshipTo(dstNode, Neo4jGraphDatabase.RelTypes.SIMILAR);
 						tx.success();
-						tx.close();
+						
+					}
+					catch(Exception e) {
+						
+					}
+					finally {
+						if(tx != null) {
+							tx.close();
+						}
 					}
 					
 					if(lineCounter % 1000 == 0) {
@@ -95,16 +105,28 @@ public class Neo4jSingleInsertion implements Insertion {
 	}
 	
 	private Node getOrCreate(String nodeId) {
-		Node result;
-		try(Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
+		Node result = null;
+		
+		Transaction tx = null;
+		try {
+			
+			tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin();
+			
 			String queryString = "MERGE (n:Node {nodeId: {nodeId}}) RETURN n";
 		    Map<String, Object> parameters = new HashMap<String, Object>();
 		    parameters.put( "nodeId", nodeId);
 		    ResourceIterator<Node> resultIterator = engine.execute( queryString, parameters ).columnAs( "n" );
 		    result = resultIterator.next();
 		    tx.success();
-		    tx.close();
+		    
 		}
+		catch(Exception e) {
+			
+		}
+		finally {
+			tx.close();
+		}
+		
 		return result;
 	}
 	

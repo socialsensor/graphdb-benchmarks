@@ -1,12 +1,5 @@
 package eu.socialsensor.benchmarks;
 
-import java.lang.ref.WeakReference;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-
 import eu.socialsensor.graphdatabases.GraphDatabase;
 import eu.socialsensor.graphdatabases.Neo4jGraphDatabase;
 import eu.socialsensor.graphdatabases.OrientGraphDatabase;
@@ -15,6 +8,11 @@ import eu.socialsensor.graphdatabases.TitanGraphDatabase;
 import eu.socialsensor.main.GraphDatabaseBenchmark;
 import eu.socialsensor.utils.PermuteMethod;
 import eu.socialsensor.utils.Utils;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 /**
  * MassiveInsertionBenchmark implementation
@@ -62,8 +60,13 @@ public class MassiveInsertionBenchmark implements Benchmark{
 					permutation.invoke(this, null);
 					utils.clearGC();
 					
-				} catch (IllegalAccessException | IllegalArgumentException
-						| InvocationTargetException e) {
+				} catch (IllegalAccessException  e) {
+					e.printStackTrace();
+				}
+				catch (IllegalArgumentException e) {
+					e.printStackTrace();
+				}
+				catch (InvocationTargetException e) {
 					e.printStackTrace();
 				}
 				
@@ -119,11 +122,12 @@ public class MassiveInsertionBenchmark implements Benchmark{
 	@SuppressWarnings("unused")
 	private void sparkseeMassiveInsertionBenchmark() {
 		GraphDatabase sparkseeGraphDatabase = new SparkseeGraphDatabase();
-		long start = System.currentTimeMillis();
+		
 		sparkseeGraphDatabase.createGraphForMassiveLoad(GraphDatabaseBenchmark.SPARKSEEDB_PATH);
+		long start = System.currentTimeMillis();
 		sparkseeGraphDatabase.massiveModeLoading(datasetDir);
-		sparkseeGraphDatabase.shutdownMassiveGraph();
 		long sparkseeTime = System.currentTimeMillis() - start;
+		sparkseeGraphDatabase.shutdownMassiveGraph();		
 		sparkseeGraphDatabase.delete(GraphDatabaseBenchmark.SPARKSEEDB_PATH);
 		sparkseeTimes[sparkseeScenarioCount] = sparkseeTime / 1000.0;
 		sparkseeScenarioCount++;

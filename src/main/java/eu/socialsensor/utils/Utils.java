@@ -269,7 +269,7 @@ public class Utils {
 	}
 	
 	public Method[] filter(Method[] declaredMethods, String endsWith) {
-	    List<Method> filtered = new ArrayList<>();
+	    List<Method> filtered = new ArrayList<Method>();
 	    for(Method method : declaredMethods) {
 	    	if(method.getName().endsWith(endsWith)) {
 	    		if(GraphDatabaseBenchmark.TITAN_SELECTED && 

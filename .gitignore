@@ -2,3 +2,7 @@ target/*
 *.class
 /target
 /data
+/.project
+/.gitignore
+/.settings
+/.classpath

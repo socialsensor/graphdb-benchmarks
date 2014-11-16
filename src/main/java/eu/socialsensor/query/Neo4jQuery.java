@@ -43,7 +43,9 @@ public class Neo4jQuery implements Query {
 	
 	@Override
 	public void findNeighborsOfAllNodes() {
-		try(Transaction tx = neo4jGraph.beginTx()) {
+		Transaction tx = null;
+		try {
+			tx = neo4jGraph.beginTx();
 			for(Node n : GlobalGraphOperations.at(neo4jGraph).getAllNodes()) {
 				for(Relationship relationship : n.getRelationships(Neo4jGraphDatabase.RelTypes.SIMILAR, Direction.BOTH)) {
 					@SuppressWarnings("unused")
@@ -51,25 +53,44 @@ public class Neo4jQuery implements Query {
 				}
 			}
 			tx.success();
-			tx.close();
 		}		
+		catch(Exception e) {
+			
+		}
+		finally {
+			if(tx != null) {
+				tx.close();
+			}
+		}
 	}
 	
 	@Override
 	public void findNodesOfAllEdges() {	
-		try(Transaction tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin()) {
+		Transaction tx = null;
+		try {
+			tx = ((GraphDatabaseAPI)neo4jGraph).tx().unforced().begin();
 			for(Relationship r : GlobalGraphOperations.at(neo4jGraph).getAllRelationships()) {
 				@SuppressWarnings("unused")
 				Node startNode = r.getStartNode();
 				@SuppressWarnings("unused")
 				Node endNode = r.getEndNode();
 			}
-		}		
+		}
+		catch(Exception e) {
+			
+		}
+		finally {
+			if(tx != null) {
+				tx.close();
+			}
+		}	
 	}	
 	
 	@Override
 	public void findShortestPaths() {
-		try(Transaction tx = neo4jGraph.beginTx()) {
+		Transaction tx = null;
+		try {
+			tx = neo4jGraph.beginTx();
 			PathFinder<Path> finder = GraphAlgoFactory.shortestPath(Traversal.expanderForTypes(Neo4jGraphDatabase.RelTypes.SIMILAR),5);
 			Node n1 = neo4jGraph.findNodesByLabelAndProperty(Neo4jGraphDatabase.NODE_LABEL, "nodeId", "1").iterator().next();
 			for(int i : FindShortestPathBenchmark.generatedNodes) {
@@ -82,6 +103,15 @@ public class Neo4jQuery implements Query {
 				}
 			}
 			tx.success();
+		}
+		catch(Exception e) {
+			
+		}
+		finally {
+			if(tx != null) {
+				tx.close();
+			}
+			
 		}
 	}
 
