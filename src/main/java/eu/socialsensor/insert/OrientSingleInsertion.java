@@ -55,34 +55,34 @@ public class OrientSingleInsertion extends OrientAbstractInsertion {
           orientGraph.addEdge(null, srcVertex, dstVertex, "similar");
 
           if (orientGraph instanceof TransactionalGraph) {
-        	  ((TransactionalGraph) orientGraph).commit();
+            ((TransactionalGraph) orientGraph).commit();
           }
-          
+          if (orientGraph instanceof TransactionalGraph)
+            ((TransactionalGraph) orientGraph).commit();
+
           if (lineCounter % 1000 == 0) {
-              duration = System.currentTimeMillis() - start;
-              insertionTimes.add((double) duration);
-              edgeCounter = 0;
-              start = System.currentTimeMillis();
-            }
-          
+            duration = System.currentTimeMillis() - start;
+            insertionTimes.add((double) duration);
+            edgeCounter = 0;
+            start = System.currentTimeMillis();
+          }
         }
+
         lineCounter++;
       }
 
       if (orientGraph instanceof TransactionalGraph) {
-    	  ((TransactionalGraph) orientGraph).commit();
+        ((TransactionalGraph) orientGraph).commit();
       }
 
       duration = System.currentTimeMillis() - start;
       insertionTimes.add((double) duration);
-      
+
       reader.close();
-    } 
-    catch (IOException ioe) {
+    } catch (IOException ioe) {
       System.out.println(ioe);
       ioe.printStackTrace();
-    } 
-    catch (Exception e) {
+    } catch (Exception e) {
       System.out.println(e);
     }
     Utils utils = new Utils();

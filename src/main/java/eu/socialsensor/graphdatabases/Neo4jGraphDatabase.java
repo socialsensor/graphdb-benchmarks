@@ -1,14 +1,12 @@
 package eu.socialsensor.graphdatabases;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
+import com.google.common.collect.Iterables;
+import eu.socialsensor.insert.Insertion;
+import eu.socialsensor.insert.Neo4jMassiveInsertion;
+import eu.socialsensor.insert.Neo4jSingleInsertion;
+import eu.socialsensor.query.Neo4jQuery;
+import eu.socialsensor.query.Query;
+import eu.socialsensor.utils.Utils;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicLabel;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -27,14 +25,14 @@ import org.neo4j.tooling.GlobalGraphOperations;
 import org.neo4j.unsafe.batchinsert.BatchInserter;
 import org.neo4j.unsafe.batchinsert.BatchInserters;
 
-import com.google.common.collect.Iterables;
-
-import eu.socialsensor.insert.Insertion;
-import eu.socialsensor.insert.Neo4jMassiveInsertion;
-import eu.socialsensor.insert.Neo4jSingleInsertion;
-import eu.socialsensor.query.Neo4jQuery;
-import eu.socialsensor.query.Query;
-import eu.socialsensor.utils.Utils;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Neo4j graph database implementation
