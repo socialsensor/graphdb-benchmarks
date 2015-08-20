@@ -1,34 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>eu.socialsensor</groupId>
     <artifactId>graphdb-benchmarks</artifactId>
-    <version>0.1-SNAPSHOT</version>
-    
+    <version>1.0</version>
+
     <name>graphdb-benchmarks</name>
     <url>https://github.com/socialsensor/graphdb-benchmarks</url>
     <description>Performance benchmark between popular graph databases.</description>
-    
+
     <parent>
-  		<groupId>org.sonatype.oss</groupId>
-  		<artifactId>oss-parent</artifactId>
-  		<version>7</version>
-  	</parent>
-  	
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>7</version>
+    </parent>
+
     <organization>
         <name>SocialSensor</name>
         <url>http://www.socialsensor.eu/</url>
     </organization>
-    
+
     <developers>
         <developer>
             <id>sarovios</id>
             <name>Sotiris Beis</name>
             <email>sotbeis@iti.gr</email>
         </developer>
+        <developer>
+            <id>amcp</id>
+            <name>Alexander Patrikalakis</name>
+            <email>amcp@me.com</email>
+        </developer>
     </developers>
-    
+
     <licenses>
         <license>
             <name>The Apache Software License, Version 2.0</name>
@@ -36,20 +41,38 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
-    
+
     <scm>
-   		<connection>scm:git:git@github.com:socialsensor/graphdb-benchmarks.git</connection>
- 		<developerConnection>scm:git:git@github.com:socialsensor/graphdb-benchmarks.git</developerConnection>
-   		<url>git@github.com:socialsensor/graphdb-benchmarks.git</url>
-  	  <tag>graphdb-benchmarks-0.1</tag>
-  </scm>
-  
+        <connection>scm:git:git@github.com:socialsensor/graphdb-benchmarks.git</connection>
+        <developerConnection>scm:git:git@github.com:socialsensor/graphdb-benchmarks.git</developerConnection>
+        <url>git@github.com:socialsensor/graphdb-benchmarks.git</url>
+        <tag>graphdb-benchmarks-1.0</tag>
+    </scm>
+
     <properties>
         <blueprints.version>2.6.0</blueprints.version>
-        <orientdb.version>2.0-SNAPSHOT</orientdb.version>
+        <orientdb.version>2.1.0</orientdb.version>
+        <titan.version>0.5.4</titan.version>
+        <hbase.version>0.98.8-hadoop2</hbase.version>
+        <neo4j.version>2.0.1</neo4j.version>
+        <dynamodb.titan.version>1.0.0</dynamodb.titan.version>
+        <log4j2.version>2.1</log4j2.version>
+        <maven.surefire.version>2.18.1</maven.surefire.version>
+        <jdk.version>1.8</jdk.version>
+        <metrics.version>3.0.0-BETA3</metrics.version>
     </properties>
-    
+
     <dependencies>
+        <dependency>
+            <groupId>org.antlr</groupId>
+            <artifactId>antlr-runtime</artifactId>
+            <version>3.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>14.0.1</version>
+        </dependency>
         <dependency>
             <groupId>colt</groupId>
             <artifactId>colt</artifactId>
@@ -61,9 +84,14 @@
             <version>1.7</version>
         </dependency>
         <dependency>
-            <groupId>commons-collections</groupId>
-            <artifactId>commons-collections</artifactId>
-            <version>3.2.1</version>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-collections4</artifactId>
+            <version>4.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-math3</artifactId>
+            <version>3.4.1</version>
         </dependency>
         <dependency>
             <groupId>commons-configuration</groupId>
@@ -71,14 +99,19 @@
             <version>1.6</version>
         </dependency>
         <dependency>
-            <groupId>commons-lang</groupId>
-            <artifactId>commons-lang</artifactId>
-            <version>2.5</version>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.3.2</version>
         </dependency>
         <dependency>
-            <groupId>commons-logging</groupId>
-            <artifactId>commons-logging</artifactId>
-            <version>1.1.1</version>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>${log4j2.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>${log4j2.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.geronimo.specs</groupId>
@@ -94,11 +127,6 @@
             <groupId>com.tinkerpop.gremlin</groupId>
             <artifactId>gremlin-java</artifactId>
             <version>${blueprints.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>14.0.1</version>
         </dependency>
         <dependency>
             <groupId>com.github.stephenc.high-scale-lib</groupId>
@@ -120,60 +148,35 @@
             <artifactId>jna</artifactId>
             <version>4.0.0</version>
         </dependency>
-<!--         <dependency> -->
-<!--             <groupId>com.esotericsoftware.kryo</groupId> -->
-<!--             <artifactId>kryo</artifactId> -->
-<!--             <version>2.21</version> -->
-<!--             <classifier>shaded</classifier> -->
-<!--         </dependency> -->
-        <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>1.2.16</version>
-        </dependency>
         <dependency>
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-core</artifactId>
             <version>3.6.2</version>
         </dependency>
-        <!--    <dependency> -->
-        <!--      <groupId>org.neo4j</groupId> -->
-        <!--      <artifactId>neo4j-graph-algo</artifactId> -->
-        <!--      <version>2.1.0-M01</version> -->
-        <!--    </dependency> -->
-        <!--    <dependency> -->
-        <!--      <groupId>org.neo4j</groupId> -->
-        <!--      <artifactId>neo4j-kernel</artifactId> -->
-        <!--      <version>2.1.0-M01</version> -->
-        <!--    </dependency> -->
-        <!--    <dependency> -->
-        <!--      <groupId>org.neo4j</groupId> -->
-        <!--      <artifactId>neo4j-lucene-index</artifactId> -->
-        <!--      <version>2.1.0-M01</version> -->
-        <!--    </dependency> -->
-<!--         <dependency> -->
-<!--             <groupId>org.neo4j</groupId> -->
-<!--             <artifactId>neo4j</artifactId> -->
-<!--             <version>2.1.3</version> -->
-<!--         </dependency> -->
         <dependency>
-            <groupId>com.orientechnologies</groupId>
-            <artifactId>orient-commons</artifactId>
-            <version>${orientdb.version}</version>
+            <groupId>org.neo4j</groupId>
+            <artifactId>neo4j-cypher</artifactId>
+            <version>${neo4j.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.orientechnologies</groupId>
-            <artifactId>orientdb-core</artifactId>
-            <version>${orientdb.version}</version>
+            <groupId>org.neo4j</groupId>
+            <artifactId>neo4j</artifactId>
+            <version>${neo4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.tinkerpop.blueprints</groupId>
+            <artifactId>blueprints-neo4j2-graph</artifactId>
+            <version>${blueprints.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-classic</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.orientechnologies</groupId>
             <artifactId>orientdb-graphdb</artifactId>
-            <version>${orientdb.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.orientechnologies</groupId>
-            <artifactId>orientdb-nativeos</artifactId>
             <version>${orientdb.version}</version>
         </dependency>
         <dependency>
@@ -204,119 +207,260 @@
         <dependency>
             <groupId>com.thinkaurelius.titan</groupId>
             <artifactId>titan-berkeleyje</artifactId>
-            <version>0.5.0</version>
+            <version>${titan.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.thinkaurelius.titan</groupId>
+            <artifactId>titan-cassandra</artifactId>
+            <version>${titan.version}</version>
+            <!--
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.httpcomponents</groupId>
+                    <artifactId>httpcore</artifactId>
+                </exclusion>
+            </exclusions>
+            -->
+        </dependency>
+        <dependency>
+            <groupId>com.thinkaurelius.titan</groupId>
+            <artifactId>titan-hbase</artifactId>
+            <version>${titan.version}</version>
         </dependency>
         <dependency>
             <groupId>com.thinkaurelius.titan</groupId>
             <artifactId>titan-core</artifactId>
-            <version>0.5.0</version>
+            <version>${titan.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>3.1</version>
+            <groupId>org.apache.hbase</groupId>
+            <artifactId>hbase-client</artifactId>
+            <version>${hbase.version}</version>
         </dependency>
-        <!--    <dependency> -->
-        <!--      <groupId>org.neo4j</groupId> -->
-        <!--      <artifactId>neo4j-cypher</artifactId> -->
-        <!--      <version>2.1.0-M01</version> -->
-        <!--    </dependency> -->
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>dynamodb-titan054-storage-backend</artifactId>
+            <version>${dynamodb.titan.version}</version>
+        </dependency>
         <dependency>
             <groupId>com.sparsity</groupId>
             <artifactId>sparkseejava</artifactId>
             <version>5.0.0</version>
         </dependency>
-
-
         <dependency>
-        	<groupId>org.neo4j</groupId>
-        	<artifactId>neo4j</artifactId>
-        	<version>2.1.3</version>
+           <groupId>com.tinkerpop.blueprints</groupId>
+           <artifactId>blueprints-sparksee-graph</artifactId>
+           <version>${blueprints.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.codahale.metrics</groupId>
+            <artifactId>metrics-core</artifactId>
+            <version>${metrics.version}</version>
         </dependency>
     </dependencies>
-    
-    
     <build>
-        
         <pluginManagement>
-        	<plugins>
-           		<plugin>
-                     <groupId>org.apache.maven.plugins</groupId>
-                     <artifactId>maven-release-plugin</artifactId>
-                     <version>2.5</version>
-                     <configuration>
-                          <useReleaseProfile>false</useReleaseProfile>
-                          <releaseProfiles>release</releaseProfiles>
-                          <goals>deploy</goals>
-                     </configuration>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-release-plugin</artifactId>
+                    <version>2.5</version>
+                    <configuration>
+                        <useReleaseProfile>false</useReleaseProfile>
+                        <releaseProfiles>release</releaseProfiles>
+                        <goals>deploy</goals>
+                    </configuration>
                 </plugin>
-          	</plugins>
-		</pluginManagement>
-		
-        <plugins>
-        
-           	<plugin>
-				<groupId>org.sonatype.plugins</groupId>
-				<artifactId>nexus-staging-maven-plugin</artifactId>
-				<version>1.6.3</version>
-				<extensions>true</extensions>
-				<configuration>
-					<serverId>sonatype-nexus-staging</serverId>
-					<nexusUrl>https://oss.sonatype.org/</nexusUrl>
-					<autoReleaseAfterClose>true</autoReleaseAfterClose>
-				</configuration>
-			</plugin>
-			
-            <plugin>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.1</version>
-                <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
-                </configuration>
-            </plugin>
-            
-            <plugin>
-      			<groupId>org.apache.maven.plugins</groupId>
-       			<artifactId>maven-source-plugin</artifactId>
-      			<executions>
-        			<execution>
-            			<id>attach-sources</id>
-               			<goals>
-                			<goal>jar-no-fork</goal>
-           				</goals>
-          			</execution>
-    			</executions>
-   	 	 	</plugin>
-   	 	 	
-   	 	 	<plugin>
-     			<groupId>org.apache.maven.plugins</groupId>
-  				<artifactId>maven-javadoc-plugin</artifactId>
-    			<executions>
-        			<execution>
-          				<id>attach-javadocs</id>
-             			<goals>
-              				<goal>jar</goal>
-              			</goals>
-       				</execution>
-   				</executions>
-      		</plugin>
-      		
-      		<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-gpg-plugin</artifactId>
-				<version>1.5</version>
-				<executions>
-					<execution>
-						<id>sign-artifacts</id>
-						<phase>verify</phase>
-						<goals>
-							<goal>sign</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			
-        </plugins>
+                <plugin>
+                    <artifactId>maven-clean-plugin</artifactId>
+                    <version>2.6.1</version>
+                    <configuration>
+                        <filesets>
+                            <fileset>
+                                <directory>${basedir}</directory>
+                                <includes>
+                                    <include>**/storage</include>
+                                    <include>**/results</include>
+                                </includes>
+                                <followSymlinks>false</followSymlinks>
+                            </fileset>
+                        </filesets>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.sonatype.plugins</groupId>
+                    <artifactId>nexus-staging-maven-plugin</artifactId>
+                    <version>1.6.6</version>
+                    <extensions>true</extensions>
+                    <configuration>
+                        <serverId>sonatype-nexus-staging</serverId>
+                        <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                        <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.2</version>
+                    <configuration>
+                        <source>${jdk.version}</source>
+                        <target>${jdk.version}</target>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>2.4</version>
+                    <executions>
+                        <execution>
+                            <id>attach-sources</id>
+                            <goals>
+                                <goal>jar-no-fork</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>2.10.1</version>
+                    <executions>
+                        <execution>
+                            <id>attach-javadocs</id>
+                            <goals>
+                                <goal>jar</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <version>2.2</version>
+                    <executions>
+                        <execution>
+                            <id>copy-dependencies</id>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>copy-dependencies</goal>
+                            </goals>
+                            <configuration>
+                                <outputDirectory>${project.build.directory}/dependency</outputDirectory>
+                                <overWriteReleases>false</overWriteReleases>
+                                <overWriteSnapshots>false</overWriteSnapshots>
+                                <overWriteIfNewer>true</overWriteIfNewer>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>${maven.surefire.version}</version>
+                    <configuration>
+                        <skip>true</skip>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-gpg-plugin</artifactId>
+                    <version>1.5</version>
+                    <executions>
+                        <execution>
+                            <id>sign-artifacts</id>
+                            <phase>verify</phase>
+                            <goals>
+                                <goal>sign</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
+    <profiles>
+        <profile>
+            <id>share</id>
+            <activation>
+                <file>
+                    <exists>src/assembly/component.xml</exists>
+                </file>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <version>2.5.3</version>
+                        <configuration>
+                            <descriptors>
+                                <descriptor>src/assembly/component.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>make-assembly</id> <!-- this is used for inheritance merges -->
+                                <phase>package</phase> <!-- bind to the packaging phase -->
+                                <goals>
+                                    <goal>single</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>bench</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>${maven.surefire.version}</version>
+                        <executions>
+                            <execution>
+                                <phase>test</phase>
+                                <goals>
+                                    <goal>test</goal>
+                                </goals>
+                                <configuration>
+                                    <includes>
+                                        <include>**/GraphDatabaseBenchmarkTest.java</include>
+                                    </includes>
+                                    <skip>false</skip>
+                                    <systemPropertyVariables>
+                                        <log4j.configurationFile>${basedir}/src/test/resources/META-INF/log4j2.xml</log4j.configurationFile>
+                                    </systemPropertyVariables>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpclient</artifactId>
+                <version>4.3.6</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpcore</artifactId>
+                <version>4.3.3</version>
+            </dependency>
+            <dependency>
+                <groupId>joda-time</groupId>
+                <artifactId>joda-time</artifactId>
+                <version>2.8.1</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 </project>

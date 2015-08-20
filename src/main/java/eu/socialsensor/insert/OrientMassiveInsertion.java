@@ -1,74 +1,52 @@
 package eu.socialsensor.insert;
 
 import com.orientechnologies.orient.core.config.OGlobalConfiguration;
-import com.orientechnologies.orient.graph.batch.OGraphBatchInsertSimple;
+import com.orientechnologies.orient.graph.batch.OGraphBatchInsertBasic;
 import com.tinkerpop.blueprints.impls.orient.OrientGraphNoTx;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import eu.socialsensor.main.GraphDatabaseType;
 
 /**
  * Implementation of massive Insertion in OrientDB graph database
  * 
- * @author sotbeis
- * @email sotbeis@iti.gr
+ * @author sotbeis, sotbeis@iti.gr
+ * @author Alexander Patrikalakis
  * 
  */
-public class OrientMassiveInsertion {
-  protected final String url;
-  protected Logger       logger = Logger.getLogger(OrientMassiveInsertion.class);
+public class OrientMassiveInsertion extends InsertionBase<Long> implements Insertion
+{
+    private static final int ESTIMATED_ENTRIES = 1000000;
+    private static final int AVERAGE_NUMBER_OF_EDGES_PER_NODE = 40;
+    private static final int NUMBER_OF_ORIENT_CLUSTERS = 16;
+    private final OGraphBatchInsertBasic graph;
 
-  public OrientMassiveInsertion(final String iURL) {
-    url = iURL;
-
-    OGlobalConfiguration.ENVIRONMENT_CONCURRENT.setValue(false);
-
-    OrientGraphNoTx g = new OrientGraphNoTx(url);
-    for (int i = 0; i < 16; ++i) {
-      g.getVertexBaseType().addCluster("v_" + i);
-      g.getEdgeBaseType().addCluster("e_" + i);
-    }
-    g.shutdown();
-  }
-
-  public void createGraph(String datasetDir) {
-    logger.setLevel(Level.INFO);
-    logger.info("Loading data in massive mode in OrientDB database . . . .");
-
-    final OGraphBatchInsertSimple g = new OGraphBatchInsertSimple(url);
-    g.setAverageEdgeNumberPerNode(40);
-    g.setEstimatedEntries(1000000);
-    g.begin();
-
-    try {
-      BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(datasetDir)));
-      String line;
-      int lineCounter = 1;
-      long srcVertex, dstVertex;
-      while ((line = reader.readLine()) != null) {
-        if (lineCounter > 4) {
-          String[] parts = line.split("\t");
-
-          srcVertex = Long.parseLong(parts[0]);
-          if (parts[0].equals(parts[1]))
-            dstVertex = srcVertex;
-          else
-            dstVertex = Long.parseLong(parts[0]);
-
-          g.createEdge(srcVertex, dstVertex);
+    public OrientMassiveInsertion(final String url)
+    {
+        super(GraphDatabaseType.ORIENT_DB, null /* resultsPath */);
+        OGlobalConfiguration.ENVIRONMENT_CONCURRENT.setValue(false);
+        OrientGraphNoTx transactionlessGraph = new OrientGraphNoTx(url);
+        for (int i = 0; i < NUMBER_OF_ORIENT_CLUSTERS; ++i)
+        {
+            transactionlessGraph.getVertexBaseType().addCluster("v_" + i);
+            transactionlessGraph.getEdgeBaseType().addCluster("e_" + i);
         }
-        lineCounter++;
-      }
-      reader.close();
-      g.end();
+        transactionlessGraph.shutdown();
 
-    } catch (IOException ioe) {
-      ioe.printStackTrace();
+        graph = new OGraphBatchInsertBasic(url);
+        graph.setAverageEdgeNumberPerNode(AVERAGE_NUMBER_OF_EDGES_PER_NODE);
+        graph.setEstimatedEntries(ESTIMATED_ENTRIES);
+        graph.begin();
     }
-  }
 
+    @Override
+    protected Long getOrCreate(String value)
+    {
+        return Long.parseLong(value);
+    }
+
+    @Override
+    protected void relateNodes(Long src, Long dest)
+    {
+        graph.createEdge(src, dest);
+    }
 }

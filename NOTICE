@@ -1,0 +1,9 @@
+This product includes software developed by Information Technologies Institute
+(CERTH, 57001, Thermi, Greece), and the following individuals:
+ * Sotiris Beis
+ * Alexander Patrikalakis
+
+It also includes software from other open source projects including,
+but not limited to (check pom.xml for complete listing):
+cassandra.yaml file came from:
+https://github.com/thinkaurelius/titan/blob/titan05/titan-cassandra/config/cassandra/cassandra.yaml

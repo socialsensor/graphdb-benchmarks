@@ -4,34 +4,29 @@ import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Stopwatch;
 
-import eu.socialsensor.graphdatabases.GraphDatabase;
 import eu.socialsensor.main.BenchmarkConfiguration;
 import eu.socialsensor.main.BenchmarkType;
 import eu.socialsensor.main.GraphDatabaseType;
 import eu.socialsensor.utils.Utils;
 
 /**
- * FindNeighboursOfAllNodesBenchmark implementation
- * 
- * @author sotbeis, sotbeis@iti.gr
+ * Benchmark that measures the time requried to delete a graph
  * @author Alexander Patrikalakis
+ *
  */
-public class FindNeighboursOfAllNodesBenchmark extends PermutingBenchmarkBase implements RequiresGraphData
+public class DeleteGraphBenchmark extends PermutingBenchmarkBase implements RequiresGraphData
 {
-    public FindNeighboursOfAllNodesBenchmark(BenchmarkConfiguration config)
+    public DeleteGraphBenchmark(BenchmarkConfiguration bench)
     {
-        super(config, BenchmarkType.FIND_NEIGHBOURS);
+        super(bench, BenchmarkType.DELETION);
     }
 
     @Override
     public void benchmarkOne(GraphDatabaseType type, int scenarioNumber)
     {
-        GraphDatabase<?,?,?,?> graphDatabase = Utils.createDatabaseInstance(bench, type);
-        graphDatabase.open();
         Stopwatch watch = new Stopwatch();
         watch.start();
-        graphDatabase.findAllNodeNeighbours();
-        graphDatabase.shutdown();
+        Utils.deleteDatabase(type, bench);
         times.get(type).add((double) watch.elapsed(TimeUnit.MILLISECONDS));
     }
 }
