@@ -20,9 +20,11 @@ For further information about the study please refer to the [published paper](ht
 
 **Note 2:** After the very useful comments and contributions of OrientDB developers, we updated the benchmark implementations and re-run the experiments. We have updated the initial presentation with the new results and uploaded a new version of the paper in the following [link](http://mklab.iti.gr/files/beis_adbis2014_corrected.pdf).
 
+**Note 3:** Alexander Patrikalakis, a software developer at Amazon Web Services, refactored the benchmark, added support for Blueprints 2.5 and added support for the DynamoDB Storage Backend for Titan.
+
 Instructions
 ------------
-To run the project at first you have to choose one of the aforementioned datasets. Of course you can select any dataset, but because there is not any utility class το convert the dataset in the appropriate format (for now), the format of the data must be identical with the tested datasets. The input parametes are configured from the config/input.properties file. Please follow the intructions in this file to select the correct parameters.
+To run the project at first you have to choose one of the aforementioned datasets. Of course you can select any dataset, but because there is not any utility class to convert the dataset in the appropriate format (for now), the format of the data must be identical with the tested datasets. The input parameters are configured from the src/test/resources/input.properties file. Please follow the instructions in this file to select the correct parameters. Then, run `mvn dependency:copy-dependencies && mvn test -Pbench` to execute the benchmarking run.
 
 Results
 -------
@@ -99,10 +101,10 @@ Below we list the results of MIW and QW for each dataset.
 |   YT    |  QW-FN   |20.71  |9.34      |**4.51**  |
 |   LJ    |  QW-FN   |213.41 |303.09    |**47.07** |
 |                                                  |
-|   EN    |  QW-FA   |3.78   |0.71     |**0.16**   |
-|   AM    |  QW-FA   |13.77  |2.30     |**0.36**   |
-|   YT    |  QW-FA   |42.82  |6.15     |**1.46**   |
-|   LJ    |  QW-FA   |460.25 |518.12   |**16.53**  |
+|   EN    |  QW-FA   |3.78   |0.71      |**0.16**  |
+|   AM    |  QW-FA   |13.77  |2.30      |**0.36**  |
+|   YT    |  QW-FA   |42.82  |6.15      |**1.46**  |
+|   LJ    |  QW-FA   |460.25 |518.12    |**16.53** |
 |                                                  |
 |   EN    |  QW-FS   |1.63   |3.09      |**0.16**  |
 |   AM    |  QW-FS   |0.12   |83.29     |**0.302** |
@@ -120,4 +122,4 @@ Below we list the results of SIW for each dataset.
 
 Contact
 -------
-For more information or support, please contact: sotbeis@iti.gr, sot.beis@gmail.com or papadop@iti.gr.
+For more information or support, please contact: sotbeis@iti.gr, sot.beis@gmail.com, papadop@iti.gr or amcp@me.com.
