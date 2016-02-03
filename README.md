@@ -114,11 +114,14 @@ Below we list the results of MIW and QW for each dataset.
 
 ####SIW results
 Below we list the results of SIW for each dataset.
+
+![siw_benchmark_updated](https://cloud.githubusercontent.com/assets/8163869/12272282/62b1c9f4-b914-11e5-85be-efd3f58e1e05.png)
+<!---
 ![alt text](https://raw.githubusercontent.com/socialsensor/graphdb-benchmarks/master/images/SIWEnron.png "Logo Title Text 1")
 ![alt text](https://raw.githubusercontent.com/socialsensor/graphdb-benchmarks/master/images/SIWAmazon.png "Logo2 Title Text 1")
 ![alt text](https://raw.githubusercontent.com/socialsensor/graphdb-benchmarks/master/images/SIWYoutube.png "Logo Title Text 1")
 ![alt text](https://raw.githubusercontent.com/socialsensor/graphdb-benchmarks/master/images/SIWLivejournal.png "Logo4 Title Text 1")
-
+--->
 
 Contact
 -------
