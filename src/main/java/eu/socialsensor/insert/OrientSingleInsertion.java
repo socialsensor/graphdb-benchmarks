@@ -2,12 +2,11 @@ package eu.socialsensor.insert;
 
 import java.io.File;
 
-import com.orientechnologies.orient.core.db.record.OIdentifiable;
-import com.orientechnologies.orient.core.index.OIndex;
-import com.tinkerpop.blueprints.TransactionalGraph;
-import com.tinkerpop.blueprints.Vertex;
-import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
+import org.apache.tinkerpop.gremlin.structure.Graph;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
 
+import eu.socialsensor.graphdatabases.OrientGraphDatabase;
 import eu.socialsensor.main.GraphDatabaseType;
 
 /**
@@ -19,58 +18,35 @@ import eu.socialsensor.main.GraphDatabaseType;
  */
 public final class OrientSingleInsertion extends InsertionBase<Vertex>
 {
-    protected final OrientGraph orientGraph;
-    protected final OIndex<?> index;
+    protected final Graph graph;
 
-    public OrientSingleInsertion(OrientGraph orientGraph, File resultsPath)
+    public OrientSingleInsertion(Graph graph, File resultsPath)
     {
         super(GraphDatabaseType.ORIENT_DB, resultsPath);
-        this.orientGraph = orientGraph;
-        this.index = this.orientGraph.getRawGraph().getMetadata().getIndexManager().getIndex("V.nodeId");
+        this.graph = graph;
     }
 
     @Override
     protected void relateNodes(Vertex src, Vertex dest)
     {
-        orientGraph.addEdge(null, src, dest, "similar");
-
-        // TODO why commit twice? is this a nested transaction?
-        if (orientGraph instanceof TransactionalGraph)
+        try
         {
-            ((TransactionalGraph) orientGraph).commit();
-            ((TransactionalGraph) orientGraph).commit();
+            src.addEdge(SIMILAR, dest);
+            graph.tx().commit();
+        }
+        catch (Exception e)
+        {
+            graph.tx().rollback();
         }
     }
 
-    @Override
-    protected Vertex getOrCreate(final String value)
-    {
-        final int key = Integer.parseInt(value);
-
-        Vertex v;
-        final OIdentifiable rec = (OIdentifiable) index.get(key);
-        if (rec != null)
-        {
-            return orientGraph.getVertex(rec);
-        }
-
-        v = orientGraph.addVertex(key, "nodeId", key);
-
-        if (orientGraph instanceof TransactionalGraph)
-        {
-            ((TransactionalGraph) orientGraph).commit();
-        }
-
-        return v;
+    protected Vertex getOrCreate(final String value) {
+        final Integer intValue = Integer.valueOf(value);
+        final GraphTraversal<Vertex, Vertex> traversal = graph.traversal().V().has(NODEID, intValue);
+        final Vertex vertex = traversal.hasNext() ? traversal.next() : graph.addVertex(OrientGraphDatabase.NODE_LABEL);
+        vertex.property(NODEID, intValue);
+        graph.tx().commit();
+        return vertex;
     }
 
-    @Override
-    protected void post()
-    {
-        super.post();
-        if (orientGraph instanceof TransactionalGraph)
-        {
-            ((TransactionalGraph) orientGraph).commit();
-        }
-    }
 }

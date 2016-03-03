@@ -2,10 +2,10 @@ package eu.socialsensor.insert;
 
 import java.io.File;
 
-import com.thinkaurelius.titan.core.TitanGraph;
-import com.thinkaurelius.titan.core.util.TitanId;
-import com.tinkerpop.blueprints.Compare;
-import com.tinkerpop.blueprints.Vertex;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
+import org.apache.tinkerpop.gremlin.structure.Graph;
+import org.apache.tinkerpop.gremlin.structure.Transaction;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
 
 import eu.socialsensor.main.GraphDatabaseType;
 
@@ -18,44 +18,37 @@ import eu.socialsensor.main.GraphDatabaseType;
  */
 public class TitanSingleInsertion extends InsertionBase<Vertex>
 {
-    private final TitanGraph titanGraph;
+    private final Graph graph;
 
-    public TitanSingleInsertion(TitanGraph titanGraph, GraphDatabaseType type, File resultsPath)
+    public TitanSingleInsertion(Graph titanGraph, GraphDatabaseType type, File resultsPath)
     {
         super(type, resultsPath);
-        this.titanGraph = titanGraph;
+        this.graph = titanGraph;
     }
 
     @Override
     public Vertex getOrCreate(String value)
     {
-        Integer intValue = Integer.valueOf(value);
-        final Vertex v;
-        if (titanGraph.query().has("nodeId", Compare.EQUAL, intValue).vertices().iterator().hasNext())
-        {
-            v = (Vertex) titanGraph.query().has("nodeId", Compare.EQUAL, intValue).vertices().iterator().next();
-        }
-        else
-        {
-            final long titanVertexId = TitanId.toVertexId(intValue);
-            v = titanGraph.addVertex(titanVertexId);
-            v.setProperty("nodeId", intValue);
-            titanGraph.commit();
-        }
-        return v;
+        final Transaction tx = graph.tx();
+        final Integer intValue = Integer.valueOf(value);
+        final GraphTraversal<Vertex, Vertex> traversal = graph.traversal().V().has(NODEID, intValue);
+        final Vertex vertex = traversal.hasNext() ? traversal.next() : graph.addVertex(NODEID, intValue);
+        tx.commit();
+        return vertex;
     }
 
     @Override
     public void relateNodes(Vertex src, Vertex dest)
     {
+        final Transaction tx = graph.tx();
         try
         {
-            titanGraph.addEdge(null, src, dest, "similar");
-            titanGraph.commit();
+            src.addEdge(SIMILAR, dest);
+            tx.commit();
         }
         catch (Exception e)
         {
-            titanGraph.rollback(); //TODO(amcp) why can this happen? doesn't this indicate illegal state?
+            tx.rollback();
         }
     }
 }

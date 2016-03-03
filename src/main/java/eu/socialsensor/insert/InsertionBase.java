@@ -30,6 +30,8 @@ public abstract class InsertionBase<T> implements Insertion
 {
     private static final Logger logger = LogManager.getLogger();
     public static final String INSERTION_CONTEXT = ".eu.socialsensor.insertion.";
+    public static final String SIMILAR = "similar";
+    public static final String NODEID = "nodeId";
     private final Timer getOrCreateTimes;
     private final Timer relateNodesTimes;
 

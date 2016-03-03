@@ -25,12 +25,6 @@ import eu.socialsensor.dataset.DatasetFactory;
  */
 public class BenchmarkConfiguration
 {
-    // orientdb Configuration
-    private static final String LIGHTWEIGHT_EDGES = "lightweight-edges";
-
-    // Sparksee / DEX configuration
-    private static final String LICENSE_KEY = "license-key";
-
     // Titan specific configuration
     private static final String TITAN = "titan";
     private static final String BUFFER_SIZE = GraphDatabaseConfiguration.BUFFER_SIZE.getName();
@@ -87,8 +81,6 @@ public class BenchmarkConfiguration
     private final long dynamodbTps;
     private final BackendDataModel dynamodbDataModel;
     private final boolean dynamodbConsistentRead;
-    private final Boolean orientLightweightEdges;
-    private final String sparkseeLicenseKey;
 
     // shortest path
     private final int randomNodes;
@@ -163,12 +155,6 @@ public class BenchmarkConfiguration
             .getString(CONSTRUCTOR_ARGS) : null;
         this.dynamodbEndpoint = dynamodb.containsKey(ENDPOINT) ? dynamodb.getString(ENDPOINT) : null;
         this.dynamodbTablePrefix = dynamodb.containsKey(TABLE_PREFIX) ? dynamodb.getString(TABLE_PREFIX) : Constants.DYNAMODB_TABLE_PREFIX.getDefaultValue();
-
-        Configuration orient = socialsensor.subset("orient");
-        orientLightweightEdges = orient.containsKey(LIGHTWEIGHT_EDGES) ? orient.getBoolean(LIGHTWEIGHT_EDGES) : null;
-
-        Configuration sparksee = socialsensor.subset("sparksee");
-        sparkseeLicenseKey = sparksee.containsKey(LICENSE_KEY) ? sparksee.getString(LICENSE_KEY) : null;
 
         Configuration titan = socialsensor.subset(TITAN); //TODO(amcp) move dynamodb ns into titan
         bufferSize = titan.getInt(BUFFER_SIZE, GraphDatabaseConfiguration.BUFFER_SIZE.getDefaultValue());
@@ -358,16 +344,6 @@ public class BenchmarkConfiguration
     public File getActualCommunitiesFile()
     {
         return actualCommunities;
-    }
-
-    public Boolean orientLightweightEdges()
-    {
-        return orientLightweightEdges;
-    }
-
-    public String getSparkseeLicenseKey()
-    {
-        return sparkseeLicenseKey;
     }
 
     public boolean permuteBenchmarks()

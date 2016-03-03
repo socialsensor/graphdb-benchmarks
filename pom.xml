@@ -50,38 +50,21 @@
     </scm>
 
     <properties>
-        <blueprints.version>2.6.0</blueprints.version>
-        <orientdb.version>2.1.0</orientdb.version>
-        <titan.version>0.5.4</titan.version>
+        <tinkerpop.version>3.0.1-incubating</tinkerpop.version>
+        <titan.version>1.0.0</titan.version>
         <hbase.version>0.98.8-hadoop2</hbase.version>
         <neo4j.version>2.0.1</neo4j.version>
         <dynamodb.titan.version>1.0.0</dynamodb.titan.version>
         <log4j2.version>2.1</log4j2.version>
         <maven.surefire.version>2.18.1</maven.surefire.version>
         <jdk.version>1.8</jdk.version>
-        <metrics.version>3.0.0-BETA3</metrics.version>
     </properties>
 
     <dependencies>
         <dependency>
-            <groupId>org.antlr</groupId>
-            <artifactId>antlr-runtime</artifactId>
-            <version>3.2</version>
-        </dependency>
-        <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>14.0.1</version>
-        </dependency>
-        <dependency>
-            <groupId>colt</groupId>
-            <artifactId>colt</artifactId>
-            <version>1.2.0</version>
-        </dependency>
-        <dependency>
-            <groupId>commons-codec</groupId>
-            <artifactId>commons-codec</artifactId>
-            <version>1.7</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -114,41 +97,6 @@
             <version>${log4j2.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.geronimo.specs</groupId>
-            <artifactId>geronimo-jta_1.1_spec</artifactId>
-            <version>1.1.1</version>
-        </dependency>
-        <dependency>
-            <groupId>com.tinkerpop.gremlin</groupId>
-            <artifactId>gremlin-groovy</artifactId>
-            <version>${blueprints.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.tinkerpop.gremlin</groupId>
-            <artifactId>gremlin-java</artifactId>
-            <version>${blueprints.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.github.stephenc.high-scale-lib</groupId>
-            <artifactId>high-scale-lib</artifactId>
-            <version>1.1.2</version>
-        </dependency>
-        <dependency>
-            <groupId>com.carrotsearch</groupId>
-            <artifactId>hppc</artifactId>
-            <version>0.4.2</version>
-        </dependency>
-        <dependency>
-            <groupId>com.sleepycat</groupId>
-            <artifactId>je</artifactId>
-            <version>5.0.73</version>
-        </dependency>
-        <dependency>
-            <groupId>net.java.dev.jna</groupId>
-            <artifactId>jna</artifactId>
-            <version>4.0.0</version>
-        </dependency>
-        <dependency>
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-core</artifactId>
             <version>3.6.2</version>
@@ -164,45 +112,9 @@
             <version>${neo4j.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.tinkerpop.blueprints</groupId>
-            <artifactId>blueprints-neo4j2-graph</artifactId>
-            <version>${blueprints.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>ch.qos.logback</groupId>
-                    <artifactId>logback-classic</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>com.orientechnologies</groupId>
-            <artifactId>orientdb-graphdb</artifactId>
-            <version>${orientdb.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.tinkerpop</groupId>
-            <artifactId>pipes</artifactId>
-            <version>${blueprints.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>1.7.5</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>1.7.5</version>
-        </dependency>
-        <dependency>
-            <groupId>org.iq80.snappy</groupId>
-            <artifactId>snappy</artifactId>
-            <version>0.3</version>
-        </dependency>
-        <dependency>
-            <groupId>com.spatial4j</groupId>
-            <artifactId>spatial4j</artifactId>
-            <version>0.3</version>
+            <groupId>org.apache.tinkerpop</groupId>
+            <artifactId>gremlin-core</artifactId>
+            <version>${tinkerpop.version}</version>
         </dependency>
         <dependency>
             <groupId>com.thinkaurelius.titan</groupId>
@@ -213,14 +125,6 @@
             <groupId>com.thinkaurelius.titan</groupId>
             <artifactId>titan-cassandra</artifactId>
             <version>${titan.version}</version>
-            <!--
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.httpcomponents</groupId>
-                    <artifactId>httpcore</artifactId>
-                </exclusion>
-            </exclusions>
-            -->
         </dependency>
         <dependency>
             <groupId>com.thinkaurelius.titan</groupId>
@@ -228,40 +132,20 @@
             <version>${titan.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.thinkaurelius.titan</groupId>
-            <artifactId>titan-core</artifactId>
-            <version>${titan.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.hbase</groupId>
-            <artifactId>hbase-client</artifactId>
-            <version>${hbase.version}</version>
-        </dependency>
-        <dependency>
             <groupId>com.amazonaws</groupId>
-            <artifactId>dynamodb-titan054-storage-backend</artifactId>
+            <artifactId>dynamodb-titan100-storage-backend</artifactId>
             <version>${dynamodb.titan.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.sparsity</groupId>
-            <artifactId>sparkseejava</artifactId>
-            <version>5.0.0</version>
-        </dependency>
-        <dependency>
-           <groupId>com.tinkerpop.blueprints</groupId>
-           <artifactId>blueprints-sparksee-graph</artifactId>
-           <version>${blueprints.version}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.11</version>
+            <version>4.12</version>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.codahale.metrics</groupId>
-            <artifactId>metrics-core</artifactId>
-            <version>${metrics.version}</version>
+            <groupId>com.github.amcp</groupId>
+            <artifactId>orientdb-gremlin</artifactId>
+            <version>${tinkerpop.version}.0</version>
         </dependency>
     </dependencies>
     <build>
@@ -444,23 +328,10 @@
             </build>
         </profile>
     </profiles>
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.apache.httpcomponents</groupId>
-                <artifactId>httpclient</artifactId>
-                <version>4.3.6</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.httpcomponents</groupId>
-                <artifactId>httpcore</artifactId>
-                <version>4.3.3</version>
-            </dependency>
-            <dependency>
-                <groupId>joda-time</groupId>
-                <artifactId>joda-time</artifactId>
-                <version>2.8.1</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
 </project>
