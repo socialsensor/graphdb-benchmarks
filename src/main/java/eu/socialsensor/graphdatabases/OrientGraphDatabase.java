@@ -1,6 +1,5 @@
 package eu.socialsensor.graphdatabases;
 
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.orientechnologies.orient.core.config.OGlobalConfiguration;
 
@@ -123,6 +122,7 @@ public class OrientGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Ite
     @Override
     public void shortestPath(final Vertex v1, Integer i)
     {
+        @SuppressWarnings("unused")
         final OrientVertex v2 = (OrientVertex) getVertex(i);
 
         //TODO(amcp) need to do something about the number 5

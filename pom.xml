@@ -53,7 +53,7 @@
         <tinkerpop.version>3.0.1-incubating</tinkerpop.version>
         <titan.version>1.0.0</titan.version>
         <hbase.version>0.98.8-hadoop2</hbase.version>
-        <neo4j.version>2.0.1</neo4j.version>
+        <neo4j.version>2.3.2</neo4j.version>
         <dynamodb.titan.version>1.0.0</dynamodb.titan.version>
         <log4j2.version>2.1</log4j2.version>
         <maven.surefire.version>2.18.1</maven.surefire.version>
@@ -102,9 +102,15 @@
             <version>3.6.2</version>
         </dependency>
         <dependency>
+            <groupId>org.apache.tinkerpop</groupId>
+            <artifactId>neo4j-gremlin</artifactId>
+            <version>${tinkerpop.version}</version>
+        </dependency>
+        <!-- neo4j-tinkerpop-api-impl is NOT Apache 2 licensed - more information below -->
+        <dependency>
             <groupId>org.neo4j</groupId>
-            <artifactId>neo4j-cypher</artifactId>
-            <version>${neo4j.version}</version>
+            <artifactId>neo4j-tinkerpop-api-impl</artifactId>
+            <version>0.3-2.3.2</version>
         </dependency>
         <dependency>
             <groupId>org.neo4j</groupId>
