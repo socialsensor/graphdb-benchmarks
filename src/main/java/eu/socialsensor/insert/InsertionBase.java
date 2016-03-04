@@ -85,9 +85,7 @@ public abstract class InsertionBase<T> implements Insertion
         Dataset dataset = DatasetFactory.getInstance().getDataset(datasetFile);
 
         T srcNode, dstNode;
-        Stopwatch thousandWatch = new Stopwatch(), watch = new Stopwatch();
-        thousandWatch.start();
-        watch.start();
+        Stopwatch thousandWatch = Stopwatch.createStarted(), watch = Stopwatch.createStarted();
         int i = 4;
         for (List<String> line : dataset)
         {
@@ -116,8 +114,7 @@ public abstract class InsertionBase<T> implements Insertion
             {
                 insertionTimes.add((double) thousandWatch.elapsed(TimeUnit.MILLISECONDS));
                 thousandWatch.stop();
-                thousandWatch = new Stopwatch();
-                thousandWatch.start();
+                thousandWatch = Stopwatch.createStarted();
             }
             i++;
         }

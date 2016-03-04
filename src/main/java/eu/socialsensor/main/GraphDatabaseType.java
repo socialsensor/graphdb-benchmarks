@@ -17,7 +17,7 @@ public enum GraphDatabaseType
     TITAN_CASSANDRA("Titan", "cassandra", "tc"),
     TITAN_CASSANDRA_EMBEDDED("TitanEmbedded", "embeddedcassandra", "tce"),
     TITAN_HBASE("Titan", "hbase", "thb"),
-    TITAN_PERSISTIT("TitanEmbedded", "inmemory", "tp"),
+    TITAN_PERSISTIT("TitanEmbedded", "inmemory", "ti"),
     ORIENT_DB("OrientDB", null, "orient"),
     NEO4J("Neo4j", null, "neo4j");
 

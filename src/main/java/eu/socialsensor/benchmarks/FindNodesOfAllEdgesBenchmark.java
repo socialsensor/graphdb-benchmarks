@@ -28,8 +28,7 @@ public class FindNodesOfAllEdgesBenchmark extends PermutingBenchmarkBase impleme
     {
         GraphDatabase<?,?,?,?> graphDatabase = Utils.createDatabaseInstance(bench, type);
         graphDatabase.open();
-        Stopwatch watch = new Stopwatch();
-        watch.start();
+        Stopwatch watch = Stopwatch.createStarted();
         graphDatabase.findNodesOfAllEdges();
         graphDatabase.shutdown();
         times.get(type).add((double) watch.elapsed(TimeUnit.MILLISECONDS));

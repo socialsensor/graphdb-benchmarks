@@ -28,8 +28,7 @@ public class FindNeighboursOfAllNodesBenchmark extends PermutingBenchmarkBase im
     {
         GraphDatabase<?,?,?,?> graphDatabase = Utils.createDatabaseInstance(bench, type);
         graphDatabase.open();
-        Stopwatch watch = new Stopwatch();
-        watch.start();
+        Stopwatch watch = Stopwatch.createStarted();
         graphDatabase.findAllNodeNeighbours();
         graphDatabase.shutdown();
         times.get(type).add((double) watch.elapsed(TimeUnit.MILLISECONDS));

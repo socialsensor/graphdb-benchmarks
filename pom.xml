@@ -52,11 +52,13 @@
     <properties>
         <tinkerpop.version>3.0.1-incubating</tinkerpop.version>
         <titan.version>1.0.0</titan.version>
-        <hbase.version>0.98.8-hadoop2</hbase.version>
+        <hbase.version>1.0.2</hbase.version>
         <neo4j.version>2.3.2</neo4j.version>
         <dynamodb.titan.version>1.0.0</dynamodb.titan.version>
         <log4j2.version>2.1</log4j2.version>
-        <maven.surefire.version>2.18.1</maven.surefire.version>
+        <maven.dependency.version>2.10</maven.dependency.version>
+        <maven.surefire.version>2.19.1</maven.surefire.version>
+        <maven.assembly.version>2.6</maven.assembly.version>
         <jdk.version>1.8</jdk.version>
     </properties>
 
@@ -64,7 +66,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>14.0.1</version>
+            <version>18.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -136,6 +138,11 @@
             <groupId>com.thinkaurelius.titan</groupId>
             <artifactId>titan-hbase</artifactId>
             <version>${titan.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hbase</groupId>
+            <artifactId>hbase-client</artifactId>
+            <version>${hbase.version}</version>
         </dependency>
         <dependency>
             <groupId>com.amazonaws</groupId>
@@ -232,16 +239,16 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-dependency-plugin</artifactId>
-                    <version>2.2</version>
+                    <version>${dependency.plugin.version}</version>
                     <executions>
                         <execution>
                             <id>copy-dependencies</id>
-                            <phase>package</phase>
+                            <phase>process-test-resources</phase>
                             <goals>
                                 <goal>copy-dependencies</goal>
                             </goals>
                             <configuration>
-                                <outputDirectory>${project.build.directory}/dependency</outputDirectory>
+                                <outputDirectory>${project.build.directory}/dependencies</outputDirectory>
                                 <overWriteReleases>false</overWriteReleases>
                                 <overWriteSnapshots>false</overWriteSnapshots>
                                 <overWriteIfNewer>true</overWriteIfNewer>
@@ -286,7 +293,7 @@
                 <plugins>
                     <plugin>
                         <artifactId>maven-assembly-plugin</artifactId>
-                        <version>2.5.3</version>
+                        <version>${maven.assembly.version}</version>
                         <configuration>
                             <descriptors>
                                 <descriptor>src/assembly/component.xml</descriptor>

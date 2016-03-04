@@ -364,8 +364,8 @@ public class OrientGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Ite
     protected void createSchema()
     {
         createIndex(NODE_ID, NODE_LABEL, "UNIQUE_HASH_INDEX", "INTEGER");
-        createIndex(COMMUNITY, null /*label*/, "NOTUNIQUE_HASH_INDEX", "INTEGER");
-        createIndex(NODE_COMMUNITY, null /*label*/, "NOTUNIQUE_HASH_INDEX", "INTEGER");
+        createIndex(COMMUNITY, NODE_LABEL, "NOTUNIQUE_HASH_INDEX", "INTEGER");
+        createIndex(NODE_COMMUNITY, NODE_LABEL, "NOTUNIQUE_HASH_INDEX", "INTEGER");
     }
 
     private void createIndex(String key, String label, String type, String keytype) {
@@ -375,7 +375,6 @@ public class OrientGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Ite
         final Configuration nodeIdIndexConfig = new PropertiesConfiguration();
         nodeIdIndexConfig.addProperty("type", type);
         nodeIdIndexConfig.addProperty("keytype", keytype);
-        graph.createVertexIndex(NODE_ID, label, nodeIdIndexConfig);
     }
 
     private OrientGraph getGraph(final File dbPath)
