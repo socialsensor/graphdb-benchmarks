@@ -32,7 +32,8 @@ import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 
 /**
- * OrientDB graph database implementation
+ * OrientDB graph database implementation.
+ * TODO(amcp) replace with the official OrientDB implementation when available.
  * 
  * @author sotbeis, sotbeis@iti.gr
  * @author Alexander Patrikalakis
@@ -381,6 +382,7 @@ public class OrientGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Ite
     {
         Configuration config = new PropertiesConfiguration();
         config.setProperty(OrientGraph.CONFIG_URL, "plocal:" + dbPath.getAbsolutePath());
+        // TODO(amcp) replace with the official OrientDB implementation when available.
         final OrientGraphFactory graphFactory = new OrientGraphFactory(config);
         return graphFactory.getTx();
     }
