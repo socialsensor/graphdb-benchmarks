@@ -6,3 +6,6 @@ target/*
 /.gitignore
 /.settings
 /.classpath
+/metrics
+/storage
+/results

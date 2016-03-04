@@ -4,6 +4,7 @@ import java.io.File;
 
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.structure.Graph;
+import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Transaction;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 
@@ -29,11 +30,10 @@ public class TitanSingleInsertion extends InsertionBase<Vertex>
     @Override
     public Vertex getOrCreate(String value)
     {
-        final Transaction tx = graph.tx();
         final Integer intValue = Integer.valueOf(value);
-        final GraphTraversal<Vertex, Vertex> traversal = graph.traversal().V().has(NODEID, intValue);
-        final Vertex vertex = traversal.hasNext() ? traversal.next() : graph.addVertex(NODEID, intValue);
-        tx.commit();
+        final GraphTraversal<Vertex, Vertex> traversal = graph.traversal().V().hasLabel(NODE_LABEL).has(NODEID, intValue);
+        final Vertex vertex = traversal.hasNext() ? traversal.next() : graph.addVertex(T.label, NODE_LABEL, NODEID, intValue);
+        graph.tx().commit();
         return vertex;
     }
 

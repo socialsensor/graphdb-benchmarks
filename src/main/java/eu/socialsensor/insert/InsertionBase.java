@@ -14,6 +14,7 @@ import com.google.common.base.Stopwatch;
 import eu.socialsensor.benchmarks.SingleInsertionBenchmark;
 import eu.socialsensor.dataset.Dataset;
 import eu.socialsensor.dataset.DatasetFactory;
+import eu.socialsensor.graphdatabases.GraphDatabaseBase;
 import eu.socialsensor.main.GraphDatabaseBenchmark;
 import eu.socialsensor.main.GraphDatabaseType;
 import eu.socialsensor.utils.Utils;
@@ -30,8 +31,9 @@ public abstract class InsertionBase<T> implements Insertion
 {
     private static final Logger logger = LogManager.getLogger();
     public static final String INSERTION_CONTEXT = ".eu.socialsensor.insertion.";
-    public static final String SIMILAR = "similar";
-    public static final String NODEID = "nodeId";
+    public static final String SIMILAR = GraphDatabaseBase.SIMILAR;
+    public static final String NODEID = GraphDatabaseBase.NODE_ID;
+    public static final String NODE_LABEL = GraphDatabaseBase.NODE_LABEL;
     private final Timer getOrCreateTimes;
     private final Timer relateNodesTimes;
 

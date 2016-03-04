@@ -75,6 +75,9 @@ public class GraphDatabaseBenchmark
         }
         config = new BenchmarkConfiguration(appconfig);
         if(config.publishCsvMetrics()) {
+            if(!config.getCsvDir().mkdirs()) {
+                throw new IllegalArgumentException("unable to prepare metrics directory " + config.getCsvDir().getAbsolutePath());
+            }
             final CsvReporter reporter = CsvReporter.forRegistry(metrics)
                 .formatFor(Locale.US)
                 .convertRatesTo(TimeUnit.SECONDS)

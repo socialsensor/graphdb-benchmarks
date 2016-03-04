@@ -2,6 +2,7 @@ package eu.socialsensor.graphdatabases;
 
 import com.google.common.collect.Iterators;
 import com.orientechnologies.orient.core.config.OGlobalConfiguration;
+import com.orientechnologies.orient.core.metadata.schema.OType;
 
 import eu.socialsensor.insert.Insertion;
 import eu.socialsensor.insert.OrientMassiveInsertion;
@@ -41,8 +42,8 @@ import org.apache.tinkerpop.gremlin.structure.Vertex;
 public class OrientGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iterator<Edge>, Vertex, Edge>
 {
 
-    //to look up the existence of indexes in OrientDB, you need to have vertex labels.
-    public static final String NODE_LABEL = "NODE";
+    public static final String UNIQUE_HASH_INDEX = "UNIQUE_HASH_INDEX";
+    public static final String NOTUNIQUE_HASH_INDEX = "NOTUNIQUE_HASH_INDEX";
     private OrientGraph graph = null;
 
     public OrientGraphDatabase(BenchmarkConfiguration config, File dbStorageDirectoryIn)
@@ -363,18 +364,19 @@ public class OrientGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Ite
 
     protected void createSchema()
     {
-        createIndex(NODE_ID, NODE_LABEL, "UNIQUE_HASH_INDEX", "INTEGER");
-        createIndex(COMMUNITY, NODE_LABEL, "NOTUNIQUE_HASH_INDEX", "INTEGER");
-        createIndex(NODE_COMMUNITY, NODE_LABEL, "NOTUNIQUE_HASH_INDEX", "INTEGER");
+        createIndex(NODE_ID, NODE_LABEL, UNIQUE_HASH_INDEX, OType.INTEGER);
+        createIndex(COMMUNITY, NODE_LABEL, NOTUNIQUE_HASH_INDEX, OType.INTEGER);
+        createIndex(NODE_COMMUNITY, NODE_LABEL, NOTUNIQUE_HASH_INDEX, OType.INTEGER);
     }
 
-    private void createIndex(String key, String label, String type, String keytype) {
+    private void createIndex(String key, String label, String type, OType keytype) {
         if(graph.getVertexIndexedKeys(label).contains(NODE_ID)) {
             return;
         }
         final Configuration nodeIdIndexConfig = new PropertiesConfiguration();
         nodeIdIndexConfig.addProperty("type", type);
         nodeIdIndexConfig.addProperty("keytype", keytype);
+        graph.createVertexIndex(key, label, nodeIdIndexConfig);
     }
 
     private OrientGraph getGraph(final File dbPath)

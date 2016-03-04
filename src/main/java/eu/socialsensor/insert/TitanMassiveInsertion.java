@@ -2,6 +2,7 @@ package eu.socialsensor.insert;
 
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.structure.Graph;
+import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 
 import eu.socialsensor.main.GraphDatabaseType;
@@ -28,8 +29,8 @@ public class TitanMassiveInsertion extends InsertionBase<Vertex>
     public Vertex getOrCreate(String value)
     {
         Integer intVal = Integer.valueOf(value);
-        final GraphTraversal<Vertex, Vertex> t = graph.traversal().V().has(NODEID, intVal);
-        final Vertex vertex = t.hasNext() ? t.next() : graph.addVertex(NODEID, intVal);
+        final GraphTraversal<Vertex, Vertex> t = graph.traversal().V().hasLabel(NODE_LABEL).has(NODEID, intVal);
+        final Vertex vertex = t.hasNext() ? t.next() : graph.addVertex(T.label, NODE_LABEL, NODEID, intVal);
         return vertex;
     }
 

@@ -38,6 +38,7 @@ import com.thinkaurelius.titan.core.PropertyKey;
 import com.thinkaurelius.titan.core.TitanFactory;
 import com.thinkaurelius.titan.core.TitanGraph;
 import com.thinkaurelius.titan.core.schema.TitanManagement;
+import com.thinkaurelius.titan.core.schema.VertexLabelMaker;
 import com.thinkaurelius.titan.core.util.TitanCleanup;
 import com.thinkaurelius.titan.graphdb.configuration.GraphDatabaseConfiguration;
 
@@ -561,6 +562,10 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
     private void createSchema()
     {
         final TitanManagement mgmt = graph.openManagement();
+        if(!mgmt.containsVertexLabel(NODE_LABEL)) {
+            final VertexLabelMaker maker = mgmt.makeVertexLabel(NODE_LABEL);
+            maker.make();
+        }
         if (null == mgmt.getGraphIndex(NODE_ID))
         {
             final PropertyKey key = mgmt.makePropertyKey(NODE_ID).dataType(Integer.class).make();
@@ -581,6 +586,7 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
             mgmt.makeEdgeLabel(SIMILAR).multiplicity(Multiplicity.MULTI).directed().make();
         }
         mgmt.commit();
+        graph.tx().commit();
     }
 
     @Override

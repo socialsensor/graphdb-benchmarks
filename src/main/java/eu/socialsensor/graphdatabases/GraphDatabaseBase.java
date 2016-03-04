@@ -19,6 +19,7 @@ public abstract class GraphDatabaseBase<VertexIteratorType, EdgeIteratorType, Ve
     public static final String NODE_ID = "nodeId";
     public static final String NODE_COMMUNITY = "nodeCommunity";
     public static final String COMMUNITY = "community";
+    public static final String NODE_LABEL = "node";
     protected final File dbStorageDirectory;
     protected final MetricRegistry metrics = new MetricRegistry();
     protected final GraphDatabaseType type;

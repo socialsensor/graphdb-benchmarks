@@ -2,6 +2,7 @@ package eu.socialsensor.insert;
 
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.structure.Graph;
+import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 
 import eu.socialsensor.graphdatabases.OrientGraphDatabase;
@@ -28,9 +29,8 @@ public class OrientMassiveInsertion extends InsertionBase<Vertex> implements Ins
     protected Vertex getOrCreate(String value)
     {
         final Integer intValue = Integer.valueOf(value);
-        final GraphTraversal<Vertex, Vertex> traversal = graph.traversal().V().has(NODEID, intValue);
-        final Vertex vertex = traversal.hasNext() ? traversal.next() : graph.addVertex(OrientGraphDatabase.NODE_LABEL);
-        vertex.property(NODEID, intValue);
+        final GraphTraversal<Vertex, Vertex> traversal = graph.traversal().V().hasLabel(NODE_LABEL).has(NODEID, intValue);
+        final Vertex vertex = traversal.hasNext() ? traversal.next() : graph.addVertex(T.label, OrientGraphDatabase.NODE_LABEL, NODEID, intValue);
         return vertex;
     }
 
