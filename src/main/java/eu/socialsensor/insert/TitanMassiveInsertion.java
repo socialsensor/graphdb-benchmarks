@@ -1,9 +1,9 @@
 package eu.socialsensor.insert;
 
-import com.thinkaurelius.titan.core.TitanGraph;
-import com.thinkaurelius.titan.core.util.TitanId;
-import com.tinkerpop.blueprints.Vertex;
-import com.tinkerpop.blueprints.util.wrappers.batch.BatchGraph;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
+import org.apache.tinkerpop.gremlin.structure.Graph;
+import org.apache.tinkerpop.gremlin.structure.T;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
 
 import eu.socialsensor.main.GraphDatabaseType;
 
@@ -16,32 +16,32 @@ import eu.socialsensor.main.GraphDatabaseType;
  */
 public class TitanMassiveInsertion extends InsertionBase<Vertex>
 {
-    private final BatchGraph<TitanGraph> batchGraph;
+    private final Graph graph;
 
-    public TitanMassiveInsertion(BatchGraph<TitanGraph> batchGraph, GraphDatabaseType type)
+    public TitanMassiveInsertion(Graph graph, GraphDatabaseType type)
     {
         super(type, null /* resultsPath */); // no temp files for massive load
                                              // insert
-        this.batchGraph = batchGraph;
+        this.graph = graph;
     }
 
     @Override
     public Vertex getOrCreate(String value)
     {
         Integer intVal = Integer.valueOf(value);
-        final long titanVertexId = TitanId.toVertexId(intVal);
-        Vertex vertex = batchGraph.getVertex(titanVertexId);
-        if (vertex == null)
-        {
-            vertex = batchGraph.addVertex(titanVertexId);
-            vertex.setProperty("nodeId", intVal);
-        }
+        final GraphTraversal<Vertex, Vertex> t = graph.traversal().V().hasLabel(NODE_LABEL).has(NODEID, intVal);
+        final Vertex vertex = t.hasNext() ? t.next() : graph.addVertex(T.label, NODE_LABEL, NODEID, intVal);
         return vertex;
     }
 
     @Override
     public void relateNodes(Vertex src, Vertex dest)
     {
-        src.addEdge("similar", dest);
+        src.addEdge(SIMILAR, dest);
+    }
+
+    @Override
+    protected void post() {
+        graph.tx().commit();
     }
 }

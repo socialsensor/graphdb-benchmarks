@@ -23,7 +23,6 @@ import org.apache.logging.log4j.Logger;
 import eu.socialsensor.graphdatabases.GraphDatabase;
 import eu.socialsensor.graphdatabases.Neo4jGraphDatabase;
 import eu.socialsensor.graphdatabases.OrientGraphDatabase;
-import eu.socialsensor.graphdatabases.SparkseeGraphDatabase;
 import eu.socialsensor.graphdatabases.TitanGraphDatabase;
 import eu.socialsensor.main.BenchmarkConfiguration;
 import eu.socialsensor.main.BenchmarkingException;
@@ -196,10 +195,6 @@ public class Utils
         else if (GraphDatabaseType.ORIENT_DB == type)
         {
             graphDatabase = new OrientGraphDatabase(config, dbStorageDirectory);
-        }
-        else if (GraphDatabaseType.SPARKSEE == type)
-        {
-            graphDatabase = new SparkseeGraphDatabase(config, dbStorageDirectory);
         }
         else
         {

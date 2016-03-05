@@ -1,24 +1,8 @@
 package eu.socialsensor.graphdatabases;
 
-import com.google.common.collect.Iterables;
-import com.orientechnologies.common.collection.OMultiCollectionIterator;
-import com.orientechnologies.common.util.OCallable;
-import com.orientechnologies.orient.core.command.OBasicCommandContext;
+import com.google.common.collect.Iterators;
 import com.orientechnologies.orient.core.config.OGlobalConfiguration;
-import com.orientechnologies.orient.core.id.ORID;
 import com.orientechnologies.orient.core.metadata.schema.OType;
-import com.orientechnologies.orient.graph.sql.functions.OSQLFunctionShortestPath;
-import com.tinkerpop.blueprints.Direction;
-import com.tinkerpop.blueprints.Edge;
-import com.tinkerpop.blueprints.Parameter;
-import com.tinkerpop.blueprints.Vertex;
-import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
-import com.tinkerpop.blueprints.impls.orient.OrientEdgeType;
-import com.tinkerpop.blueprints.impls.orient.OrientGraph;
-import com.tinkerpop.blueprints.impls.orient.OrientGraphFactory;
-import com.tinkerpop.blueprints.impls.orient.OrientGraphNoTx;
-import com.tinkerpop.blueprints.impls.orient.OrientVertex;
-import com.tinkerpop.blueprints.impls.orient.OrientVertexType;
 
 import eu.socialsensor.insert.Insertion;
 import eu.socialsensor.insert.OrientMassiveInsertion;
@@ -35,9 +19,22 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
+
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.tinkerpop.gremlin.orientdb.OrientGraph;
+import org.apache.tinkerpop.gremlin.orientdb.OrientGraphFactory;
+import org.apache.tinkerpop.gremlin.orientdb.OrientVertex;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
+import org.apache.tinkerpop.gremlin.structure.Direction;
+import org.apache.tinkerpop.gremlin.structure.Edge;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
 
 /**
- * OrientDB graph database implementation
+ * OrientDB graph database implementation.
+ * TODO(amcp) replace with the official OrientDB implementation when available.
  * 
  * @author sotbeis, sotbeis@iti.gr
  * @author Alexander Patrikalakis
@@ -45,16 +42,14 @@ import java.util.Set;
 public class OrientGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iterator<Edge>, Vertex, Edge>
 {
 
+    public static final String UNIQUE_HASH_INDEX = "UNIQUE_HASH_INDEX";
+    public static final String NOTUNIQUE_HASH_INDEX = "NOTUNIQUE_HASH_INDEX";
     private OrientGraph graph = null;
-    private boolean useLightWeightEdges;
 
-    //
     public OrientGraphDatabase(BenchmarkConfiguration config, File dbStorageDirectoryIn)
     {
         super(GraphDatabaseType.ORIENT_DB, dbStorageDirectoryIn);
         OGlobalConfiguration.STORAGE_COMPRESSION_METHOD.setValue("nothing");
-        this.useLightWeightEdges = config.orientLightweightEdges() == null ? true : config.orientLightweightEdges()
-            .booleanValue();
     }
 
     @Override
@@ -84,7 +79,7 @@ public class OrientGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Ite
     @Override
     public void massiveModeLoading(File dataPath)
     {
-        OrientMassiveInsertion orientMassiveInsertion = new OrientMassiveInsertion(this.graph.getRawGraph().getURL());
+        OrientMassiveInsertion orientMassiveInsertion = new OrientMassiveInsertion(graph);
         orientMassiveInsertion.createGraph(dataPath, 0 /* scenarioNumber */);
     }
 
@@ -102,15 +97,20 @@ public class OrientGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Ite
         {
             return;
         }
-        graph.shutdown();
+        try
+        {
+            graph.close();
+        } catch(Exception e) {
+            throw new IllegalStateException("unable to close graph", e);
+        }
         graph = null;
     }
 
     @Override
     public void delete()
     {
-        OrientGraphNoTx g = new OrientGraphNoTx("plocal:" + dbStorageDirectory.getAbsolutePath());
-        g.drop();
+        OrientGraph g = getGraph(dbStorageDirectory);
+        g.getRawDatabase().drop();
 
         Utils.deleteRecursively(dbStorageDirectory);
     }
@@ -124,78 +124,80 @@ public class OrientGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Ite
     @Override
     public void shortestPath(final Vertex v1, Integer i)
     {
+        @SuppressWarnings("unused")
         final OrientVertex v2 = (OrientVertex) getVertex(i);
 
-        List<ORID> result = (List<ORID>) new OSQLFunctionShortestPath().execute(graph,
-            null, null, new Object[] { ((OrientVertex) v1).getRecord(), v2.getRecord(), Direction.OUT, 5 },
-            new OBasicCommandContext());
-
-        result.size();
+        //TODO(amcp) need to do something about the number 5
+//        List<ORID> result = (List<ORID>) new OSQLFunctionShortestPath().execute(graph,
+//            null, null, new Object[] { ((OrientVertex) v1).getRecord(), v2.getRecord(), Direction.OUT, 5 },
+//            new OBasicCommandContext());
+//
+//        result.size();
     }
 
     @Override
     public int getNodeCount()
     {
-        return (int) graph.countVertices();
+        return graph.traversal().V().count().toList().get(0).intValue();
     }
 
     @Override
     public Set<Integer> getNeighborsIds(int nodeId)
     {
-        Set<Integer> neighbours = new HashSet<Integer>();
-        Vertex vertex = graph.getVertices(NODE_ID, nodeId).iterator().next();
-        for (Vertex v : vertex.getVertices(Direction.IN, SIMILAR))
-        {
-            Integer neighborId = v.getProperty(NODE_ID);
-            neighbours.add(neighborId);
-        }
+        final Set<Integer> neighbours = new HashSet<Integer>();
+        final Vertex vertex = getVertex(nodeId);
+        vertex.vertices(Direction.IN, SIMILAR).forEachRemaining(new Consumer<Vertex>() {
+            @Override
+            public void accept(Vertex t) {
+                Integer neighborId = (Integer) t.property(NODE_ID).value();
+                neighbours.add(neighborId);
+            }
+        });
         return neighbours;
     }
 
     @Override
     public double getNodeWeight(int nodeId)
     {
-        Vertex vertex = graph.getVertices(NODE_ID, nodeId).iterator().next();
+        Vertex vertex = getVertex(nodeId);
         double weight = getNodeOutDegree(vertex);
         return weight;
     }
 
     public double getNodeInDegree(Vertex vertex)
     {
-        @SuppressWarnings("rawtypes")
-        OMultiCollectionIterator result = (OMultiCollectionIterator) vertex.getVertices(Direction.IN, SIMILAR);
-        return (double) result.size();
+        return (double) Iterators.size(vertex.edges(Direction.IN, SIMILAR));
     }
 
     public double getNodeOutDegree(Vertex vertex)
     {
-        @SuppressWarnings("rawtypes")
-        OMultiCollectionIterator result = (OMultiCollectionIterator) vertex.getVertices(Direction.OUT, SIMILAR);
-        return (double) result.size();
+        return (double) Iterators.size(vertex.edges(Direction.OUT, SIMILAR));
     }
 
     @Override
     public void initCommunityProperty()
     {
         int communityCounter = 0;
-        for (Vertex v : graph.getVertices())
+        for (Vertex v : graph.traversal().V().toList())
         {
-            ((OrientVertex) v).setProperties(NODE_COMMUNITY, communityCounter, COMMUNITY, communityCounter);
-            ((OrientVertex) v).save();
+            v.property(NODE_COMMUNITY, communityCounter);
+            v.property(COMMUNITY, communityCounter);
             communityCounter++;
         }
     }
 
     @Override
-    public Set<Integer> getCommunitiesConnectedToNodeCommunities(int nodeCommunities)
+    public Set<Integer> getCommunitiesConnectedToNodeCommunities(int nodeCommunity)
     {
         Set<Integer> communities = new HashSet<Integer>();
-        Iterable<Vertex> vertices = graph.getVertices(NODE_COMMUNITY, nodeCommunities);
-        for (Vertex vertex : vertices)
+
+        for (Vertex vertex : graph.traversal().V().has(NODE_COMMUNITY, nodeCommunity).toList())
         {
-            for (Vertex v : vertex.getVertices(Direction.OUT, SIMILAR))
+            final Iterator<Vertex> it = vertex.vertices(Direction.OUT, SIMILAR);
+            for (Vertex v; it.hasNext();)
             {
-                int community = v.getProperty(COMMUNITY);
+                v = it.next();
+                int community = (Integer) v.property(COMMUNITY).value();
                 if (!communities.contains(community))
                 {
                     communities.add(community);
@@ -209,10 +211,9 @@ public class OrientGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Ite
     public Set<Integer> getNodesFromCommunity(int community)
     {
         Set<Integer> nodes = new HashSet<Integer>();
-        Iterable<Vertex> iter = graph.getVertices(COMMUNITY, community);
-        for (Vertex v : iter)
+        for (Vertex v : graph.traversal().V().has(COMMUNITY, community).toList())
         {
-            Integer nodeId = v.getProperty(NODE_ID);
+            Integer nodeId = (Integer) v.property(NODE_ID).value();
             nodes.add(nodeId);
         }
         return nodes;
@@ -222,10 +223,9 @@ public class OrientGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Ite
     public Set<Integer> getNodesFromNodeCommunity(int nodeCommunity)
     {
         Set<Integer> nodes = new HashSet<Integer>();
-        Iterable<Vertex> iter = graph.getVertices("nodeCommunity", nodeCommunity);
-        for (Vertex v : iter)
+        for (Vertex v : graph.traversal().V().has(NODE_COMMUNITY, nodeCommunity).toList())
         {
-            Integer nodeId = v.getProperty(NODE_ID);
+            Integer nodeId = (Integer) v.property(NODE_ID).value();
             nodes.add(nodeId);
         }
         return nodes;
@@ -235,14 +235,14 @@ public class OrientGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Ite
     public double getEdgesInsideCommunity(int vertexCommunity, int communityVertices)
     {
         double edges = 0;
-        Iterable<Vertex> vertices = graph.getVertices(NODE_COMMUNITY, vertexCommunity);
-        Iterable<Vertex> comVertices = graph.getVertices(COMMUNITY, communityVertices);
-        for (Vertex vertex : vertices)
+        Set<Vertex> comVertices = graph.traversal().V().has(COMMUNITY, communityVertices).toSet();
+        for (Vertex vertex : graph.traversal().V().has(NODE_COMMUNITY, vertexCommunity).toList())
         {
-            for (Vertex v : vertex.getVertices(Direction.OUT, SIMILAR))
+            Iterator<Vertex> it = vertex.vertices(Direction.OUT, SIMILAR);
+            for (Vertex v; it.hasNext();)
             {
-                if (Iterables.contains(comVertices, v))
-                {
+                v = it.next();
+                if(comVertices.contains(v)) {
                     edges++;
                 }
             }
@@ -254,13 +254,13 @@ public class OrientGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Ite
     public double getCommunityWeight(int community)
     {
         double communityWeight = 0;
-        Iterable<Vertex> iter = graph.getVertices(COMMUNITY, community);
-        if (Iterables.size(iter) > 1)
+        final List<Vertex> list = graph.traversal().V().has(COMMUNITY, community).toList();
+        if (list.size() <= 1) {
+            return communityWeight;
+        }
+        for (Vertex vertex : list)
         {
-            for (Vertex vertex : iter)
-            {
-                communityWeight += getNodeOutDegree(vertex);
-            }
+            communityWeight += getNodeOutDegree(vertex);
         }
         return communityWeight;
     }
@@ -269,8 +269,7 @@ public class OrientGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Ite
     public double getNodeCommunityWeight(int nodeCommunity)
     {
         double nodeCommunityWeight = 0;
-        Iterable<Vertex> iter = graph.getVertices(NODE_COMMUNITY, nodeCommunity);
-        for (Vertex vertex : iter)
+        for (Vertex vertex : graph.traversal().V().has(NODE_COMMUNITY, nodeCommunity).toList())
         {
             nodeCommunityWeight += getNodeOutDegree(vertex);
         }
@@ -280,22 +279,17 @@ public class OrientGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Ite
     @Override
     public void moveNode(int nodeCommunity, int toCommunity)
     {
-        Iterable<Vertex> fromIter = graph.getVertices(NODE_COMMUNITY, nodeCommunity);
-        for (Vertex vertex : fromIter)
+        for (Vertex vertex : graph.traversal().V().has(NODE_COMMUNITY, nodeCommunity).toList())
         {
-            vertex.setProperty(COMMUNITY, toCommunity);
+            vertex.property(COMMUNITY, toCommunity);
         }
     }
 
     @Override
     public double getGraphWeightSum()
     {
-        long edges = 0;
-        for (Vertex o : graph.getVertices())
-        {
-            edges += ((OrientVertex) o).countEdges(Direction.OUT, SIMILAR);
-        }
-        return (double) edges;
+        final Iterator<Edge> edges = graph.edges();
+        return (double) Iterators.size(edges);
     }
 
     @Override
@@ -303,17 +297,19 @@ public class OrientGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Ite
     {
         Map<Integer, Integer> initCommunities = new HashMap<Integer, Integer>();
         int communityCounter = 0;
-        for (Vertex v : graph.getVertices())
+        Iterator<Vertex> it = graph.vertices();
+        for (Vertex v; it.hasNext();)
         {
-            int communityId = v.getProperty(COMMUNITY);
+            v = it.next();
+            int communityId = (Integer) v.property(COMMUNITY).value();
             if (!initCommunities.containsKey(communityId))
             {
                 initCommunities.put(communityId, communityCounter);
                 communityCounter++;
             }
             int newCommunityId = initCommunities.get(communityId);
-            ((OrientVertex) v).setProperties(COMMUNITY, newCommunityId, NODE_COMMUNITY, newCommunityId);
-            ((OrientVertex) v).save();
+            v.property(COMMUNITY, newCommunityId);
+            v.property(NODE_COMMUNITY, newCommunityId);
         }
         return communityCounter;
     }
@@ -321,30 +317,25 @@ public class OrientGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Ite
     @Override
     public int getCommunity(int nodeCommunity)
     {
-        final Iterator<Vertex> result = graph.getVertices(NODE_COMMUNITY, nodeCommunity).iterator();
-        if (!result.hasNext())
-            throw new IllegalArgumentException("node community not found: " + nodeCommunity);
-
-        Vertex vertex = result.next();
-        int community = vertex.getProperty(COMMUNITY);
+        Vertex vertex = graph.traversal().V().has(NODE_COMMUNITY, nodeCommunity).next();
+        int community = (Integer) vertex.property(COMMUNITY).value();
         return community;
     }
 
     @Override
     public int getCommunityFromNode(int nodeId)
     {
-        Vertex vertex = graph.getVertices(NODE_ID, nodeId).iterator().next();
-        return vertex.getProperty(COMMUNITY);
+        Vertex vertex = getVertex(nodeId);
+        return (Integer) vertex.property(COMMUNITY).value();
     }
 
     @Override
     public int getCommunitySize(int community)
     {
-        Iterable<Vertex> vertices = graph.getVertices(COMMUNITY, community);
         Set<Integer> nodeCommunities = new HashSet<Integer>();
-        for (Vertex v : vertices)
+        for (Vertex v : graph.traversal().V().has(COMMUNITY, community).toList())
         {
-            int nodeCommunity = v.getProperty(NODE_COMMUNITY);
+            int nodeCommunity = (Integer) v.property(NODE_COMMUNITY).value();
             if (!nodeCommunities.contains(nodeCommunity))
             {
                 nodeCommunities.add(nodeCommunity);
@@ -359,11 +350,11 @@ public class OrientGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Ite
         Map<Integer, List<Integer>> communities = new HashMap<Integer, List<Integer>>();
         for (int i = 0; i < numberOfCommunities; i++)
         {
-            Iterator<Vertex> verticesIter = graph.getVertices(COMMUNITY, i).iterator();
+            GraphTraversal<Vertex, Vertex> t = graph.traversal().V().has(COMMUNITY, i);
             List<Integer> vertices = new ArrayList<Integer>();
-            while (verticesIter.hasNext())
+            while (t.hasNext())
             {
-                Integer nodeId = verticesIter.next().getProperty(NODE_ID);
+                Integer nodeId = (Integer) t.next().property(NODE_ID).value();
                 vertices.add(nodeId);
             }
             communities.put(i, vertices);
@@ -373,59 +364,46 @@ public class OrientGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Ite
 
     protected void createSchema()
     {
-        graph.executeOutsideTx(new OCallable<Object, OrientBaseGraph>() {
-            @SuppressWarnings({ "unchecked", "rawtypes" })
-            @Override
-            public Object call(final OrientBaseGraph g)
-            {
-                OrientVertexType v = g.getVertexBaseType();
-                if(!v.existsProperty(NODE_ID)) { // TODO fix schema detection hack later
-                    v.createProperty(NODE_ID, OType.INTEGER);
-                    g.createKeyIndex(NODE_ID, Vertex.class, new Parameter("type", "UNIQUE_HASH_INDEX"), new Parameter(
-                        "keytype", "INTEGER"));
+        createIndex(NODE_ID, NODE_LABEL, UNIQUE_HASH_INDEX, OType.INTEGER);
+        createIndex(COMMUNITY, NODE_LABEL, NOTUNIQUE_HASH_INDEX, OType.INTEGER);
+        createIndex(NODE_COMMUNITY, NODE_LABEL, NOTUNIQUE_HASH_INDEX, OType.INTEGER);
+    }
 
-                    v.createEdgeProperty(Direction.OUT, SIMILAR, OType.LINKBAG);
-                    v.createEdgeProperty(Direction.IN, SIMILAR, OType.LINKBAG);
-                    OrientEdgeType similar = g.createEdgeType(SIMILAR);
-                    similar.createProperty("out", OType.LINK, v);
-                    similar.createProperty("in", OType.LINK, v);
-                    g.createKeyIndex(COMMUNITY, Vertex.class, new Parameter("type", "NOTUNIQUE_HASH_INDEX"),
-                        new Parameter("keytype", "INTEGER"));
-                    g.createKeyIndex(NODE_COMMUNITY, Vertex.class, new Parameter("type", "NOTUNIQUE_HASH_INDEX"),
-                        new Parameter("keytype", "INTEGER"));
-                }
-
-                return null;
-            }
-        });
+    private void createIndex(String key, String label, String type, OType keytype) {
+        if(graph.getVertexIndexedKeys(label).contains(NODE_ID)) {
+            return;
+        }
+        final Configuration nodeIdIndexConfig = new PropertiesConfiguration();
+        nodeIdIndexConfig.addProperty("type", type);
+        nodeIdIndexConfig.addProperty("keytype", keytype);
+        graph.createVertexIndex(key, label, nodeIdIndexConfig);
     }
 
     private OrientGraph getGraph(final File dbPath)
     {
-        OrientGraph g;
-        OrientGraphFactory graphFactory = new OrientGraphFactory("plocal:" + dbPath.getAbsolutePath());
-        g = graphFactory.getTx();//.setUseLog(false);
-        ((OrientGraph) g).setUseLightweightEdges(this.useLightWeightEdges);
-        return g;
+        Configuration config = new PropertiesConfiguration();
+        config.setProperty(OrientGraph.CONFIG_URL, "plocal:" + dbPath.getAbsolutePath());
+        // TODO(amcp) replace with the official OrientDB implementation when available.
+        final OrientGraphFactory graphFactory = new OrientGraphFactory(config);
+        return graphFactory.getTx();
     }
 
     @Override
     public boolean nodeExists(int nodeId)
     {
-        Iterable<Vertex> iter = graph.getVertices(NODE_ID, nodeId);
-        return iter.iterator().hasNext();
+        return graph.traversal().V().has(NODE_ID, nodeId).hasNext();
     }
 
     @Override
     public Iterator<Vertex> getVertexIterator()
     {
-        return graph.getVertices().iterator();
+        return graph.vertices();
     }
 
     @Override
     public Iterator<Edge> getNeighborsOfVertex(Vertex v)
     {
-        return v.getEdges(Direction.BOTH, SIMILAR).iterator();
+        return v.edges(Direction.BOTH, SIMILAR);
     }
 
     @Override
@@ -437,25 +415,25 @@ public class OrientGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Ite
     @Override
     public Vertex getOtherVertexFromEdge(Edge edge, Vertex oneVertex)
     {
-        return edge.getVertex(Direction.IN).equals(oneVertex) ? edge.getVertex(Direction.OUT) : edge.getVertex(Direction.IN);
+        return edge.inVertex().equals(oneVertex) ? edge.outVertex() : edge.inVertex();
     }
 
     @Override
     public Iterator<Edge> getAllEdges()
     {
-        return graph.getEdges().iterator();
+        return graph.edges();
     }
 
     @Override
     public Vertex getSrcVertexFromEdge(Edge edge)
     {
-        return edge.getVertex(Direction.IN);
+        return edge.outVertex();
     }
 
     @Override
     public Vertex getDestVertexFromEdge(Edge edge)
     {
-        return edge.getVertex(Direction.OUT);
+        return edge.inVertex();
     }
 
     @Override
@@ -491,6 +469,8 @@ public class OrientGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Ite
     @Override
     public Vertex getVertex(Integer i)
     {
-        return graph.getVertices(NODE_ID, i).iterator().next();
+        final GraphTraversalSource g = graph.traversal();
+        final Vertex vertex = g.V().has(NODE_ID, i).next();
+        return vertex;
     }
 }
