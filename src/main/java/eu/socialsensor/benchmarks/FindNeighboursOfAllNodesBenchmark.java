@@ -26,8 +26,7 @@ public class FindNeighboursOfAllNodesBenchmark extends PermutingBenchmarkBase im
     @Override
     public void benchmarkOne(GraphDatabaseType type, int scenarioNumber)
     {
-        GraphDatabase<?,?,?,?> graphDatabase = Utils.createDatabaseInstance(bench, type);
-        graphDatabase.open();
+        GraphDatabase<?,?,?,?> graphDatabase = Utils.createDatabaseInstance(bench, type, false /*batchLoading*/);
         Stopwatch watch = Stopwatch.createStarted();
         graphDatabase.findAllNodeNeighbours();
         graphDatabase.shutdown();

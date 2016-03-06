@@ -1,19 +1,22 @@
 package eu.socialsensor.graphdatabases;
 
 import java.io.File;
+import java.util.Iterator;
 import java.util.Set;
 
-import org.neo4j.graphdb.Transaction;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
+import com.google.common.base.Preconditions;
 
 import eu.socialsensor.main.GraphDatabaseBenchmark;
 import eu.socialsensor.main.GraphDatabaseType;
 
-@SuppressWarnings("deprecation")
 public abstract class GraphDatabaseBase<VertexIteratorType, EdgeIteratorType, VertexType, EdgeType> implements GraphDatabase<VertexIteratorType, EdgeIteratorType, VertexType, EdgeType>
 {
+    private static final Logger LOG = LogManager.getLogger();
     public static final String SIMILAR = "similar";
     public static final String QUERY_CONTEXT = ".eu.socialsensor.query.";
     public static final String NODE_ID = "nodeId";
@@ -50,120 +53,92 @@ public abstract class GraphDatabaseBase<VertexIteratorType, EdgeIteratorType, Ve
     
     @Override
     public void findAllNodeNeighbours() {
-        //get the iterator
-        Object tx = null;
-        if(GraphDatabaseType.NEO4J == type) { //TODO fix this
-            tx = ((Neo4jGraphDatabase) this).neo4jGraph.beginTx();
-        }
-        try {
-            VertexIteratorType vertexIterator =  this.getVertexIterator();
-            while(vertexIteratorHasNext(vertexIterator)) {
-                VertexType vertex;
-                Timer.Context ctxt = nextVertexTimes.time();
+        long nodeDegreeSum = 0;
+        VertexIteratorType vertexIterator =  this.getVertexIterator();
+        while(vertexIteratorHasNext(vertexIterator)) {
+            VertexType vertex;
+            Timer.Context ctxt = nextVertexTimes.time();
+            try {
+                vertex = nextVertex(vertexIterator);
+            } finally {
+                ctxt.stop();
+            }
+
+            final EdgeIteratorType edgeNeighborIterator;
+            ctxt = getNeighborsOfVertexTimes.time();
+            try {
+                //gets forward and reverse edges.
+                edgeNeighborIterator = this.getNeighborsOfVertex(vertex);
+            } finally {
+                ctxt.stop();
+            }
+            while(edgeIteratorHasNext(edgeNeighborIterator)) {
+                EdgeType edge;
+                ctxt = nextEdgeTimes.time();
                 try {
-                    vertex = nextVertex(vertexIterator);
+                    edge = nextEdge(edgeNeighborIterator);
                 } finally {
                     ctxt.stop();
                 }
-                
-                final EdgeIteratorType edgeNeighborIterator;
-                ctxt = getNeighborsOfVertexTimes.time();
+                @SuppressWarnings("unused")
+                Object other;
+                ctxt = getOtherVertexFromEdgeTimes.time();
                 try {
-                    edgeNeighborIterator = this.getNeighborsOfVertex(vertex);
+                    other = getOtherVertexFromEdge(edge, vertex);
                 } finally {
                     ctxt.stop();
                 }
-                while(edgeIteratorHasNext(edgeNeighborIterator)) {
-                    EdgeType edge;
-                    ctxt = nextEdgeTimes.time();
-                    try {
-                        edge = nextEdge(edgeNeighborIterator);
-                    } finally {
-                        ctxt.stop();
-                    }
-                    @SuppressWarnings("unused")
-                    Object other;
-                    ctxt = getOtherVertexFromEdgeTimes.time();
-                    try {
-                        other = getOtherVertexFromEdge(edge, vertex);
-                    } finally {
-                        ctxt.stop();
-                    }
-                }
-                this.cleanupEdgeIterator(edgeNeighborIterator);
+                nodeDegreeSum++;
             }
-            this.cleanupVertexIterator(vertexIterator);
-            if(this instanceof Neo4jGraphDatabase) {
-                ((Transaction) tx).success();
-            }
-        } finally {//TODO fix this
-            if(GraphDatabaseType.NEO4J == type) {
-                ((Transaction) tx).finish();
-            }
+            this.cleanupEdgeIterator(edgeNeighborIterator);
         }
+        this.cleanupVertexIterator(vertexIterator);
+        LOG.debug("The sum of node degrees was " + nodeDegreeSum);
     }
     
     @Override
     public void findNodesOfAllEdges() {
-        Transaction tx = null;
-        if(GraphDatabaseType.NEO4J == type) {//TODO fix this
-            tx = ((Neo4jGraphDatabase) this).neo4jGraph.beginTx();
-        }
+        int edges = 0;
+        EdgeIteratorType edgeIterator;
+        Timer.Context ctxt = getAllEdgesTimes.time();
         try {
-            
-            EdgeIteratorType edgeIterator;
-            Timer.Context ctxt = getAllEdgesTimes.time();
+            edgeIterator = this.getAllEdges();
+        } finally {
+            ctxt.stop();
+        }
+
+        while(edgeIteratorHasNext(edgeIterator)) {
+            EdgeType edge;
+            ctxt = nextEdgeTimes.time();
             try {
-                edgeIterator = this.getAllEdges();
+                edge = nextEdge(edgeIterator);
             } finally {
                 ctxt.stop();
             }
-            
-            while(edgeIteratorHasNext(edgeIterator)) {
-                EdgeType edge;
-                ctxt = nextEdgeTimes.time();
-                try {
-                    edge = nextEdge(edgeIterator);
-                } finally {
-                    ctxt.stop();
-                }
-                @SuppressWarnings("unused")
-                VertexType source = this.getSrcVertexFromEdge(edge);
-                @SuppressWarnings("unused")
-                VertexType destination = this.getDestVertexFromEdge(edge);
-            }
-        } finally {//TODO fix this
-            if(GraphDatabaseType.NEO4J == type) {
-                tx.close();
-            }
+            @SuppressWarnings("unused")
+            VertexType source = this.getSrcVertexFromEdge(edge);
+            @SuppressWarnings("unused")
+            VertexType destination = this.getDestVertexFromEdge(edge);
+            edges++;
         }
+        LOG.debug("Counted " + edges + " edges");
     }
     
     @Override
     public void shortestPaths(Set<Integer> nodes) {
-        Object tx = null;
-        if(GraphDatabaseType.NEO4J == type) {//TODO fix this
-            tx = ((Neo4jGraphDatabase) this).neo4jGraph.beginTx();
-        }
-        try {
-            //TODO(amcp) change this to use 100+1 random node list and then to use a sublist instead of always choosing node # 1
-            VertexType from = getVertex(1);
-            Timer.Context ctxt;
-            for(Integer i : nodes) {
-                //time this
-                ctxt = shortestPathTimes.time();
-                try {
-                    shortestPath(from, i);
-                } finally {
-                    ctxt.stop();
-                }
-            }
-            if(this instanceof Neo4jGraphDatabase) {
-                ((Transaction) tx).success();
-            }
-        } finally {//TODO fix this
-            if(GraphDatabaseType.NEO4J == type) {
-                ((Transaction) tx).finish();
+        //randomness of selected node comes from the hashing function of hash set
+        final Iterator<Integer> it = nodes.iterator();
+        Preconditions.checkArgument(it.hasNext());
+        final VertexType from = getVertex(it.next());
+        it.remove();//now the set has 99 nodes
+        Timer.Context ctxt;
+        for(Integer i : nodes) {
+            //time this
+            ctxt = shortestPathTimes.time();
+            try {
+                shortestPath(from, i);
+            } finally {
+                ctxt.stop();
             }
         }
     }

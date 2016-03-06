@@ -24,6 +24,7 @@ import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
+import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.graphdb.schema.Schema;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.tooling.GlobalGraphOperations;
@@ -49,8 +50,8 @@ import java.util.concurrent.TimeUnit;
  */
 public class Neo4jGraphDatabase extends GraphDatabaseBase<Iterator<Node>, Iterator<Relationship>, Node, Relationship>
 {
-    protected GraphDatabaseService neo4jGraph = null;
-    private Schema schema = null;
+    private final GraphDatabaseService neo4jGraph;
+    private final Schema schema;
 
     private BatchInserter inserter = null;
 
@@ -61,76 +62,68 @@ public class Neo4jGraphDatabase extends GraphDatabaseBase<Iterator<Node>, Iterat
 
     public static Label NODE_LABEL = DynamicLabel.label("Node");
 
-    public Neo4jGraphDatabase(File dbStorageDirectoryIn)
+    public Neo4jGraphDatabase(File dbStorageDirectoryIn, boolean batchLoading)
     {
         super(GraphDatabaseType.NEO4J, dbStorageDirectoryIn);
-    }
 
-    @Override
-    public void open()
-    {
-        neo4jGraph = new GraphDatabaseFactory().newEmbeddedDatabase(dbStorageDirectory);
-        try (final Transaction tx = beginUnforcedTransaction())
-        {
-            try
-            {
-                neo4jGraph.schema().awaitIndexesOnline(10l, TimeUnit.MINUTES);
-                tx.success();
-            }
-            catch (Exception e)
-            {
-                tx.failure();
-                throw new BenchmarkingException("unknown error", e);
-            }
-        }
-    }
+        if(batchLoading) {
+            neo4jGraph = null;
+            schema = null;
 
-    @Override
-    public void createGraphForSingleLoad()
-    {
-        neo4jGraph = new GraphDatabaseFactory().newEmbeddedDatabase(dbStorageDirectory);
-        try (final Transaction tx = beginUnforcedTransaction())
-        {
-            try
+            Map<String, String> config = new HashMap<String, String>();
+            config.put("cache_type", "none");
+            config.put("use_memory_mapped_buffers", "true");
+            config.put("neostore.nodestore.db.mapped_memory", "200M");
+            config.put("neostore.relationshipstore.db.mapped_memory", "1000M");
+            config.put("neostore.propertystore.db.mapped_memory", "250M");
+            config.put("neostore.propertystore.db.strings.mapped_memory", "250M");
+
+            try {
+                //the BatchInserters are deprecated and will become private in a future release.
+                inserter = BatchInserters.inserter(dbStorageDirectory, config);
+            } catch (IOException e) {
+                throw new IllegalStateException("unable to create batch inserter in dir " + dbStorageDirectory);
+            }
+            inserter.createDeferredSchemaIndex(NODE_LABEL).on(NODE_ID).create();
+            inserter.createDeferredSchemaIndex(NODE_LABEL).on(COMMUNITY).create();
+            inserter.createDeferredSchemaIndex(NODE_LABEL).on(NODE_COMMUNITY).create();
+        } else {
+            neo4jGraph = new GraphDatabaseFactory().newEmbeddedDatabase(dbStorageDirectory);
+            try (final Transaction tx = neo4jGraph.beginTx())
             {
                 schema = neo4jGraph.schema();
-                schema.indexFor(NODE_LABEL).on(NODE_ID).create();
-                schema.indexFor(NODE_LABEL).on(COMMUNITY).create();
-                schema.indexFor(NODE_LABEL).on(NODE_COMMUNITY).create();
+                if(!schemaHasIndexOnVertexLabelProperty(NODE_LABEL.name(), NODE_ID)) {
+                    schema.indexFor(NODE_LABEL).on(NODE_ID).create();
+                }
+                if(!schemaHasIndexOnVertexLabelProperty(NODE_LABEL.name(), COMMUNITY)) {
+                    schema.indexFor(NODE_LABEL).on(COMMUNITY).create();
+                }
+                if(!schemaHasIndexOnVertexLabelProperty(NODE_LABEL.name(), NODE_COMMUNITY)) {
+                    schema.indexFor(NODE_LABEL).on(NODE_COMMUNITY).create();
+                }
+                schema.awaitIndexesOnline(10l, TimeUnit.MINUTES);
                 tx.success();
             }
-            catch (Exception e)
-            {
-                tx.failure();
-                throw new BenchmarkingException("unknown error", e);
+
+            inserter = null;
+        }
+    }
+
+    private boolean schemaHasIndexOnVertexLabelProperty(String label, String propertyName) {
+        final List<String> targetPropertyList = Lists.newArrayList(propertyName);
+        for(IndexDefinition def : schema.getIndexes()) {
+            if(!def.getLabel().name().equals(label)) {
+                continue;
+            }
+            //the label is the same here
+            final List<String> definitionProps = Lists.newArrayList(def.getPropertyKeys());
+            if(definitionProps.equals(targetPropertyList)) {
+                return true;
+            } else {
+                continue; //keep looking
             }
         }
-    }
-
-    @Override
-    public void createGraphForMassiveLoad()
-    {
-        Map<String, String> config = new HashMap<String, String>();
-        config.put("cache_type", "none");
-        config.put("use_memory_mapped_buffers", "true");
-        config.put("neostore.nodestore.db.mapped_memory", "200M");
-        config.put("neostore.relationshipstore.db.mapped_memory", "1000M");
-        config.put("neostore.propertystore.db.mapped_memory", "250M");
-        config.put("neostore.propertystore.db.strings.mapped_memory", "250M");
-
-        try {
-            inserter = BatchInserters.inserter(dbStorageDirectory, config);
-        } catch (IOException e) {
-            throw new IllegalStateException("unable to create batch inserter in dir " + dbStorageDirectory);
-        }
-        createDeferredSchema();
-    }
-
-    private void createDeferredSchema()
-    {
-        inserter.createDeferredSchemaIndex(NODE_LABEL).on(NODE_ID).create();
-        inserter.createDeferredSchemaIndex(NODE_LABEL).on(COMMUNITY).create();
-        inserter.createDeferredSchemaIndex(NODE_LABEL).on(NODE_COMMUNITY).create();
+        return false;
     }
 
     @Override
@@ -190,6 +183,27 @@ public class Neo4jGraphDatabase extends GraphDatabaseBase<Iterator<Node>, Iterat
     }
 
     @Override
+    public void shortestPaths(Set<Integer> nodes) {
+        try (Transaction tx = ((Neo4jGraphDatabase) this).neo4jGraph.beginTx()) {
+            super.shortestPaths(nodes);
+        }
+    }
+
+    @Override
+    public void findNodesOfAllEdges() {
+        try (Transaction tx = ((Neo4jGraphDatabase) this).neo4jGraph.beginTx()) {
+            super.findNodesOfAllEdges();
+        }
+    }
+
+    @Override
+    public void findAllNodeNeighbours() {
+        try (Transaction tx = ((Neo4jGraphDatabase) this).neo4jGraph.beginTx()) {
+            super.findAllNodeNeighbours();
+        }
+    }
+
+    @Override
     public void shortestPath(Node n1, Integer i)
     {
         PathFinder<Path> finder
@@ -205,15 +219,11 @@ public class Neo4jGraphDatabase extends GraphDatabaseBase<Iterator<Node>, Iterat
         }
     }
 
-    private Transaction beginUnforcedTransaction() {
-        return neo4jGraph.beginTx();
-    }
-
     @Override
     public int getNodeCount()
     {
         int nodeCount = 0;
-        try (final Transaction tx = beginUnforcedTransaction())
+        try (final Transaction tx = neo4jGraph.beginTx())
         {
             try
             {
@@ -234,7 +244,7 @@ public class Neo4jGraphDatabase extends GraphDatabaseBase<Iterator<Node>, Iterat
     public Set<Integer> getNeighborsIds(int nodeId)
     {
         Set<Integer> neighbors = new HashSet<Integer>();
-        try (final Transaction tx = beginUnforcedTransaction())
+        try (final Transaction tx = neo4jGraph.beginTx())
         {
             try
             {
@@ -261,7 +271,7 @@ public class Neo4jGraphDatabase extends GraphDatabaseBase<Iterator<Node>, Iterat
     public double getNodeWeight(int nodeId)
     {
         double weight = 0;
-        try (final Transaction tx = beginUnforcedTransaction())
+        try (final Transaction tx = neo4jGraph.beginTx())
         {
             try
             {
@@ -297,7 +307,7 @@ public class Neo4jGraphDatabase extends GraphDatabaseBase<Iterator<Node>, Iterat
         int communityCounter = 0;
 
         // maybe commit changes every 1000 transactions?
-        try (final Transaction tx = beginUnforcedTransaction())
+        try (final Transaction tx = neo4jGraph.beginTx())
         {
             try
             {
@@ -321,7 +331,7 @@ public class Neo4jGraphDatabase extends GraphDatabaseBase<Iterator<Node>, Iterat
     public Set<Integer> getCommunitiesConnectedToNodeCommunities(int nodeCommunities)
     {
         Set<Integer> communities = new HashSet<Integer>();
-        try (final Transaction tx = beginUnforcedTransaction())
+        try (final Transaction tx = neo4jGraph.beginTx())
         {
             try
             {
@@ -353,7 +363,7 @@ public class Neo4jGraphDatabase extends GraphDatabaseBase<Iterator<Node>, Iterat
     public Set<Integer> getNodesFromCommunity(int community)
     {
         Set<Integer> nodes = new HashSet<Integer>();
-        try (final Transaction tx = beginUnforcedTransaction())
+        try (final Transaction tx = neo4jGraph.beginTx())
         {
             try
             {
@@ -380,7 +390,7 @@ public class Neo4jGraphDatabase extends GraphDatabaseBase<Iterator<Node>, Iterat
     {
         Set<Integer> nodes = new HashSet<Integer>();
 
-        try (final Transaction tx = beginUnforcedTransaction())
+        try (final Transaction tx = neo4jGraph.beginTx())
         {
             try
             {
@@ -408,7 +418,7 @@ public class Neo4jGraphDatabase extends GraphDatabaseBase<Iterator<Node>, Iterat
     public double getEdgesInsideCommunity(int nodeCommunity, int communityNodes)
     {
         double edges = 0;
-        try (final Transaction tx = beginUnforcedTransaction())
+        try (final Transaction tx = neo4jGraph.beginTx())
         {
             try
             {
@@ -446,7 +456,7 @@ public class Neo4jGraphDatabase extends GraphDatabaseBase<Iterator<Node>, Iterat
     public double getCommunityWeight(int community)
     {
         double communityWeight = 0;
-        try (final Transaction tx = beginUnforcedTransaction())
+        try (final Transaction tx = neo4jGraph.beginTx())
         {
             try
             {
@@ -474,7 +484,7 @@ public class Neo4jGraphDatabase extends GraphDatabaseBase<Iterator<Node>, Iterat
     public double getNodeCommunityWeight(int nodeCommunity)
     {
         double nodeCommunityWeight = 0;
-        try (final Transaction tx = beginUnforcedTransaction())
+        try (final Transaction tx = neo4jGraph.beginTx())
         {
             try
             {
@@ -502,7 +512,7 @@ public class Neo4jGraphDatabase extends GraphDatabaseBase<Iterator<Node>, Iterat
     @Override
     public void moveNode(int nodeCommunity, int toCommunity)
     {
-        try (final Transaction tx = beginUnforcedTransaction())
+        try (final Transaction tx = neo4jGraph.beginTx())
         {
             try
             {
@@ -528,7 +538,7 @@ public class Neo4jGraphDatabase extends GraphDatabaseBase<Iterator<Node>, Iterat
     {
         int edgeCount = 0;
 
-        try (final Transaction tx = beginUnforcedTransaction())
+        try (final Transaction tx = neo4jGraph.beginTx())
         {
             try
             {
@@ -551,7 +561,7 @@ public class Neo4jGraphDatabase extends GraphDatabaseBase<Iterator<Node>, Iterat
         Map<Integer, Integer> initCommunities = new HashMap<Integer, Integer>();
         int communityCounter = 0;
 
-        try (final Transaction tx = beginUnforcedTransaction())
+        try (final Transaction tx = neo4jGraph.beginTx())
         {
             try
             {
@@ -584,7 +594,7 @@ public class Neo4jGraphDatabase extends GraphDatabaseBase<Iterator<Node>, Iterat
     {
         Integer community = 0;
 
-        try (final Transaction tx = beginUnforcedTransaction())
+        try (final Transaction tx = neo4jGraph.beginTx())
         {
             try
             {
@@ -606,7 +616,7 @@ public class Neo4jGraphDatabase extends GraphDatabaseBase<Iterator<Node>, Iterat
     public int getCommunityFromNode(int nodeId)
     {
         Integer community = 0;
-        try (final Transaction tx = beginUnforcedTransaction())
+        try (final Transaction tx = neo4jGraph.beginTx())
         {
             try
             {
@@ -630,7 +640,7 @@ public class Neo4jGraphDatabase extends GraphDatabaseBase<Iterator<Node>, Iterat
     {
         Set<Integer> nodeCommunities = new HashSet<Integer>();
 
-        try (final Transaction tx = beginUnforcedTransaction())
+        try (final Transaction tx = neo4jGraph.beginTx())
         {
             try
             {
@@ -658,7 +668,7 @@ public class Neo4jGraphDatabase extends GraphDatabaseBase<Iterator<Node>, Iterat
     {
         Map<Integer, List<Integer>> communities = new HashMap<Integer, List<Integer>>();
 
-        try (final Transaction tx = beginUnforcedTransaction())
+        try (final Transaction tx = neo4jGraph.beginTx())
         {
             try
             {
@@ -684,30 +694,6 @@ public class Neo4jGraphDatabase extends GraphDatabaseBase<Iterator<Node>, Iterat
         }
 
         return communities;
-    }
-
-    @Override
-    public boolean nodeExists(int nodeId)
-    {
-        try (final Transaction tx = beginUnforcedTransaction())
-        {
-            try
-            {
-                ResourceIterator<Node> nodesIter = neo4jGraph.findNodes(NODE_LABEL, NODE_ID, nodeId);
-                if (nodesIter.hasNext())
-                {
-                    tx.success();
-                    return true;
-                }
-                tx.success();
-            }
-            catch (Exception e)
-            {
-                tx.failure();
-                throw new BenchmarkingException("unable to determine if node exists", e);
-            }
-        }
-        return false;
     }
 
     @Override

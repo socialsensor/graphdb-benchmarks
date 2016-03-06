@@ -26,8 +26,7 @@ public class FindNodesOfAllEdgesBenchmark extends PermutingBenchmarkBase impleme
     @Override
     public void benchmarkOne(GraphDatabaseType type, int scenarioNumber)
     {
-        GraphDatabase<?,?,?,?> graphDatabase = Utils.createDatabaseInstance(bench, type);
-        graphDatabase.open();
+        GraphDatabase<?,?,?,?> graphDatabase = Utils.createDatabaseInstance(bench, type, false /*batchLoading*/);
         Stopwatch watch = Stopwatch.createStarted();
         graphDatabase.findNodesOfAllEdges();
         graphDatabase.shutdown();

@@ -18,6 +18,10 @@ public class GraphDatabaseBenchmarkTest
             e.printStackTrace();
             fail("Got unexpected exception: " + e.getMessage());
         }
+        catch (AssertionError e)
+        {
+            fail("Got unexpected exception: " + e.getMessage());
+        }
 
         //bench.cleanup();
     }

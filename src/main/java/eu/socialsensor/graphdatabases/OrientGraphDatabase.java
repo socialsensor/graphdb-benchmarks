@@ -44,33 +44,13 @@ public class OrientGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Ite
 
     public static final String UNIQUE_HASH_INDEX = "UNIQUE_HASH_INDEX";
     public static final String NOTUNIQUE_HASH_INDEX = "NOTUNIQUE_HASH_INDEX";
-    private OrientGraph graph = null;
+    private final OrientGraph graph;
 
+    @SuppressWarnings("deprecation")
     public OrientGraphDatabase(BenchmarkConfiguration config, File dbStorageDirectoryIn)
     {
         super(GraphDatabaseType.ORIENT_DB, dbStorageDirectoryIn);
         OGlobalConfiguration.STORAGE_COMPRESSION_METHOD.setValue("nothing");
-    }
-
-    @Override
-    public void open()
-    {
-        graph = getGraph(dbStorageDirectory);
-    }
-
-    @SuppressWarnings("deprecation")
-    @Override
-    public void createGraphForSingleLoad()
-    {
-        OGlobalConfiguration.STORAGE_KEEP_OPEN.setValue(false);
-        graph = getGraph(dbStorageDirectory);
-        createSchema();
-    }
-
-    @SuppressWarnings("deprecation")
-    @Override
-    public void createGraphForMassiveLoad()
-    {
         OGlobalConfiguration.STORAGE_KEEP_OPEN.setValue(false);
         graph = getGraph(dbStorageDirectory);
         createSchema();
@@ -93,17 +73,12 @@ public class OrientGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Ite
     @Override
     public void shutdown()
     {
-        if (graph == null)
-        {
-            return;
-        }
         try
         {
             graph.close();
         } catch(Exception e) {
             throw new IllegalStateException("unable to close graph", e);
         }
-        graph = null;
     }
 
     @Override
@@ -386,12 +361,6 @@ public class OrientGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Ite
         // TODO(amcp) replace with the official OrientDB implementation when available.
         final OrientGraphFactory graphFactory = new OrientGraphFactory(config);
         return graphFactory.getTx();
-    }
-
-    @Override
-    public boolean nodeExists(int nodeId)
-    {
-        return graph.traversal().V().has(NODE_ID, nodeId).hasNext();
     }
 
     @Override

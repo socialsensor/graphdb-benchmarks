@@ -47,8 +47,7 @@ public class SingleInsertionBenchmark extends PermutingBenchmarkBase implements 
     @Override
     public void benchmarkOne(GraphDatabaseType type, int scenarioNumber)
     {
-        GraphDatabase<?,?,?,?> graphDatabase = Utils.createDatabaseInstance(bench, type);
-        graphDatabase.createGraphForSingleLoad();
+        GraphDatabase<?,?,?,?> graphDatabase = Utils.createDatabaseInstance(bench, type, false /*batchLoading*/);
         graphDatabase.singleModeLoading(bench.getDataset(), bench.getResultsPath(), scenarioNumber);
         graphDatabase.shutdown();
     }

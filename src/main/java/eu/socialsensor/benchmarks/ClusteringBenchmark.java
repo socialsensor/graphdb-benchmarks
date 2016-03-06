@@ -93,8 +93,7 @@ public class ClusteringBenchmark extends BenchmarkBase implements RequiresGraphD
 
     private SortedMap<Integer, Double> clusteringBenchmark(GraphDatabaseType type) throws ExecutionException
     {
-        GraphDatabase<?,?,?,?> graphDatabase = Utils.createDatabaseInstance(bench, type);
-        graphDatabase.open();
+        GraphDatabase<?,?,?,?> graphDatabase = Utils.createDatabaseInstance(bench, type, false /*batchLoading*/);
 
         SortedMap<Integer, Double> timeMap = new TreeMap<Integer, Double>();
         for (int cacheSize : cacheValues)

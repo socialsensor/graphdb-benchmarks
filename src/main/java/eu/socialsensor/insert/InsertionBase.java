@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -86,12 +87,12 @@ public abstract class InsertionBase<T> implements Insertion
             type.name());
         Dataset dataset = DatasetFactory.getInstance().getDataset(datasetFile);
 
-        T srcNode, dstNode;
         Stopwatch thousandWatch = Stopwatch.createStarted(), watch = Stopwatch.createStarted();
-        int i = 4;
-        for (List<String> line : dataset)
-        {
+
+        final AtomicInteger i = new AtomicInteger(4);
+        dataset.getList().stream().forEach(line -> {
             final Timer.Context contextSrc = getOrCreateTimes.time();
+            T srcNode, dstNode;
             try {
                 srcNode = getOrCreate(line.get(0));
             } finally {
@@ -112,14 +113,13 @@ public abstract class InsertionBase<T> implements Insertion
                 contextRelate.stop();
             }
 
-            if (i % 1000 == 0)
-            {
+            if (i.getAndIncrement() % 1000 == 0) {
                 insertionTimes.add((double) thousandWatch.elapsed(TimeUnit.MILLISECONDS));
                 thousandWatch.stop();
-                thousandWatch = Stopwatch.createStarted();
+                thousandWatch.reset();
+                thousandWatch.start();
             }
-            i++;
-        }
+        });
         post();
         insertionTimes.add((double) watch.elapsed(TimeUnit.MILLISECONDS));
 

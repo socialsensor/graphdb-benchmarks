@@ -37,22 +37,6 @@ public interface GraphDatabase<VertexIteratorType, EdgeIteratorType, VertexType,
     public void findNodesOfAllEdges();
 
     /**
-     * Opens the graph database
-     * 
-     * @param dbPath
-     *            - database path
-     */
-    public void open();
-
-    /**
-     * Creates a graph database and configures for single data insertion
-     * 
-     * @param dbPath
-     *            - database path
-     */
-    public void createGraphForSingleLoad();
-
-    /**
      * Inserts data in massive mode
      * 
      * @param dataPath
@@ -69,14 +53,6 @@ public interface GraphDatabase<VertexIteratorType, EdgeIteratorType, VertexType,
      * @param scenarioNumber
      */
     public void singleModeLoading(File dataPath, File resultsPath, int scenarioNumber);
-
-    /**
-     * Creates a graph database and configures for bulk data insertion
-     * 
-     * @param dataPath
-     *            - dataset path
-     */
-    public void createGraphForMassiveLoad();
 
     /**
      * Shut down the graph database
@@ -214,11 +190,4 @@ public interface GraphDatabase<VertexIteratorType, EdgeIteratorType, VertexType,
      *         nodes each community has.
      */
     public Map<Integer, List<Integer>> mapCommunities(int numberOfCommunities);
-
-    /**
-     * 
-     * @param nodeId
-     * @return return true if node exist, false if not
-     */
-    public boolean nodeExists(int nodeId);
 }

@@ -57,4 +57,8 @@ public class Dataset implements Iterable<List<String>>
     {
         return data.iterator();
     }
+
+    public List<List<String>> getList() {
+        return new ArrayList<List<String>>(data);
+    }
 }

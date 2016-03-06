@@ -33,12 +33,8 @@ public class MassiveInsertionBenchmark extends PermutingBenchmarkBase implements
     public void benchmarkOne(GraphDatabaseType type, int scenarioNumber)
     {
         logger.debug("Creating database instance for type " + type.getShortname());
-        GraphDatabase<?,?,?,?> graphDatabase = Utils.createDatabaseInstance(bench, type);
+        GraphDatabase<?,?,?,?> graphDatabase = Utils.createDatabaseInstance(bench, type, true /*batchLoading*/);
         logger.debug("Prepare database instance for type {} for massive loading", type.getShortname());
-        // the following step includes provisioning in managed database
-        // services. do not measure this time as
-        // it is not related to the action of inserting.
-        graphDatabase.createGraphForMassiveLoad();
         logger.debug("Massive load graph in database type {}", type.getShortname());
         Stopwatch watch = Stopwatch.createStarted();
         graphDatabase.massiveModeLoading(bench.getDataset());
