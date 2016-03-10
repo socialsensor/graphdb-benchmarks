@@ -27,7 +27,6 @@ import com.orientechnologies.orient.core.index.OIndex;
 import com.tinkerpop.blueprints.TransactionalGraph;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientExtendedGraph;
-import com.tinkerpop.blueprints.impls.orient.asynch.OrientGraphAsynch;
 
 /**
  * Implementation of single Insertion in OrientDB graph database
@@ -43,7 +42,7 @@ public abstract class OrientAbstractInsertion implements Insertion {
 	protected OrientExtendedGraph orientGraph = null;
 	protected Logger logger = Logger.getLogger(OrientAbstractInsertion.class);
 
-	protected OIndex index;
+	protected OIndex<?> index;
 
 	public OrientAbstractInsertion(OrientExtendedGraph orientGraph) {
 		this.orientGraph = orientGraph;
@@ -53,24 +52,19 @@ public abstract class OrientAbstractInsertion implements Insertion {
 		final int key = Integer.parseInt(value);
 
 		Vertex v;
-		if (orientGraph instanceof OrientGraphAsynch) {
-			v = ((OrientGraphAsynch) orientGraph).addOrUpdateVertex(key, "nodeId", key);
-		} 
-		else {
-			if (index == null) {
-				index = orientGraph.getRawGraph().getMetadata().getIndexManager().getIndex("V.nodeId");
-			}
-				
-			final OIdentifiable rec = (OIdentifiable) index.get(key);
-			if (rec != null) {
-				return orientGraph.getVertex(rec);
-			}
+		if (index == null) {
+			index = orientGraph.getRawGraph().getMetadata().getIndexManager().getIndex("V.nodeId");
+		}
 			
-			v = orientGraph.addVertex(key, "nodeId", key);
-      
-			if (orientGraph instanceof TransactionalGraph) {
-				((TransactionalGraph) orientGraph).commit();
-			}
+		final OIdentifiable rec = (OIdentifiable) index.get(key);
+		if (rec != null) {
+			return orientGraph.getVertex(rec);
+		}
+		
+		v = orientGraph.addVertex(key, "nodeId", key);
+  
+		if (orientGraph instanceof TransactionalGraph) {
+			((TransactionalGraph) orientGraph).commit();
 		}
 
 		return v;
