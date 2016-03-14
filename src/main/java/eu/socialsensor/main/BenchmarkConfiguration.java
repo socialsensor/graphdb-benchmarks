@@ -35,6 +35,7 @@ public class BenchmarkConfiguration
     private static final String CSV_DIR = GraphDatabaseConfiguration.METRICS_CSV_DIR.getName();
     public static final String GRAPHITE = GraphDatabaseConfiguration.METRICS_GRAPHITE_NS.getName();
     private static final String GRAPHITE_HOSTNAME = GraphDatabaseConfiguration.GRAPHITE_HOST.getName();
+    private static final String CUSTOM_IDS = "custom-ids";
 
     // DynamoDB Storage Backend for Titan specific configuration
     private static final String CONSTRUCTOR_ARGS = Constants.DYNAMODB_CREDENTIALS_CONSTRUCTOR_ARGS.getName();
@@ -103,6 +104,7 @@ public class BenchmarkConfiguration
     private final int dynamodbWorkerThreads;
     private final boolean dynamodbPrecreateTables;
     private final String dynamodbTablePrefix;
+    private final boolean customIds;
 
     public String getDynamodbCredentialsFqClassName()
     {
@@ -160,6 +162,7 @@ public class BenchmarkConfiguration
         bufferSize = titan.getInt(BUFFER_SIZE, GraphDatabaseConfiguration.BUFFER_SIZE.getDefaultValue());
         blocksize = titan.getInt(IDS_BLOCKSIZE, GraphDatabaseConfiguration.IDS_BLOCK_SIZE.getDefaultValue());
         pageSize = titan.getInt(PAGE_SIZE, GraphDatabaseConfiguration.PAGE_SIZE.getDefaultValue());
+        customIds = titan.getBoolean(CUSTOM_IDS, false /*default*/);
 
         // database storage directory
         if (!socialsensor.containsKey(DATABASE_STORAGE_DIRECTORY))
@@ -434,5 +437,9 @@ public class BenchmarkConfiguration
     public boolean publishGraphiteMetrics()
     {
         return graphiteHostname != null && !graphiteHostname.isEmpty();
+    }
+
+    public boolean isCustomIds() {
+        return customIds;
     }
 }

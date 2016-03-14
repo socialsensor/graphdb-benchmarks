@@ -62,7 +62,7 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
     double totalWeight;
 
     private final StandardTitanGraph graph;
-    public final BenchmarkConfiguration config;
+    private final BenchmarkConfiguration config;
 
     public TitanGraphDatabase(GraphDatabaseType type, BenchmarkConfiguration config, File dbStorageDirectory,
             boolean batchLoading)
@@ -103,8 +103,10 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
         final Configuration cluster = conf.subset(GraphDatabaseConfiguration.CLUSTER_NS.getName());
 
         //graph NS config
-        graph.addProperty(GraphDatabaseConfiguration.ALLOW_SETTING_VERTEX_ID.getName(), "true");
-        //TODO(amcp) figure out a way to claim the ids used for this unique-instance-id
+        if(bench.isCustomIds()) {
+            //TODO(amcp) figure out a way to claim the ids used for this unique-instance-id
+            graph.addProperty(GraphDatabaseConfiguration.ALLOW_SETTING_VERTEX_ID.getName(), "true");
+        }
         graph.addProperty(GraphDatabaseConfiguration.UNIQUE_INSTANCE_ID.getName(), "DEADBEEF");
 
         //cluster NS config. only two partitions for now
@@ -237,7 +239,7 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
     @Override
     public void massiveModeLoading(File dataPath)
     {
-        Insertion titanMassiveInsertion = new TitanMassiveInsertion(this.graph, type);
+        Insertion titanMassiveInsertion = TitanMassiveInsertion.create(graph, type, config.isCustomIds());
         titanMassiveInsertion.createGraph(dataPath, 0 /* scenarioNumber */);
         //TODO(amcp) figure out a way to claim the ids used for this unique-instance-id
     }
