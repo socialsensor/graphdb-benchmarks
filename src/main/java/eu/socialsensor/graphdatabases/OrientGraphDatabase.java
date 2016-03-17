@@ -404,7 +404,7 @@ public class OrientGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Ite
     {
         OrientGraph g;
         OrientGraphFactory graphFactory = new OrientGraphFactory("plocal:" + dbPath.getAbsolutePath());
-        g = graphFactory.getTx();//.setUseLog(false);
+        g = graphFactory.getTx();
         ((OrientGraph) g).setUseLightweightEdges(this.useLightWeightEdges);
         return g;
     }

@@ -605,7 +605,6 @@ public class Neo4jGraphDatabase extends GraphDatabaseBase<Iterator<Node>, Iterat
         {
             try
             {
-                // Node node = nodeIndex.get(NODE_ID, nodeId).getSingle();
                 Node node = neo4jGraph.findNodesByLabelAndProperty(NODE_LABEL, NODE_ID, String.valueOf(nodeId)).iterator()
                     .next();
                 community = (Integer) (node.getProperty(COMMUNITY));

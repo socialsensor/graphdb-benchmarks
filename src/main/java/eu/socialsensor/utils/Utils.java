@@ -100,9 +100,6 @@ public class Utils
 
         lines.subList(numberOfLinesToSkip, lines.size()).parallelStream()
             .forEachOrdered(line -> result.add(Arrays.asList(line.split("\t"))));
-        // for(int i = numberOfLinesToSkip; i < lines.size(); i++) {
-        // result.add(Arrays.asList(lines.get(i).split("\t")));
-        // }
         return result;
     }
 
