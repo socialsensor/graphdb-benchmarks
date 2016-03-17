@@ -193,12 +193,6 @@ public class Neo4jGraphDatabase extends GraphDatabaseBase<Iterator<Node>, Iterat
         Node n2 = getVertex(i);
         Path path = finder.findSinglePath(n1, n2);
 
-        @SuppressWarnings("unused")
-        int length = 0;
-        if (path != null)
-        {
-            length = path.length();
-        }
     }
 
     //TODO can unforced option be pulled into configuration?

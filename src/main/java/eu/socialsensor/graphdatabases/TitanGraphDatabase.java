@@ -360,8 +360,6 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
                     return bundle.getLoops() < 5 && !bundle.getObject().equals(v2);
                 }
             }).path();
-        @SuppressWarnings("unused")
-        int length = pathPipe.iterator().next().size();
     }
 
     @Override

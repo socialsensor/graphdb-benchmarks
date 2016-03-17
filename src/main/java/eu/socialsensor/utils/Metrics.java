@@ -16,7 +16,7 @@ public class Metrics
     public double normalizedMutualInformation(int numberOfNodes, Map<Integer, List<Integer>> actualPartitions,
         Map<Integer, List<Integer>> predictedPartitions)
     {
-        double nmi = 0;
+        double nmi;
         double numOfNodes = (double) numberOfNodes;
         int[][] confusionMatrix = confusionMatrix(actualPartitions, predictedPartitions);
         int[] confusionMatrixActual = new int[actualPartitions.size()];
