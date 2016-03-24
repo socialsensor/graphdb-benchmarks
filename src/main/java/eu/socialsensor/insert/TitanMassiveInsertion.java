@@ -2,6 +2,8 @@ package eu.socialsensor.insert;
 
 import java.util.Map;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 
 import com.google.common.base.Preconditions;
@@ -22,6 +24,7 @@ import eu.socialsensor.main.GraphDatabaseType;
  */
 public abstract class TitanMassiveInsertion extends InsertionBase<Vertex>
 {
+    private static final Logger logger = LogManager.getLogger();
     protected final StandardTitanGraph graph;
     protected final StandardTitanTx tx;
 
@@ -47,6 +50,7 @@ public abstract class TitanMassiveInsertion extends InsertionBase<Vertex>
 
     @Override
     protected void post() {
+        logger.info("vertices: " + vertexCache.size());
         tx.commit(); //mutation work is done here
         Preconditions.checkState(graph.getOpenTransactions().isEmpty());
     }

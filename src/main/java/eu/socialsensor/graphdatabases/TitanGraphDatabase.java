@@ -48,6 +48,7 @@ import eu.socialsensor.insert.TitanSingleInsertion;
 import eu.socialsensor.main.BenchmarkConfiguration;
 import eu.socialsensor.main.GraphDatabaseType;
 import eu.socialsensor.utils.Utils;
+import jp.classmethod.titan.diskstorage.tupl.TuplStoreManager;
 
 /**
  * Titan graph database implementation
@@ -148,6 +149,12 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
         {
             storage.addProperty(GraphDatabaseConfiguration.STORAGE_HOSTS.getName(),
                     "localhost");
+        }
+        else if (GraphDatabaseType.TITAN_TUPL == type)
+        {
+            final Configuration tupl = storage.subset(TuplStoreManager.TUPL_NS.getName());
+            tupl.addProperty(TuplStoreManager.TUPL_PREFIX.getName(), "tupldb");
+            tupl.addProperty(TuplStoreManager.TUPL_MIN_CACHE_SIZE.getName(), Long.toString(bench.getTuplMinCacheSize()));
         }
         else if (GraphDatabaseType.TITAN_DYNAMODB == type)
         {

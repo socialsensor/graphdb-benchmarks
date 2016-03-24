@@ -17,6 +17,7 @@ import com.google.common.primitives.Ints;
 import com.thinkaurelius.titan.graphdb.configuration.GraphDatabaseConfiguration;
 
 import eu.socialsensor.dataset.DatasetFactory;
+import jp.classmethod.titan.diskstorage.tupl.TuplStoreManager;
 
 /**
  * 
@@ -105,6 +106,7 @@ public class BenchmarkConfiguration
     private final boolean dynamodbPrecreateTables;
     private final String dynamodbTablePrefix;
     private final boolean customIds;
+    private final long tuplMinCacheSize;
 
     public String getDynamodbCredentialsFqClassName()
     {
@@ -163,6 +165,9 @@ public class BenchmarkConfiguration
         blocksize = titan.getInt(IDS_BLOCKSIZE, GraphDatabaseConfiguration.IDS_BLOCK_SIZE.getDefaultValue());
         pageSize = titan.getInt(PAGE_SIZE, GraphDatabaseConfiguration.PAGE_SIZE.getDefaultValue());
         customIds = titan.getBoolean(CUSTOM_IDS, false /*default*/);
+
+        final Configuration tupl = socialsensor.subset("tupl");
+        tuplMinCacheSize = tupl.getLong(TuplStoreManager.TUPL_MIN_CACHE_SIZE.getName(), TuplStoreManager.TUPL_MIN_CACHE_SIZE.getDefaultValue());
 
         // database storage directory
         if (!socialsensor.containsKey(DATABASE_STORAGE_DIRECTORY))
@@ -441,5 +446,9 @@ public class BenchmarkConfiguration
 
     public boolean isCustomIds() {
         return customIds;
+    }
+
+    public long getTuplMinCacheSize() {
+        return tuplMinCacheSize;
     }
 }

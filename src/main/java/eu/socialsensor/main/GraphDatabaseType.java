@@ -14,6 +14,7 @@ public enum GraphDatabaseType
 {
     TITAN_BERKELEYDB("Titan", "berkeleyje", "tbdb"),
     TITAN_DYNAMODB("Titan", "com.amazon.titan.diskstorage.dynamodb.DynamoDBStoreManager", "tddb"),
+    TITAN_TUPL("Titan", "jp.classmethod.titan.diskstorage.tupl.TuplStoreManager", "ttupl"),
     TITAN_CASSANDRA("Titan", "cassandra", "tc"),
     TITAN_CASSANDRA_EMBEDDED("TitanEmbedded", "embeddedcassandra", "tce"),
     TITAN_HBASE("Titan", "hbase", "thb"),
@@ -34,6 +35,7 @@ public enum GraphDatabaseType
             STRING_REP_MAP.put(db.getShortname(), db);
         }
         TITAN_FLAVORS.add(TITAN_BERKELEYDB);
+        TITAN_FLAVORS.add(TITAN_TUPL);
         TITAN_FLAVORS.add(TITAN_DYNAMODB);
         TITAN_FLAVORS.add(TITAN_CASSANDRA);
         TITAN_FLAVORS.add(TITAN_CASSANDRA_EMBEDDED);

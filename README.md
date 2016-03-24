@@ -90,50 +90,67 @@ Below we list the results of the CW for graphs with 1,000, 5,000, 10,0000, 20,00
 Below we list the results of MIW and QW for each dataset.
 The results are measured in seconds.
 
-| Dataset | Workload | Titan-BDB (new)  | Neo4j (new) |
-| ------- | -------- | ---------------- | ----------- |
-|   EN    |  QW-FA   |     5.235        |   **0.311** |
-|   AM    |  QW-FA   |  __13.770__      |     1.730   |
-|   YT    |  QW-FA   |  __42.820__      |     1.512   |
-|   LJ    |  QW-FA   | __460.250__      |  __16.530__ |
-|   1k    |  QW-FA   |     0.348        |   **0.031** |
-|   5k    |  QW-FA   |     1.935        |   **0.115** |
-|  10k    |  QW-FA   |     4.056        |   **0.225** |
-|  20k    |  QW-FA   |    10.212        |   **0.590** |
-|  30k    |  QW-FA   |    20.108        |   **0.793** |
-|  40k    |  QW-FA   |    27.879        |   **1.145** |
-|  50k    |  QW-FA   |    35.398        |   **1.376** |
-|         |          |                  |             |
-|   EN    |  QW-FN   |     6.411        |   **0.720** |
-|   AM    |  QW-FN   |   __6.470__      |     5.788   |
-|   YT    |  QW-FN   |  __20.710__      |     5.567   |
-|   LJ    |  QW-FN   | __213.410__      |  __47.070__ |
-|   1k    |  QW-FN   |     0.614        |   **0.103** |
-|   5k    |  QW-FN   |     2.548        |   **0.329** |
-|  10k    |  QW-FN   |     5.643        |   **0.636** |
-|  20k    |  QW-FN   |    12.717        |   **1.333** |
-|  30k    |  QW-FN   |    21.015        |   **2.290** |
-|  40k    |  QW-FN   |    32.035        |   **3.708** |
-|  50k    |  QW-FN   |    42.97         |   **6.465** |
-|         |          |                  |             |
-|   EN    |    MIW   |     9.514        |   **1.970** |
-|   AM    |    MIW   |  __34.000__      |    16.464   |
-|   YT    |    MIW   | __104.270__      |    19.810   |
-|   LJ    |    MIW   | __663.030__      | __349.550__ |
-|   1k    |    MIW   |     1.207        |   **0.525** |
-|   5k    |    MIW   |     3.701        |   **1.235** |
-|  10k    |    MIW   |     7.520        |   **1.821** |
-|  20k    |    MIW   |    15.816        |   **3.580** |
-|  30k    |    MIW   |    29.423        |   **5.912** |
-|  40k    |    MIW   |    44.702        |   **9.097** |
-|  50k    |    MIW   |    57.315        |  **11.687** |
+| Dataset | Workload | Titan-BDB  | Titan-Tupl | Neo4j       |
+| ------- | -------- | ---------- | ---------- | ----------- |
+|   1k    |  QW-FA   |     0.331  |     0.104  |   **0.043** |
+|   5k    |  QW-FA   |     2.235  |     0.645  |   **0.203** |
+|  10k    |  QW-FA   |     5.059  |     1.182  |   **0.389** |
+|   EN    |  QW-FA   |     5.842  |     1.653  |   **0.403** |
+|  20k    |  QW-FA   |    10.568  |     2.521  |   **0.826** |
+|  30k    |  QW-FA   |    18.356  |     4.638  |   **1.383** |
+|  40k    |  QW-FA   |    27.907  |     7.107  |   **2.010** |
+|  50k    |  QW-FA   |    34.284  |     9.716  |   **2.472** |
+|   AM    |  QW-FA   |    61.811  |    19.015  |   **3.413** |
+|         |          |            |            |             |
+|   1k    |  QW-FN   |     0.607  |     0.229  |   **0.131** |
+|   5k    |  QW-FN   |     2.850  |     0.964  |   **0.626** |
+|  10k    |  QW-FN   |     5.960  |     2.063  |   **1.349** |
+|   EN    |  QW-FN   |     7.711  |     3.915  |   **1.633** |
+|  20k    |  QW-FN   |    12.861  |     5.218  |   **2.841** |
+|  30k    |  QW-FN   |    21.816  |     8.340  |   **4.603** |
+|  40k    |  QW-FN   |    31.187  |    11.632  |   **7.272** |
+|  50k    |  QW-FN   |    41.175  |    14.246  |   **8.489** |
+|   AM    |  QW-FN   |    76.562  |    28.242  |  **12.466** |
+|         |          |            |            |             |
+|   1k    |    MIW   |     1.167  |     0.673  |   **0.481** |
+|   5k    |    MIW   |     4.276  |     2.918  |   **1.239** |
+|  10k    |    MIW   |     8.247  |     5.659  |   **2.334** |
+|   EN    |    MIW   |     9.858  |     6.960  |   **2.401** |
+|  20k    |    MIW   |    17.011  |    12.711  |   **4.511** |
+|  30k    |    MIW   |    30.252  |    19.929  |   **8.767** |
+|  40k    |    MIW   |    44.450  |    31.763  |  **12.761** |
+|  50k    |    MIW   |    57.001  |    36.281  |  **15.755** |
+|   AM    |    MIW   |    98.405  |    64.286  |  **23.867** |
 
 Note, Find Shortest Path benchmark is currently broken.
 Consequently, I did not update the QW-FS numbers.
 Also, OrientDB's TP3 implementation is not official yet,
 so I did not run numbers for OrientDB as well.
-Finally, bold numbers indicate the fastest performer and italics indicate
-tests that have not been run for updated results yet.
+These benchmarks were performed on the RAM disk (/dev/shm) of a m4.10xlarge with a maximum heap size of 32 GiB.
+
+I also analyzed storage the footprint of each of these databases.
+I conclude that the storage footprint in MiB for all of them is linear with respect
+to the number of vertices and edges.
+
+| Dataset | Vertices | Edges   | Titan-BDB | Titan-Tupl | Neo4j     |
+| ------- | -------- | ------- | --------- | ---------- | --------- |
+|   1k    |    1000  |   15160 |     1.7   |   **0.9**  |     1.0   |
+|   5k    |    5000  |  148198 |    16.0   |     7.5    |   **5.7** |
+|  10k    |   10000  |  360632 |    38.4   |    18.3    |  **13.1** |
+|   EN    |   36692  |  367666 |    43.8   |    21.4    |  **15.7** |
+|  20k    |   20000  |  778900 |    83.8   |    42.0    |  **27.7** |
+|  30k    |   30000  | 1332020 |   145.4   |    73.8    |  **46.8** |
+|  40k    |   40000  | 2013894 |   221.2   |   111.3    |  **70.2** |
+|  50k    |   50000  | 2512092 |   277.0   |   138.1    |  **87.3** |
+|   AM    |  403394  | 3387392 |   441.2   |   213.3    | **147.4** |
+
+Applying least squares optimization to this multitude of data points yields the following estimates of space
+in bytes required to store each vertex and edge (assuming no labels and no properties).
+
+| Bytes on disk | Titan-BDB | Titan-Tupl | Neo4j     |
+| ------------- | --------- | ---------- | --------- |
+| Per vertex    | 0.212     | **0.082**  |   0.090   |
+| Per edge      | 0.108     |   0.055    | **0.034** |
 
 ####SIW results
 Below we list the results of SIW for each data set.

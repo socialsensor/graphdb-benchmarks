@@ -60,6 +60,9 @@
         <maven.surefire.version>2.19.1</maven.surefire.version>
         <maven.assembly.version>2.6</maven.assembly.version>
         <jdk.version>1.8</jdk.version>
+        <!-- Force the AWS SDK version otherwise titan-dynamodb takes forever to download a range of SDK versions -->
+        <!-- <aws.java.sdk.version>1.10.64</aws.java.sdk.version> -->
+        <aws.java.sdk.version>1.10.57</aws.java.sdk.version>
     </properties>
 
     <dependencies>
@@ -148,6 +151,11 @@
             <groupId>com.amazonaws</groupId>
             <artifactId>dynamodb-titan100-storage-backend</artifactId>
             <version>${dynamodb.titan.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>jp.classmethod</groupId>
+            <artifactId>tupl-titan100-storage-backend</artifactId>
+            <version>1.0.0</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -329,6 +337,7 @@
                                     <includes>
                                         <include>**/GraphDatabaseBenchmarkTest.java</include>
                                     </includes>
+                                    <argLine>-Xmx32g</argLine>
                                     <skip>false</skip>
                                     <systemPropertyVariables>
                                         <log4j.configurationFile>${basedir}/src/test/resources/META-INF/log4j2.xml</log4j.configurationFile>
@@ -347,4 +356,18 @@
             <url>https://jitpack.io</url>
         </repository>
     </repositories>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.amazonaws</groupId>
+                <artifactId>aws-java-sdk-dynamodb</artifactId>
+                <version>${aws.java.sdk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.amazonaws</groupId>
+                <artifactId>DynamoDBLocal</artifactId>
+                <version>${aws.java.sdk.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 </project>
