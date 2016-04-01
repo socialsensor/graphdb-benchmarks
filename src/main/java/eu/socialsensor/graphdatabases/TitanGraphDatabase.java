@@ -109,7 +109,6 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
         // storage NS config. FYI, storage.idauthority-wait-time is 300ms
         storage.addProperty(GraphDatabaseConfiguration.STORAGE_BACKEND.getName(), type.getBackend());
         storage.addProperty(GraphDatabaseConfiguration.STORAGE_DIRECTORY.getName(), dbPath.getAbsolutePath());
-        //storage.addProperty(GraphDatabaseConfiguration.INSTANCE_RID_RAW.getName(), "DEADBEEF");
         storage.addProperty(GraphDatabaseConfiguration.STORAGE_BATCH.getName(), Boolean.toString(batchLoading));
         storage.addProperty(GraphDatabaseConfiguration.BUFFER_SIZE.getName(), bench.getTitanBufferSize());
         storage.addProperty(GraphDatabaseConfiguration.PAGE_SIZE.getName(), bench.getTitanPageSize());
@@ -374,14 +373,6 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
     @Override
     public Set<Integer> getNeighborsIds(int nodeId)
     {
-        // Set<Integer> neighbours = new HashSet<Integer>();
-        // Vertex vertex = titanGraph.getVertices("nodeId",
-        // nodeId).iterator().next();
-        // for (Vertex v : vertex.getVertices(Direction.IN, SIMILAR)) {
-        // Integer neighborId = v.getProperty("nodeId");
-        // neighbours.add(neighborId);
-        // }
-        // return neighbours;
         Set<Integer> neighbors = new HashSet<Integer>();
         Vertex vertex = titanGraph.getVertices(NODE_ID, nodeId).iterator().next();
         GremlinPipeline<String, Vertex> pipe = new GremlinPipeline<String, Vertex>(vertex).out(SIMILAR);
@@ -404,18 +395,12 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
 
     public double getNodeInDegree(Vertex vertex)
     {
-        // Iterable<Vertex> result = vertex.getVertices(Direction.IN,
-        // SIMILAR);
-        // return (double)Iterables.size(result);
         GremlinPipeline<String, Vertex> pipe = new GremlinPipeline<String, Vertex>(vertex).in(SIMILAR);
         return (double) pipe.count();
     }
 
     public double getNodeOutDegree(Vertex vertex)
     {
-        // Iterable<Vertex> result = vertex.getVertices(Direction.OUT,
-        // SIMILAR);
-        // return (double)Iterables.size(result);
         GremlinPipeline<String, Vertex> pipe = new GremlinPipeline<String, Vertex>(vertex).out(SIMILAR);
         return (double) pipe.count();
     }
@@ -439,12 +424,6 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
         Iterable<Vertex> vertices = titanGraph.getVertices(NODE_COMMUNITY, nodeCommunities);
         for (Vertex vertex : vertices)
         {
-            // for(Vertex v : vertex.getVertices(Direction.OUT, SIMILAR)) {
-            // int community = v.getProperty("community");
-            // if(!communities.contains(community)) {
-            // communities.add(community);
-            // }
-            // }
             GremlinPipeline<String, Vertex> pipe = new GremlinPipeline<String, Vertex>(vertex).out(SIMILAR);
             Iterator<Vertex> iter = pipe.iterator();
             while (iter.hasNext())
@@ -497,14 +476,6 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
                     edges++;
                 }
             }
-            // GremlinPipeline<String, Vertex> pipe = new
-            // GremlinPipeline<String, Vertex>(vertex).out(SIMILAR);
-            // Iterator<Vertex> iter = pipe.iterator();
-            // while(iter.hasNext()) {
-            // if(Iterables.contains(comVertices, iter.next())){
-            // edges++;
-            // }
-            // }
         }
         return edges;
     }
