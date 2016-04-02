@@ -158,7 +158,7 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
             tupl.addProperty(TuplStoreManager.TUPL_MIN_CACHE_SIZE.getName(), Long.toString(bench.getTuplMinCacheSize()));
             final Configuration checkpoint = tupl.subset(TuplStoreManager.TUPL_CHECKPOINT_NS.getName());
             //TODO make this conditioned on running the Massive Insertion Workload
-            checkpoint.addProperty(TuplStoreManager.TUPL_CHECKPOINT_SIZE_THRESHOLD.getName(), 0);
+            //checkpoint.addProperty(TuplStoreManager.TUPL_CHECKPOINT_SIZE_THRESHOLD.getName(), 0);
         }
         else if (GraphDatabaseType.TITAN_DYNAMODB == type)
         {

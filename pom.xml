@@ -155,7 +155,7 @@
         <dependency>
             <groupId>jp.classmethod</groupId>
             <artifactId>tupl-titan100-storage-backend</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.1</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
