@@ -183,7 +183,7 @@ public class Neo4jGraphDatabase extends GraphDatabaseBase<Iterator<Node>, Iterat
     }
 
     @Override
-    public void shortestPaths(Set<Integer> nodes) {
+    public void shortestPaths(List<Integer> nodes) {
         try (Transaction tx = ((Neo4jGraphDatabase) this).neo4jGraph.beginTx()) {
             super.shortestPaths(nodes);
         }
