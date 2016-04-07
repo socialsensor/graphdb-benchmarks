@@ -27,8 +27,7 @@ public class FindShortestPathBenchmark extends PermutingBenchmarkBase implements
     public FindShortestPathBenchmark(BenchmarkConfiguration config)
     {
         super(config, BenchmarkType.FIND_SHORTEST_PATH);
-        generatedNodes = DatasetFactory.getInstance().getDataset(config.getDataset())
-            .generateRandomNodes(config.getRandomNodes());
+        generatedNodes = config.getRandomNodeList();
     }
 
     @Override

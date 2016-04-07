@@ -1,12 +1,7 @@
 package eu.socialsensor.main;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.math3.util.CombinatoricsUtils;
@@ -107,6 +102,7 @@ public class BenchmarkConfiguration
     private final String dynamodbTablePrefix;
     private final boolean customIds;
     private final long tuplMinCacheSize;
+    private final List<Integer> randomNodeList;
 
     public String getDynamodbCredentialsFqClassName()
     {
@@ -121,6 +117,9 @@ public class BenchmarkConfiguration
     public String getDynamodbEndpoint()
     {
         return dynamodbEndpoint;
+    }
+    public List<Integer> getRandomNodeList() {
+        return randomNodeList;
     }
 
     public BenchmarkConfiguration(Configuration appconfig)
@@ -178,6 +177,38 @@ public class BenchmarkConfiguration
         dataset = validateReadableFile(socialsensor.getString(DATASET), DATASET);
 
         // load the dataset
+        //        Set<String> nodes = new HashSet<String>();
+//        for (List<String> line : data.subList(4, data.size()))
+//        {
+//            for (String nodeId : line)
+//            {
+//                nodes.add(nodeId.trim());
+//            }
+//        }
+//
+//        List<String> nodeList = new ArrayList<String>(nodes);
+//        int[] nodeIndexList = new int[nodeList.size()];
+//        for (int i = 0; i < nodeList.size(); i++)
+//        {
+//            nodeIndexList[i] = i;
+//        }
+//        MathArrays.shuffle(nodeIndexList);
+//
+//        Set<Integer> generatedNodes = new HashSet<Integer>();
+//        for (int i = 0; i < numRandomNodes; i++)
+//        {
+//            generatedNodes.add(Integer.valueOf(nodeList.get(nodeIndexList[i])));
+//        }
+        //Use old logic for now
+        randomNodes = socialsensor.getInteger(RANDOM_NODES, new Integer(100));
+        final int max = 1000;
+        final int min = 2;
+        final Random rand = new Random(17);
+        final Set<Integer> generatedNodes = new HashSet<>();
+        while(generatedNodes.size() < randomNodes + 1) { //generate one more so that we can
+            generatedNodes.add(rand.nextInt((max - min) +1) + min);
+        }
+        randomNodeList = new LinkedList<>(generatedNodes);
         DatasetFactory.getInstance().getDataset(dataset);
 
         if (!socialsensor.containsKey(PERMUTE_BENCHMARKS))
@@ -214,8 +245,6 @@ public class BenchmarkConfiguration
         {
             throw new IllegalArgumentException("unable to write to results directory");
         }
-
-        randomNodes = socialsensor.getInteger(RANDOM_NODES, new Integer(100));
 
         if (this.benchmarkTypes.contains(BenchmarkType.CLUSTERING))
         {
