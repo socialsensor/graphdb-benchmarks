@@ -1,16 +1,25 @@
 package eu.socialsensor.graphdatabases;
 
 import java.io.File;
-import java.util.*;
+import java.util.Set;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import com.google.common.base.Stopwatch;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.MapConfiguration;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.tinkerpop.gremlin.process.traversal.Path;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
-import org.apache.tinkerpop.gremlin.process.traversal.util.FastNoSuchElementException;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Property;
@@ -44,6 +53,8 @@ import eu.socialsensor.main.GraphDatabaseType;
 import eu.socialsensor.utils.Utils;
 import jp.classmethod.titan.diskstorage.tupl.TuplStoreManager;
 
+import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource.computer;
+
 /**
  * Titan graph database implementation
  * 
@@ -52,6 +63,7 @@ import jp.classmethod.titan.diskstorage.tupl.TuplStoreManager;
  */
 public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iterator<Edge>, Vertex, Edge>
 {
+    private static final Logger LOG = LogManager.getLogger();
     public static final String INSERTION_TIMES_OUTPUT_PATH = "data/titan.insertion.times";
 
     double totalWeight;
@@ -282,16 +294,41 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
     {
         final GraphTraversalSource g = graph.traversal();
         final Vertex toNode = getVertex(node);
+        final Object toNodeId = toNode.id();
+        LOG.debug("from @" + fromNode.value(NODE_ID) + "," + fromNode.id() +
+                " to @"  + toNode.value(NODE_ID)   + "," + toNode.id() + " ");
+        final Stopwatch watch = Stopwatch.createStarted();
         //            repeat the contained traversal
         //                   map from this vertex to inV on SIMILAR edges without looping
         //            until you map to the target toNode and the path is six vertices long or less
         //            only return one path
+//g.V().has("nodeId", 14597).repeat(both().simplePath()).until(id().is(241640).and().filter {it.path().size() <= 6}).limit(1).path()
         GraphTraversal<?, Path> t =
-        g.V(fromNode).repeat(__.both().simplePath()).until(__.is(toNode).and(__.filter(it -> it.path().size() <= 6)))
-                     .limit(1).path();
-        //when the size of the path in the traverser object is six, that means this traverser made 5 hops from the
-        //fromNode, a total of 6 vertices
-        t.tryNext().ifPresent( it -> it.size());
+        g.V().has(NODE_ID, fromNode.<Integer>value(NODE_ID))
+                .repeat(
+                        __.both()
+                                .simplePath())
+                .until(
+                        __.id().is(toNodeId)
+                        .and(
+                                __.filter(it -> {
+//when the size of the path in the traverser object is six, that means this traverser made 5 hops from the
+//fromNode, a total of 6 vertices
+                                    return it.path().size() <= 6;
+                                }))
+                )
+                .limit(1)
+                .path();
+
+        t.tryNext()
+                .ifPresent( it -> {
+            final int pathSize = it.size();
+            final long elapsed = watch.elapsed(TimeUnit.MILLISECONDS);
+            watch.stop();
+            LOG.debug("took " + elapsed + " ms, " + pathSize + ": " + it.toString());
+        });
+
+
     }
 
     @Override

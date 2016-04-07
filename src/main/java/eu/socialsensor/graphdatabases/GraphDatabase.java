@@ -76,7 +76,7 @@ public interface GraphDatabase<VertexIteratorType, EdgeIteratorType, VertexType,
      * @param nodes
      *            any number of random nodes
      */
-    public void shortestPaths(Set<Integer> nodes);
+    public void shortestPaths(List<Integer> nodes);
     
     /**
      * Execute findShortestPaths query from the Query interface

@@ -7,6 +7,7 @@ import eu.socialsensor.main.BenchmarkType;
 import eu.socialsensor.main.GraphDatabaseType;
 import eu.socialsensor.utils.Utils;
 
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -21,7 +22,7 @@ import com.google.common.base.Stopwatch;
 public class FindShortestPathBenchmark extends PermutingBenchmarkBase implements RequiresGraphData
 {
 
-    private final Set<Integer> generatedNodes;
+    private final List<Integer> generatedNodes;
 
     public FindShortestPathBenchmark(BenchmarkConfiguration config)
     {

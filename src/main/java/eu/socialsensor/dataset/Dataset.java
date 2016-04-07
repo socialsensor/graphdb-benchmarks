@@ -1,11 +1,7 @@
 package eu.socialsensor.dataset;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.commons.math3.util.MathArrays;
 
@@ -25,31 +21,39 @@ public class Dataset implements Iterable<List<String>>
         data = Utils.readTabulatedLines(datasetFile, 4 /* numberOfLinesToSkip */);
     }
 
-    public Set<Integer> generateRandomNodes(int numRandomNodes)
+    public List<Integer> generateRandomNodes(int numRandomNodes)
     {
-        Set<String> nodes = new HashSet<String>();
-        for (List<String> line : data.subList(4, data.size()))
-        {
-            for (String nodeId : line)
-            {
-                nodes.add(nodeId.trim());
-            }
+//        Set<String> nodes = new HashSet<String>();
+//        for (List<String> line : data.subList(4, data.size()))
+//        {
+//            for (String nodeId : line)
+//            {
+//                nodes.add(nodeId.trim());
+//            }
+//        }
+//
+//        List<String> nodeList = new ArrayList<String>(nodes);
+//        int[] nodeIndexList = new int[nodeList.size()];
+//        for (int i = 0; i < nodeList.size(); i++)
+//        {
+//            nodeIndexList[i] = i;
+//        }
+//        MathArrays.shuffle(nodeIndexList);
+//
+//        Set<Integer> generatedNodes = new HashSet<Integer>();
+//        for (int i = 0; i < numRandomNodes; i++)
+//        {
+//            generatedNodes.add(Integer.valueOf(nodeList.get(nodeIndexList[i])));
+//        }
+        //Use old logic for now
+        final int max = 1000;
+        final int min = 2;
+        final Random rand = new Random(17);
+        final Set<Integer> generatedNodes = new HashSet<>();
+        while(generatedNodes.size() < numRandomNodes + 1) { //generate one more so that we can
+            generatedNodes.add(rand.nextInt((max - min) +1) + min);
         }
-
-        List<String> nodeList = new ArrayList<String>(nodes);
-        int[] nodeIndexList = new int[nodeList.size()];
-        for (int i = 0; i < nodeList.size(); i++)
-        {
-            nodeIndexList[i] = i;
-        }
-        MathArrays.shuffle(nodeIndexList);
-
-        Set<Integer> generatedNodes = new HashSet<Integer>();
-        for (int i = 0; i < numRandomNodes; i++)
-        {
-            generatedNodes.add(Integer.valueOf(nodeList.get(nodeIndexList[i])));
-        }
-        return generatedNodes;
+        return new LinkedList<>(generatedNodes);
     }
 
     @Override

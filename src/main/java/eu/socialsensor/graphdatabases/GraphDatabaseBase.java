@@ -2,6 +2,7 @@ package eu.socialsensor.graphdatabases;
 
 import java.io.File;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
@@ -125,20 +126,19 @@ public abstract class GraphDatabaseBase<VertexIteratorType, EdgeIteratorType, Ve
     }
     
     @Override
-    public void shortestPaths(Set<Integer> nodes) {
+    public void shortestPaths(List<Integer> nodes) {
         //randomness of selected node comes from the hashing function of hash set
         final Iterator<Integer> it = nodes.iterator();
         Preconditions.checkArgument(it.hasNext());
         final VertexType from = getVertex(it.next());
-        it.remove();//now the set has 99 nodes
+        it.remove();//now the set has n-1 nodes
         Timer.Context ctxt;
-        for(Integer i : nodes) {
+        while(it.hasNext()) {
+            final Integer i = it.next();
             //time this
             ctxt = shortestPathTimes.time();
             try {
                 shortestPath(from, i);
-            } catch(Exception e) {
-                e.printStackTrace();
             } finally {
                 ctxt.stop();
             }
