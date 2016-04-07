@@ -9,3 +9,5 @@ target/*
 /metrics
 /storage
 /results
+/.idea/
+/graphdb-benchmarks.iml

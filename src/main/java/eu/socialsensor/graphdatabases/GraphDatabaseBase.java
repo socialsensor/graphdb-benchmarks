@@ -137,6 +137,8 @@ public abstract class GraphDatabaseBase<VertexIteratorType, EdgeIteratorType, Ve
             ctxt = shortestPathTimes.time();
             try {
                 shortestPath(from, i);
+            } catch(Exception e) {
+                e.printStackTrace();
             } finally {
                 ctxt.stop();
             }

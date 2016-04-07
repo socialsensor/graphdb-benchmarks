@@ -1,14 +1,7 @@
 package eu.socialsensor.graphdatabases;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.configuration.Configuration;
@@ -17,6 +10,7 @@ import org.apache.tinkerpop.gremlin.process.traversal.Path;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
+import org.apache.tinkerpop.gremlin.process.traversal.util.FastNoSuchElementException;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Property;
@@ -288,12 +282,16 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
     {
         final GraphTraversalSource g = graph.traversal();
         final Vertex toNode = getVertex(node);
-        //TODO(amcp) how to limit depth to 5?
-        List<Path> paths = g.V(fromNode).repeat(__.both().simplePath()).until(__.is(toNode)).limit(1).path().toList();
-
-        for(Path path : paths) {
-            path.size();
-        }
+        //            repeat the contained traversal
+        //                   map from this vertex to inV on SIMILAR edges without looping
+        //            until you map to the target toNode and the path is six vertices long or less
+        //            only return one path
+        GraphTraversal<?, Path> t =
+        g.V(fromNode).repeat(__.both().simplePath()).until(__.is(toNode).and(__.filter(it -> it.path().size() <= 6)))
+                     .limit(1).path();
+        //when the size of the path in the traverser object is six, that means this traverser made 5 hops from the
+        //fromNode, a total of 6 vertices
+        t.tryNext().ifPresent( it -> it.size());
     }
 
     @Override
@@ -624,7 +622,7 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
     public Vertex getVertex(Integer i)
     {
         final GraphTraversalSource g = graph.traversal();
-        final Vertex vertex = g.V(T.label, NODE_LABEL).has(NODE_ID, i).next();
+        final Vertex vertex = g.V().has(NODE_ID, i).next();
         return vertex;
     }
 }

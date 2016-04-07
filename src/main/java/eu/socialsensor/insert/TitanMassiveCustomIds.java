@@ -26,7 +26,7 @@ public class TitanMassiveCustomIds extends TitanMassiveInsertion {
     {
         final Long longVal = Long.valueOf(value); //the value used in data files
         //the value used in data files sometimes is zero so add one for the purposes of generating ids
-        final Long longPositiveVal = Long.valueOf(value) + 1;
+        final Long longPositiveVal = longVal + 1;
         //send everything to partition 1 by adding 1
         final long titanVertexId =
                 TitanId.toVertexId((longPositiveVal << 1) + 1 /*move over 1 bit for 2 partitions (2^1 = 2)*/);
