@@ -35,11 +35,11 @@ public class TitanMassiveCustomIds extends TitanMassiveInsertion {
         // final GraphTraversal<Vertex, Vertex> t = tx.traversal().V().has(NODEID, longVal);
 
         //add to cache for first time
-        if(!vertexCache.containsKey(longPositiveVal)) {
+        if(!vertexCache.containsKey(longVal)) {
             final TitanVertex vertex = tx.addVertex(titanVertexId, nodeLabel /*vertexLabel*/);
             vertex.property(NODEID, longVal);
-            vertexCache.put(longPositiveVal, vertex);
+            vertexCache.put(longVal, vertex);
         }
-        return vertexCache.get(longPositiveVal);
+        return vertexCache.get(longVal);
     }
 }

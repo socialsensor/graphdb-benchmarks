@@ -290,31 +290,27 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
     }
 
     @Override
-    public void shortestPath(final Vertex fromNode, Integer node)
+    public void shortestPath(final Vertex fromNode, Integer targetNode)
     {
         final GraphTraversalSource g = graph.traversal();
-        final Vertex toNode = getVertex(node);
-        final Object toNodeId = toNode.id();
-        LOG.debug("from @" + fromNode.value(NODE_ID) + "," + fromNode.id() +
-                " to @"  + toNode.value(NODE_ID)   + "," + toNode.id() + " ");
         final Stopwatch watch = Stopwatch.createStarted();
         //            repeat the contained traversal
         //                   map from this vertex to inV on SIMILAR edges without looping
         //            until you map to the target toNode and the path is six vertices long or less
         //            only return one path
-//g.V().has("nodeId", 14597).repeat(both().simplePath()).until(id().is(241640).and().filter {it.path().size() <= 6}).limit(1).path()
+//g.V().has("nodeId", 775).repeat(both().simplePath()).until(has('nodeId', 990).and().filter {it.path().size() <= 5}).limit(1).path().by('nodeId')
         GraphTraversal<?, Path> t =
         g.V().has(NODE_ID, fromNode.<Integer>value(NODE_ID))
                 .repeat(
                         __.both()
                                 .simplePath())
                 .until(
-                        __.id().is(toNodeId)
+                        __.has(NODE_ID, targetNode)
                         .and(
                                 __.filter(it -> {
-//when the size of the path in the traverser object is six, that means this traverser made 5 hops from the
-//fromNode, a total of 6 vertices
-                                    return it.path().size() <= 6;
+//when the size of the path in the traverser object is six, that means this traverser made 4 hops from the
+//fromNode, a total of 5 vertices
+                                    return it.path().size() <= 5;
                                 }))
                 )
                 .limit(1)
@@ -322,10 +318,14 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
 
         t.tryNext()
                 .ifPresent( it -> {
-            final int pathSize = it.size();
-            final long elapsed = watch.elapsed(TimeUnit.MILLISECONDS);
-            watch.stop();
-            LOG.debug("took " + elapsed + " ms, " + pathSize + ": " + it.toString());
+                    final int pathSize = it.size();
+                    final long elapsed = watch.elapsed(TimeUnit.MILLISECONDS);
+                    watch.stop();
+                    if(elapsed > 200) { //threshold for debugging
+                        LOG.info("from @ " + fromNode.value(NODE_ID) +
+                                " to @ " + targetNode.toString() +
+                                " took " + elapsed + " ms, " + pathSize + ": " + it.toString());
+                    }
         });
 
 
