@@ -298,11 +298,11 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
         //                   map from this vertex to inV on SIMILAR edges without looping
         //            until you map to the target toNode and the path is six vertices long or less
         //            only return one path
-//g.V().has("nodeId", 775).repeat(both().simplePath()).until(has('nodeId', 990).and().filter {it.path().size() <= 5}).limit(1).path().by('nodeId')
+//g.V().has("nodeId", 775).repeat(out('similar').simplePath()).until(has('nodeId', 990).and().filter {it.path().size() <= 5}).limit(1).path().by('nodeId')
         GraphTraversal<?, Path> t =
         g.V().has(NODE_ID, fromNode.<Integer>value(NODE_ID))
                 .repeat(
-                        __.both()
+                        __.out(SIMILAR)
                                 .simplePath())
                 .until(
                         __.has(NODE_ID, targetNode)
