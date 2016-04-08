@@ -17,7 +17,7 @@ import eu.socialsensor.graphdatabases.GraphDatabase;
  */
 public class LouvainMethod
 {
-    boolean isRandomized;
+    private final Random random;
     private double resolution = 1.0;
     private double graphWeightSum;
     private int N;
@@ -27,10 +27,10 @@ public class LouvainMethod
     GraphDatabase<?,?,?,?> graphDatabase;
     Cache cache;
 
-    public LouvainMethod(GraphDatabase<?,?,?,?> graphDatabase, int cacheSize, boolean isRandomized) throws ExecutionException
+    public LouvainMethod(GraphDatabase<?,?,?,?> graphDatabase, int cacheSize, Random random) throws ExecutionException
     {
         this.graphDatabase = graphDatabase;
-        this.isRandomized = isRandomized;
+        this.random = random;
         initialize();
         cache = new Cache(graphDatabase, cacheSize);
     }
@@ -52,7 +52,6 @@ public class LouvainMethod
 
     public void computeModularity() throws ExecutionException
     {
-        Random rand = new Random();
         boolean someChange = true;
         while (someChange)
         {
@@ -62,9 +61,9 @@ public class LouvainMethod
             {
                 localChange = false;
                 int start = 0;
-                if (this.isRandomized)
+                if (null != this.random)
                 {
-                    start = Math.abs(rand.nextInt()) % this.N;
+                    start = Math.abs(random.nextInt()) % this.N;
                 }
                 int step = 0;
                 for (int i = start; step < this.N; i = (i + 1) % this.N)

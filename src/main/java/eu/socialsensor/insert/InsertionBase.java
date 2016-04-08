@@ -85,7 +85,7 @@ public abstract class InsertionBase<T> implements Insertion
     {
         logger.info("Loading data in {} mode in {} database . . . .", single ? "single" : "massive",
             type.name());
-        Dataset dataset = DatasetFactory.getInstance().getDataset(datasetFile);
+        final Dataset dataset = DatasetFactory.getInstance().getDataset(datasetFile);
 
         Stopwatch thousandWatch = Stopwatch.createStarted(), watch = Stopwatch.createStarted();
 

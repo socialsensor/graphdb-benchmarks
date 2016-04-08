@@ -25,7 +25,6 @@ public abstract class GraphDatabaseBase<VertexIteratorType, EdgeIteratorType, Ve
     public static final String COMMUNITY = "community";
     public static final String NODE_LABEL = "node";
     protected final File dbStorageDirectory;
-    protected final MetricRegistry metrics = new MetricRegistry();
     protected final GraphDatabaseType type;
     private final Timer nextVertexTimes;
     private final Timer getNeighborsOfVertexTimes;
@@ -33,8 +32,9 @@ public abstract class GraphDatabaseBase<VertexIteratorType, EdgeIteratorType, Ve
     private final Timer getOtherVertexFromEdgeTimes;
     private final Timer getAllEdgesTimes;
     private final Timer shortestPathTimes;
+    private final List<Integer> randomNodes;
 
-    protected GraphDatabaseBase(GraphDatabaseType type, File dbStorageDirectory)
+    protected GraphDatabaseBase(GraphDatabaseType type, File dbStorageDirectory, List<Integer> randomNodes)
     {
         this.type = type;
         final String queryTypeContext = type.getShortname() + QUERY_CONTEXT;
@@ -44,6 +44,7 @@ public abstract class GraphDatabaseBase<VertexIteratorType, EdgeIteratorType, Ve
         this.getOtherVertexFromEdgeTimes = GraphDatabaseBenchmark.metrics.timer(queryTypeContext + "getOtherVertexFromEdge");
         this.getAllEdgesTimes = GraphDatabaseBenchmark.metrics.timer(queryTypeContext + "getAllEdges");
         this.shortestPathTimes = GraphDatabaseBenchmark.metrics.timer(queryTypeContext + "shortestPath");
+        this.randomNodes = randomNodes;
         
         this.dbStorageDirectory = dbStorageDirectory;
         if (!this.dbStorageDirectory.exists())
@@ -126,12 +127,11 @@ public abstract class GraphDatabaseBase<VertexIteratorType, EdgeIteratorType, Ve
     }
     
     @Override
-    public void shortestPaths(List<Integer> nodes) {
+    public void shortestPaths() {
         //randomness of selected node comes from the hashing function of hash set
-        final Iterator<Integer> it = nodes.iterator();
+        final Iterator<Integer> it = randomNodes.iterator();
         Preconditions.checkArgument(it.hasNext());
         final VertexType from = getVertex(it.next());
-        it.remove();//now the set has n-1 nodes
         Timer.Context ctxt;
         while(it.hasNext()) {
             final Integer i = it.next();

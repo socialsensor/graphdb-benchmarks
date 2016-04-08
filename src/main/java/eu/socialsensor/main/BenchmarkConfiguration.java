@@ -53,6 +53,7 @@ public class BenchmarkConfiguration
     private static final String CACHE_VALUES_COUNT = "cache-values-count";
     private static final String PERMUTE_BENCHMARKS = "permute-benchmarks";
     private static final String RANDOM_NODES = "shortest-path-random-nodes";
+    private static final String RANDOM_SEED = "random-seed";
     
     private static final Set<String> metricsReporters = new HashSet<String>();
     static {
@@ -80,7 +81,7 @@ public class BenchmarkConfiguration
     private final boolean dynamodbConsistentRead;
 
     // shortest path
-    private final int randomNodes;
+    private final int numShortestPathRandomNodes;
 
     // clustering
     private final Boolean randomizedClustering;
@@ -102,7 +103,8 @@ public class BenchmarkConfiguration
     private final String dynamodbTablePrefix;
     private final boolean customIds;
     private final long tuplMinCacheSize;
-    private final List<Integer> randomNodeList;
+
+    private final Random random;
 
     public String getDynamodbCredentialsFqClassName()
     {
@@ -117,9 +119,6 @@ public class BenchmarkConfiguration
     public String getDynamodbEndpoint()
     {
         return dynamodbEndpoint;
-    }
-    public List<Integer> getRandomNodeList() {
-        return randomNodeList;
     }
 
     public BenchmarkConfiguration(Configuration appconfig)
@@ -176,40 +175,11 @@ public class BenchmarkConfiguration
         dbStorageDirectory = new File(socialsensor.getString(DATABASE_STORAGE_DIRECTORY));
         dataset = validateReadableFile(socialsensor.getString(DATASET), DATASET);
 
+
         // load the dataset
-        //        Set<String> nodes = new HashSet<String>();
-//        for (List<String> line : data.subList(4, data.size()))
-//        {
-//            for (String nodeId : line)
-//            {
-//                nodes.add(nodeId.trim());
-//            }
-//        }
-//
-//        List<String> nodeList = new ArrayList<String>(nodes);
-//        int[] nodeIndexList = new int[nodeList.size()];
-//        for (int i = 0; i < nodeList.size(); i++)
-//        {
-//            nodeIndexList[i] = i;
-//        }
-//        MathArrays.shuffle(nodeIndexList);
-//
-//        Set<Integer> generatedNodes = new HashSet<Integer>();
-//        for (int i = 0; i < numRandomNodes; i++)
-//        {
-//            generatedNodes.add(Integer.valueOf(nodeList.get(nodeIndexList[i])));
-//        }
-        //Use old logic for now
-        randomNodes = socialsensor.getInteger(RANDOM_NODES, new Integer(100));
-        final int max = 1000;
-        final int min = 2;
-        final Random rand = new Random(17);
-        final Set<Integer> generatedNodes = new HashSet<>();
-        while(generatedNodes.size() < randomNodes + 1) { //generate one more so that we can
-            generatedNodes.add(rand.nextInt((max - min) +1) + min);
-        }
-        randomNodeList = new LinkedList<>(generatedNodes);
-        DatasetFactory.getInstance().getDataset(dataset);
+        random = new Random(socialsensor.getInt(RANDOM_SEED, 17 /*default*/));
+        numShortestPathRandomNodes = socialsensor.getInteger(RANDOM_NODES, new Integer(101));
+        DatasetFactory.getInstance().createAndGetDataset(dataset, random, numShortestPathRandomNodes);
 
         if (!socialsensor.containsKey(PERMUTE_BENCHMARKS))
         {
@@ -393,24 +363,16 @@ public class BenchmarkConfiguration
         return scenarios;
     }
 
-    private static final File validateReadableFile(String fileName, String fileType)
-    {
+    private static final File validateReadableFile(String fileName, String fileType) {
         File file = new File(fileName);
-        if (!file.exists())
-        {
+        if (!file.exists()) {
             throw new IllegalArgumentException(String.format("the %s does not exist", fileType));
         }
 
-        if (!(file.isFile() && file.canRead()))
-        {
+        if (!(file.isFile() && file.canRead())) {
             throw new IllegalArgumentException(String.format("the %s must be a file that this user can read", fileType));
         }
         return file;
-    }
-
-    public int getRandomNodes()
-    {
-        return randomNodes;
     }
 
     public long getCsvReportingInterval()
@@ -479,5 +441,12 @@ public class BenchmarkConfiguration
 
     public long getTuplMinCacheSize() {
         return tuplMinCacheSize;
+    }
+
+    public Random getRandom() {
+        return random;
+    }
+    public List<Integer> getRandomNodeList() {
+        return DatasetFactory.getInstance().getDataset(this.dataset).getRandomNodes();
     }
 }

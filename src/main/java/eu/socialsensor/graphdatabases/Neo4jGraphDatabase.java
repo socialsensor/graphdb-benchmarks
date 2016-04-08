@@ -62,9 +62,9 @@ public class Neo4jGraphDatabase extends GraphDatabaseBase<Iterator<Node>, Iterat
 
     public static Label NODE_LABEL = DynamicLabel.label("Node");
 
-    public Neo4jGraphDatabase(File dbStorageDirectoryIn, boolean batchLoading)
+    public Neo4jGraphDatabase(File dbStorageDirectoryIn, boolean batchLoading, List<Integer> randomNodes)
     {
-        super(GraphDatabaseType.NEO4J, dbStorageDirectoryIn);
+        super(GraphDatabaseType.NEO4J, dbStorageDirectoryIn, randomNodes);
 
         if(batchLoading) {
             neo4jGraph = null;
@@ -183,9 +183,9 @@ public class Neo4jGraphDatabase extends GraphDatabaseBase<Iterator<Node>, Iterat
     }
 
     @Override
-    public void shortestPaths(List<Integer> nodes) {
+    public void shortestPaths() {
         try (Transaction tx = ((Neo4jGraphDatabase) this).neo4jGraph.beginTx()) {
-            super.shortestPaths(nodes);
+            super.shortestPaths();
         }
     }
 

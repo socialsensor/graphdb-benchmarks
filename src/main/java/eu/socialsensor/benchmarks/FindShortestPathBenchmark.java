@@ -22,12 +22,9 @@ import com.google.common.base.Stopwatch;
 public class FindShortestPathBenchmark extends PermutingBenchmarkBase implements RequiresGraphData
 {
 
-    private final List<Integer> generatedNodes;
-
     public FindShortestPathBenchmark(BenchmarkConfiguration config)
     {
         super(config, BenchmarkType.FIND_SHORTEST_PATH);
-        generatedNodes = config.getRandomNodeList();
     }
 
     @Override
@@ -35,7 +32,7 @@ public class FindShortestPathBenchmark extends PermutingBenchmarkBase implements
     {
         GraphDatabase<?,?,?,?> graphDatabase = Utils.createDatabaseInstance(bench, type, false /*batchLoading*/);
         Stopwatch watch = Stopwatch.createStarted();
-        graphDatabase.shortestPaths(generatedNodes);
+        graphDatabase.shortestPaths();
         graphDatabase.shutdown();
         times.get(type).add((double) watch.elapsed(TimeUnit.MILLISECONDS));
     }

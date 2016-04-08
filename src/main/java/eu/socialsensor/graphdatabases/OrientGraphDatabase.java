@@ -49,7 +49,7 @@ public class OrientGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Ite
     @SuppressWarnings("deprecation")
     public OrientGraphDatabase(BenchmarkConfiguration config, File dbStorageDirectoryIn)
     {
-        super(GraphDatabaseType.ORIENT_DB, dbStorageDirectoryIn);
+        super(GraphDatabaseType.ORIENT_DB, dbStorageDirectoryIn, config.getRandomNodeList());
         OGlobalConfiguration.STORAGE_COMPRESSION_METHOD.setValue("nothing");
         OGlobalConfiguration.STORAGE_KEEP_OPEN.setValue(false);
         graph = getGraph(dbStorageDirectory);

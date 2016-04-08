@@ -72,19 +72,19 @@ public interface GraphDatabase<VertexIteratorType, EdgeIteratorType, VertexType,
 
     /**
      * Find the shortest path between vertex 1 and each of the vertexes in the list
-     * 
-     * @param nodes
+     *
      *            any number of random nodes
      */
-    public void shortestPaths(List<Integer> nodes);
+    public void shortestPaths();
     
     /**
      * Execute findShortestPaths query from the Query interface
-     * 
-     * @param nodes
+     *
+     * @param fromNode
+     * @param toNode
      *            any number of random nodes
      */
-    public void shortestPath(final VertexType fromNode, Integer node);
+    public void shortestPath(final VertexType fromNode, Integer toNode);
 
     /**
      * @return the number of nodes

@@ -102,7 +102,8 @@ public class ClusteringBenchmark extends BenchmarkBase implements RequiresGraphD
                 + ", Cache Size: " + cacheSize);
 
             Stopwatch watch = Stopwatch.createStarted();
-            LouvainMethod louvainMethodCache = new LouvainMethod(graphDatabase, cacheSize, bench.randomizedClustering());
+            LouvainMethod louvainMethodCache = new LouvainMethod(graphDatabase, cacheSize,
+                    bench.randomizedClustering() ? bench.getRandom() : null);
             louvainMethodCache.computeModularity();
             timeMap.put(cacheSize, watch.elapsed(TimeUnit.MILLISECONDS) / 1000.0);
 

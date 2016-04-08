@@ -74,7 +74,7 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
     public TitanGraphDatabase(GraphDatabaseType type, BenchmarkConfiguration config, File dbStorageDirectory,
             boolean batchLoading)
     {
-        super(type, dbStorageDirectory);
+        super(type, dbStorageDirectory, config.getRandomNodeList());
         this.config = config;
         if (!GraphDatabaseType.TITAN_FLAVORS.contains(type))
         {

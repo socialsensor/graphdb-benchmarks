@@ -191,7 +191,7 @@ public class Utils
         }
         else if (GraphDatabaseType.NEO4J == type)
         {
-            graphDatabase = new Neo4jGraphDatabase(dbStorageDirectory, batchLoading);
+            graphDatabase = new Neo4jGraphDatabase(dbStorageDirectory, batchLoading, config.getRandomNodeList());
         }
         else if (GraphDatabaseType.ORIENT_DB == type)
         {
