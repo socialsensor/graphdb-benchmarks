@@ -62,9 +62,9 @@ public class Neo4jGraphDatabase extends GraphDatabaseBase<Iterator<Node>, Iterat
 
     public static Label NODE_LABEL = DynamicLabel.label("Node");
 
-    public Neo4jGraphDatabase(File dbStorageDirectoryIn, boolean batchLoading, List<Integer> randomNodes)
+    public Neo4jGraphDatabase(File dbStorageDirectoryIn, boolean batchLoading, List<Integer> randomNodes, int shortestPathMaxHops)
     {
-        super(GraphDatabaseType.NEO4J, dbStorageDirectoryIn, randomNodes);
+        super(GraphDatabaseType.NEO4J, dbStorageDirectoryIn, randomNodes, shortestPathMaxHops);
 
         if(batchLoading) {
             neo4jGraph = null;
@@ -207,7 +207,7 @@ public class Neo4jGraphDatabase extends GraphDatabaseBase<Iterator<Node>, Iterat
     public void shortestPath(Node n1, Integer i)
     {
         PathFinder<Path> finder
-            = GraphAlgoFactory.shortestPath(PathExpanders.forType(Neo4jGraphDatabase.RelTypes.SIMILAR), 5);
+            = GraphAlgoFactory.shortestPath(PathExpanders.forType(Neo4jGraphDatabase.RelTypes.SIMILAR), maxHops);
         Node n2 = getVertex(i);
         Path path = finder.findSinglePath(n1, n2);
 

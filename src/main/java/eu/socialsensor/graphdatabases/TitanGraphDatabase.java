@@ -10,6 +10,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 
 import com.google.common.base.Stopwatch;
 import org.apache.commons.configuration.Configuration;
@@ -17,6 +18,7 @@ import org.apache.commons.configuration.MapConfiguration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.tinkerpop.gremlin.process.traversal.Path;
+import org.apache.tinkerpop.gremlin.process.traversal.Traverser;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
@@ -64,9 +66,6 @@ import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTrav
 public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iterator<Edge>, Vertex, Edge>
 {
     private static final Logger LOG = LogManager.getLogger();
-    public static final String INSERTION_TIMES_OUTPUT_PATH = "data/titan.insertion.times";
-
-    double totalWeight;
 
     private final StandardTitanGraph graph;
     private final BenchmarkConfiguration config;
@@ -74,7 +73,7 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
     public TitanGraphDatabase(GraphDatabaseType type, BenchmarkConfiguration config, File dbStorageDirectory,
             boolean batchLoading)
     {
-        super(type, dbStorageDirectory, config.getRandomNodeList());
+        super(type, dbStorageDirectory, config.getRandomNodeList(), config.getShortestPathMaxHops());
         this.config = config;
         if (!GraphDatabaseType.TITAN_FLAVORS.contains(type))
         {
@@ -289,6 +288,19 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
         shutdown();
     }
 
+    public class DepthPredicate implements Predicate<Traverser<T>> {
+        private final int hops;
+        public DepthPredicate(int hops) {
+            this.hops = hops;
+        }
+
+        @Override
+        public boolean test(Traverser<T> it) {
+            LOG.trace("testing {}", it.path());
+            return it.path().size() <= hops;
+        }
+    }
+
     @Override
     public void shortestPath(final Vertex fromNode, Integer targetNode)
     {
@@ -299,19 +311,17 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
         //            until you map to the target toNode and the path is six vertices long or less
         //            only return one path
 //g.V().has("nodeId", 775).repeat(out('similar').simplePath()).until(has('nodeId', 990).and().filter {it.path().size() <= 5}).limit(1).path().by('nodeId')
-        GraphTraversal<?, Path> t =
-        g.V().has(NODE_ID, fromNode.<Integer>value(NODE_ID))
+        final DepthPredicate maxDepth = new DepthPredicate(maxHops);
+        final Integer fromNodeId = fromNode.<Integer>value(NODE_ID);
+        LOG.trace("finding path from {} to {} max hops {}", fromNodeId, targetNode, maxHops);
+        final GraphTraversal<?, Path> t =
+        g.V().has(NODE_ID, fromNodeId)
                 .repeat(
                         __.out(SIMILAR)
                                 .simplePath())
                 .until(
                         __.has(NODE_ID, targetNode)
-                        .and(
-                                __.filter(it -> {
-//when the size of the path in the traverser object is six, that means this traverser made 4 hops from the
-//fromNode, a total of 5 vertices
-                                    return it.path().size() <= 5;
-                                }))
+                        .and(__.filter( maxDepth ))
                 )
                 .limit(1)
                 .path();
@@ -321,8 +331,8 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
                     final int pathSize = it.size();
                     final long elapsed = watch.elapsed(TimeUnit.MILLISECONDS);
                     watch.stop();
-                    if(elapsed > 200) { //threshold for debugging
-                        LOG.info("from @ " + fromNode.value(NODE_ID) +
+                    if(elapsed > 500) { //threshold for debugging
+                        LOG.warn("from @ " + fromNode.value(NODE_ID) +
                                 " to @ " + targetNode.toString() +
                                 " took " + elapsed + " ms, " + pathSize + ": " + it.toString());
                     }

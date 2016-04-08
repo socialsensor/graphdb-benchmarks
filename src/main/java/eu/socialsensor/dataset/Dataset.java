@@ -33,7 +33,7 @@ public class Dataset implements Iterable<List<String>>
 
         //shuffle
         final List<Integer> nodeList = new ArrayList<>(nodes);
-        Collections.shuffle(nodeList);
+        Collections.shuffle(nodeList, random);
 
         //choose randomNodeSetSize of them
         generatedNodes = new ArrayList<Integer>(randomNodeSetSize);

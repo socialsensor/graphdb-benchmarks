@@ -98,8 +98,18 @@
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-1.2-api</artifactId>
+            <version>${log4j2.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
             <version>${log4j2.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.7.12</version>
         </dependency>
         <dependency>
             <groupId>org.apache.lucene</groupId>
@@ -337,7 +347,7 @@
                                     <includes>
                                         <include>**/GraphDatabaseBenchmarkTest.java</include>
                                     </includes>
-                                    <argLine>-Xmx32g</argLine>
+                                    <argLine>-Xmx32g -ea</argLine>
                                     <skip>false</skip>
                                     <systemPropertyVariables>
                                         <log4j.configurationFile>${basedir}/src/test/resources/META-INF/log4j2.xml</log4j.configurationFile>

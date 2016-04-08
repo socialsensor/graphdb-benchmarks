@@ -55,7 +55,7 @@ public abstract class PermutingBenchmarkBase extends BenchmarkBase
             startBenchmarkInternalOnePermutation(bench.getSelectedDatabases(), 1);
         }
 
-        LOG.info(String.format("%s Benchmark finished", type.longname()));
+        LOG.info(String.format("%s Benchmark Finished", type.longname()));
         post();
     }
 

@@ -121,7 +121,7 @@ public abstract class InsertionBase<T> implements Insertion
             }
         });
         post();
-        logger.info("Edges: " + i.get());
+        logger.trace("Edges: " + i.get());
         insertionTimes.add((double) watch.elapsed(TimeUnit.MILLISECONDS));
 
         if (single)

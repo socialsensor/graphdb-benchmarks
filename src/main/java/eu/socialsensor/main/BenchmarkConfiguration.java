@@ -54,6 +54,7 @@ public class BenchmarkConfiguration
     private static final String PERMUTE_BENCHMARKS = "permute-benchmarks";
     private static final String RANDOM_NODES = "shortest-path-random-nodes";
     private static final String RANDOM_SEED = "random-seed";
+    private static final String MAX_HOPS = "shortest-path-max-hops";
     
     private static final Set<String> metricsReporters = new HashSet<String>();
     static {
@@ -103,6 +104,7 @@ public class BenchmarkConfiguration
     private final String dynamodbTablePrefix;
     private final boolean customIds;
     private final long tuplMinCacheSize;
+    private final int shortestPathMaxHops;
 
     private final Random random;
 
@@ -179,6 +181,7 @@ public class BenchmarkConfiguration
         // load the dataset
         random = new Random(socialsensor.getInt(RANDOM_SEED, 17 /*default*/));
         numShortestPathRandomNodes = socialsensor.getInteger(RANDOM_NODES, new Integer(101));
+        shortestPathMaxHops = socialsensor.getInteger(MAX_HOPS, 5);
         DatasetFactory.getInstance().createAndGetDataset(dataset, random, numShortestPathRandomNodes);
 
         if (!socialsensor.containsKey(PERMUTE_BENCHMARKS))
@@ -448,5 +451,9 @@ public class BenchmarkConfiguration
     }
     public List<Integer> getRandomNodeList() {
         return DatasetFactory.getInstance().getDataset(this.dataset).getRandomNodes();
+    }
+
+    public int getShortestPathMaxHops() {
+        return shortestPathMaxHops;
     }
 }

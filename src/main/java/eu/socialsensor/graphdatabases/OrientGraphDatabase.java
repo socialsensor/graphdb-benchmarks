@@ -49,7 +49,8 @@ public class OrientGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Ite
     @SuppressWarnings("deprecation")
     public OrientGraphDatabase(BenchmarkConfiguration config, File dbStorageDirectoryIn)
     {
-        super(GraphDatabaseType.ORIENT_DB, dbStorageDirectoryIn, config.getRandomNodeList());
+        super(GraphDatabaseType.ORIENT_DB, dbStorageDirectoryIn, config.getRandomNodeList(),
+                config.getShortestPathMaxHops());
         OGlobalConfiguration.STORAGE_COMPRESSION_METHOD.setValue("nothing");
         OGlobalConfiguration.STORAGE_KEEP_OPEN.setValue(false);
         graph = getGraph(dbStorageDirectory);
@@ -102,9 +103,8 @@ public class OrientGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Ite
         @SuppressWarnings("unused")
         final OrientVertex v2 = (OrientVertex) getVertex(i);
 
-        //TODO(amcp) need to do something about the number 5
 //        List<ORID> result = (List<ORID>) new OSQLFunctionShortestPath().execute(graph,
-//            null, null, new Object[] { ((OrientVertex) v1).getRecord(), v2.getRecord(), Direction.OUT, 5 },
+//            null, null, new Object[] { ((OrientVertex) v1).getRecord(), v2.getRecord(), Direction.OUT, maxHops },
 //            new OBasicCommandContext());
 //
 //        result.size();

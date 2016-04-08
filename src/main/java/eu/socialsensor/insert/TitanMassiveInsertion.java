@@ -50,7 +50,7 @@ public abstract class TitanMassiveInsertion extends InsertionBase<Vertex>
 
     @Override
     protected void post() {
-        logger.info("vertices: " + vertexCache.size());
+        logger.trace("vertices: " + vertexCache.size());
         tx.commit(); //mutation work is done here
         Preconditions.checkState(graph.getOpenTransactions().isEmpty());
     }

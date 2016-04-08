@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.logging.Log;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -33,8 +34,10 @@ public abstract class GraphDatabaseBase<VertexIteratorType, EdgeIteratorType, Ve
     private final Timer getAllEdgesTimes;
     private final Timer shortestPathTimes;
     private final List<Integer> randomNodes;
+    protected final int maxHops;
 
-    protected GraphDatabaseBase(GraphDatabaseType type, File dbStorageDirectory, List<Integer> randomNodes)
+    protected GraphDatabaseBase(GraphDatabaseType type, File dbStorageDirectory, List<Integer> randomNodes,
+                                int shortestPathMaxHops)
     {
         this.type = type;
         final String queryTypeContext = type.getShortname() + QUERY_CONTEXT;
@@ -45,6 +48,7 @@ public abstract class GraphDatabaseBase<VertexIteratorType, EdgeIteratorType, Ve
         this.getAllEdgesTimes = GraphDatabaseBenchmark.metrics.timer(queryTypeContext + "getAllEdges");
         this.shortestPathTimes = GraphDatabaseBenchmark.metrics.timer(queryTypeContext + "shortestPath");
         this.randomNodes = randomNodes;
+        this.maxHops = shortestPathMaxHops;
         
         this.dbStorageDirectory = dbStorageDirectory;
         if (!this.dbStorageDirectory.exists())
