@@ -10,7 +10,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Predicate;
 
 import com.google.common.base.Stopwatch;
 import org.apache.commons.configuration.Configuration;
@@ -18,7 +17,6 @@ import org.apache.commons.configuration.MapConfiguration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.tinkerpop.gremlin.process.traversal.Path;
-import org.apache.tinkerpop.gremlin.process.traversal.Traverser;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
@@ -288,29 +286,11 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
         shutdown();
     }
 
-    public class DepthPredicate implements Predicate<Traverser<T>> {
-        private final int hops;
-        public DepthPredicate(int hops) {
-            this.hops = hops;
-        }
-
-        @Override
-        public boolean test(Traverser<T> it) {
-            LOG.trace("testing {}", it.path());
-            return it.path().size() <= hops;
-        }
-    }
-
     @Override
     public void shortestPath(final Vertex fromNode, Integer targetNode)
     {
         final GraphTraversalSource g = graph.traversal();
         final Stopwatch watch = Stopwatch.createStarted();
-        //            repeat the contained traversal
-        //                   map from this vertex to inV on SIMILAR edges without looping
-        //            until you map to the target toNode and the path is six vertices long or less
-        //            only return one path
-//g.V().has("nodeId", 775).repeat(out('similar').simplePath()).until(has('nodeId', 990).and().filter {it.path().size() <= 5}).limit(1).path().by('nodeId')
         final DepthPredicate maxDepth = new DepthPredicate(maxHops);
         final Integer fromNodeId = fromNode.<Integer>value(NODE_ID);
         LOG.trace("finding path from {} to {} max hops {}", fromNodeId, targetNode, maxHops);
@@ -337,8 +317,6 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
                                 " took " + elapsed + " ms, " + pathSize + ": " + it.toString());
                     }
         });
-
-
     }
 
     @Override

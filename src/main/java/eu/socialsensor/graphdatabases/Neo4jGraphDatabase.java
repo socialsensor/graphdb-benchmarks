@@ -10,23 +10,23 @@ import eu.socialsensor.main.BenchmarkingException;
 import eu.socialsensor.main.GraphDatabaseType;
 import eu.socialsensor.utils.Utils;
 
-import org.neo4j.graphalgo.GraphAlgoFactory;
-import org.neo4j.graphalgo.PathFinder;
+import org.apache.tinkerpop.gremlin.neo4j.structure.Neo4jGraph;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicLabel;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Path;
-import org.neo4j.graphdb.PathExpanders;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.graphdb.schema.Schema;
 import org.neo4j.helpers.collection.IteratorUtil;
+import org.neo4j.tinkerpop.api.impl.Neo4jGraphAPIImpl;
 import org.neo4j.tooling.GlobalGraphOperations;
 import org.neo4j.unsafe.batchinsert.BatchInserter;
 import org.neo4j.unsafe.batchinsert.BatchInserters;
@@ -51,11 +51,12 @@ import java.util.concurrent.TimeUnit;
 public class Neo4jGraphDatabase extends GraphDatabaseBase<Iterator<Node>, Iterator<Relationship>, Node, Relationship>
 {
     private final GraphDatabaseService neo4jGraph;
+    private final Neo4jGraph neo4jTp;
     private final Schema schema;
 
     private BatchInserter inserter = null;
 
-    public static enum RelTypes implements RelationshipType
+    public enum RelTypes implements RelationshipType
     {
         SIMILAR
     }
@@ -68,6 +69,7 @@ public class Neo4jGraphDatabase extends GraphDatabaseBase<Iterator<Node>, Iterat
 
         if(batchLoading) {
             neo4jGraph = null;
+            neo4jTp = null;
             schema = null;
 
             Map<String, String> config = new HashMap<String, String>();
@@ -88,7 +90,8 @@ public class Neo4jGraphDatabase extends GraphDatabaseBase<Iterator<Node>, Iterat
             inserter.createDeferredSchemaIndex(NODE_LABEL).on(COMMUNITY).create();
             inserter.createDeferredSchemaIndex(NODE_LABEL).on(NODE_COMMUNITY).create();
         } else {
-            neo4jGraph = new GraphDatabaseFactory().newEmbeddedDatabase(dbStorageDirectory);
+            neo4jTp = Neo4jGraph.open(dbStorageDirectory.getAbsolutePath());
+            neo4jGraph = ((Neo4jGraphAPIImpl) neo4jTp.getBaseGraph()).getGraphDatabase();
             try (final Transaction tx = neo4jGraph.beginTx())
             {
                 schema = neo4jGraph.schema();
@@ -206,17 +209,36 @@ public class Neo4jGraphDatabase extends GraphDatabaseBase<Iterator<Node>, Iterat
     @Override
     public void shortestPath(Node n1, Integer i)
     {
-        PathFinder<Path> finder
-            = GraphAlgoFactory.shortestPath(PathExpanders.forType(Neo4jGraphDatabase.RelTypes.SIMILAR), maxHops);
-        Node n2 = getVertex(i);
-        Path path = finder.findSinglePath(n1, n2);
+//        PathFinder<Path> finder
+//            = GraphAlgoFactory.shortestPath(PathExpanders.forType(Neo4jGraphDatabase.RelTypes.SIMILAR), maxHops);
+//        Node n2 = getVertex(i);
+//        Path path = finder.findSinglePath(n1, n2);
+//
+//        @SuppressWarnings("unused")
+//        int length = 0;
+//        if (path != null)
+//        {
+//            length = path.length();
+//        }
+        final GraphTraversalSource g = neo4jTp.traversal();
+        final DepthPredicate maxDepth = new DepthPredicate(maxHops);
+        final Integer fromNodeId = (Integer) n1.getProperty(NODE_ID);
+        final GraphTraversal<?, org.apache.tinkerpop.gremlin.process.traversal.Path> t =
+                g.V().has(NODE_ID, fromNodeId)
+                        .repeat(
+                                __.out(SIMILAR)
+                                        .simplePath())
+                        .until(
+                                __.has(NODE_ID, i)
+                                        .and(__.filter( maxDepth ))
+                        )
+                        .limit(1)
+                        .path();
 
-        @SuppressWarnings("unused")
-        int length = 0;
-        if (path != null)
-        {
-            length = path.length();
-        }
+        t.tryNext()
+                .ifPresent( it -> {
+                    final int pathSize = it.size();
+                });
     }
 
     @Override
