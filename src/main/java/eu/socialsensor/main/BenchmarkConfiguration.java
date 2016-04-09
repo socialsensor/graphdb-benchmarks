@@ -46,11 +46,8 @@ public class BenchmarkConfiguration
     private static final String DATASET = "dataset";
     private static final String DATABASE_STORAGE_DIRECTORY = "database-storage-directory";
     private static final String ACTUAL_COMMUNITIES = "actual-communities";
-    private static final String NODES_COUNT = "nodes-count";
     private static final String RANDOMIZE_CLUSTERING = "randomize-clustering";
-    private static final String CACHE_VALUES = "cache-values";
-    private static final String CACHE_INCREMENT_FACTOR = "cache-increment-factor";
-    private static final String CACHE_VALUES_COUNT = "cache-values-count";
+    private static final String CACHE_PERCENTAGES = "cache-percentages";
     private static final String PERMUTE_BENCHMARKS = "permute-benchmarks";
     private static final String RANDOM_NODES = "shortest-path-random-nodes";
     private static final String RANDOM_SEED = "random-seed";
@@ -86,10 +83,9 @@ public class BenchmarkConfiguration
 
     // clustering
     private final Boolean randomizedClustering;
-    private final Integer nodesCount;
     private final Integer cacheValuesCount;
     private final Double cacheIncrementFactor;
-    private final List<Integer> cacheValues;
+    private final List<Integer> cachePercentages;
     private final File actualCommunities;
     private final boolean permuteBenchmarks;
     private final int scenarios;
@@ -221,12 +217,6 @@ public class BenchmarkConfiguration
 
         if (this.benchmarkTypes.contains(BenchmarkType.CLUSTERING))
         {
-            if (!socialsensor.containsKey(NODES_COUNT))
-            {
-                throw new IllegalArgumentException("the CW benchmark requires nodes-count integer in config");
-            }
-            nodesCount = socialsensor.getInt(NODES_COUNT);
-
             if (!socialsensor.containsKey(RANDOMIZE_CLUSTERING))
             {
                 throw new IllegalArgumentException("the CW benchmark requires randomize-clustering bool in config");
@@ -239,49 +229,30 @@ public class BenchmarkConfiguration
             }
             actualCommunities = validateReadableFile(socialsensor.getString(ACTUAL_COMMUNITIES), ACTUAL_COMMUNITIES);
 
-            final boolean notGenerating = socialsensor.containsKey(CACHE_VALUES);
+            final boolean notGenerating = socialsensor.containsKey(CACHE_PERCENTAGES);
             if (notGenerating)
             {
-                List<?> objects = socialsensor.getList(CACHE_VALUES);
-                cacheValues = new ArrayList<Integer>(objects.size());
+                List<?> objects = socialsensor.getList(CACHE_PERCENTAGES);
+                cachePercentages = new ArrayList<Integer>(objects.size());
                 cacheValuesCount = null;
                 cacheIncrementFactor = null;
                 for (Object o : objects)
                 {
-                    cacheValues.add(Integer.valueOf(o.toString()));
+                    cachePercentages.add(Integer.valueOf(o.toString()));
                 }
-            }
-            else if (socialsensor.containsKey(CACHE_VALUES_COUNT) && socialsensor.containsKey(CACHE_INCREMENT_FACTOR))
-            {
-                cacheValues = null;
-                // generate the cache values with parameters
-                if (!socialsensor.containsKey(CACHE_VALUES_COUNT))
-                {
-                    throw new IllegalArgumentException(
-                        "the CW benchmark requires cache-values-count int in config when cache-values not specified");
-                }
-                cacheValuesCount = socialsensor.getInt(CACHE_VALUES_COUNT);
-
-                if (!socialsensor.containsKey(CACHE_INCREMENT_FACTOR))
-                {
-                    throw new IllegalArgumentException(
-                        "the CW benchmark requires cache-increment-factor int in config when cache-values not specified");
-                }
-                cacheIncrementFactor = socialsensor.getDouble(CACHE_INCREMENT_FACTOR);
             }
             else
             {
                 throw new IllegalArgumentException(
-                    "when doing CW benchmark, must provide cache-values or parameters to generate them");
+                    "when doing CW benchmark, must provide cache-percentages");
             }
         }
         else
         {
             randomizedClustering = null;
-            nodesCount = null;
             cacheValuesCount = null;
             cacheIncrementFactor = null;
-            cacheValues = null;
+            cachePercentages = null;
             actualCommunities = null;
         }
     }
@@ -331,11 +302,6 @@ public class BenchmarkConfiguration
         return randomizedClustering;
     }
 
-    public Integer getNodesCount()
-    {
-        return nodesCount;
-    }
-
     public Integer getCacheValuesCount()
     {
         return cacheValuesCount;
@@ -346,9 +312,9 @@ public class BenchmarkConfiguration
         return cacheIncrementFactor;
     }
 
-    public List<Integer> getCacheValues()
+    public List<Integer> getCachePercentages()
     {
-        return cacheValues;
+        return cachePercentages;
     }
 
     public File getActualCommunitiesFile()
