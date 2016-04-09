@@ -331,7 +331,7 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
                     final int pathSize = it.size();
                     final long elapsed = watch.elapsed(TimeUnit.MILLISECONDS);
                     watch.stop();
-                    if(elapsed > 500) { //threshold for debugging
+                    if(elapsed > 2000) { //threshold for debugging
                         LOG.warn("from @ " + fromNode.value(NODE_ID) +
                                 " to @ " + targetNode.toString() +
                                 " took " + elapsed + " ms, " + pathSize + ": " + it.toString());

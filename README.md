@@ -1,30 +1,71 @@
 graphdb-benchmarks
 ==================
-The project graphdb-benchmarks is a benchmark between popular graph databases. Currently the framework supports [Titan](http://thinkaurelius.github.io/titan/), [OrientDB](http://www.orientechnologies.com/orientdb/), and [Neo4j](http://neo4j.com/). The purpose of this benchmark is to examine the performance of each graph database in terms of execution time. The benchmark is composed of four workloads, Clustering, Massive Insertion, Single Insertion and Query Workload. Every workload has been designed to simulate common operations in graph database systems.
+The project graphdb-benchmarks is a benchmark between popular graph databases.
+Currently the framework supports [Titan](http://thinkaurelius.github.io/titan/),
+[OrientDB](http://www.orientechnologies.com/orientdb/), and [Neo4j](http://neo4j.com/).
+The purpose of this benchmark is to examine the performance of each graph database in
+terms of execution time. The benchmark is composed of four workloads, Clustering, Massive
+Insertion, Single Insertion and Query Workload. Every workload has been designed to
+simulate common operations in graph database systems.
 
-- *Clustering Workload (CW)*: CW consists of a well-known community detection algorithm for modularity optimization, the Louvain Method. We adapt the algorithm on top of the benchmarked graph databases and employ cache techniques to take advantage of both graph database capabilities and in-memory execution speed. We measure the time the algorithm needs to converge.
-- *Massive Insertion Workload (MIW)*: we create the graph database and configure it for massive loading, then we populate it with a particular data set. We measure the time for the creation of the whole graph.
-- *Single Insertion Workload (SIW)*: we create the graph database and load it with a particular data set. Every object insertion (node or edge) is committed directly and the graph is constructed incrementally. We measure the insertion time per block, which consists of one thousand edges and the nodes that appear during the insertion of these edges.
+- *Clustering Workload (CW)*: CW consists of a well-known community detection algorithm
+for modularity optimization, the Louvain Method. We adapt the algorithm on top of the
+benchmarked graph databases and employ cache techniques to take advantage of both graph
+database capabilities and in-memory execution speed. We measure the time the algorithm
+needs to converge.
+- *Massive Insertion Workload (MIW)*: we create the graph database and configure it for
+massive loading, then we populate it with a particular data set. We measure the time for
+the creation of the whole graph.
+- *Single Insertion Workload (SIW)*: we create the graph database and load it with a
+particular data set. Every object insertion (node or edge) is committed directly and
+the graph is constructed incrementally. We measure the insertion time per block, which
+consists of one thousand edges and the nodes that appear during the insertion of these
+edges.
 - *Query Workload (QW)*: we execute three common queries:
   * FindNeighbours (FN): finds the neighbors of all nodes.
   * FindAdjacentNodes (FA): finds the adjacent nodes of all edges.
-  * FindShortestPath (FS): finds the shortest path between the first node and 100 randomly picked nodes.
+  * FindShortestPath (FS): finds the shortest path between a random node and 100 other random nodes.
 
 Here we measure the execution time of each query.
 
-For our evaluation we use both synthetic and real data. More specifically, we execute MIW, SIW and QW with real data derived from the SNAP data set collection ([Enron data set](http://snap.stanford.edu/data/email-Enron.html), [Amazon data set](http://snap.stanford.edu/data/amazon0601.html), [Youtube data set](http://snap.stanford.edu/data/com-Youtube.html) and [LiveJournal data set](http://snap.stanford.edu/data/com-LiveJournal.html)). On the other hand, with the CW we use synthetic data generated with the [LFR-Benchmark generator](https://sites.google.com/site/andrealancichinetti/files) which produces networks with power-law degree distribution and implanted communities within the network. The synthetic data can be downloaded from [here](http://figshare.com/articles/Synthetic_Data_for_graphdb_benchmark/1221760).
+For our evaluation we use both synthetic and real data. More specifically, we execute
+MIW, SIW and QW with real data derived from the SNAP data set collection
+([Enron data set](http://snap.stanford.edu/data/email-Enron.html),
+[Amazon data set](http://snap.stanford.edu/data/amazon0601.html),
+[Youtube data set](http://snap.stanford.edu/data/com-Youtube.html) and
+[LiveJournal data set](http://snap.stanford.edu/data/com-LiveJournal.html)). On the
+other hand, with the CW we use synthetic data generated with the
+[LFR-Benchmark generator](https://sites.google.com/site/andrealancichinetti/files) which
+produces networks with power-law degree distribution and implanted communities within the
+network. The synthetic data can be downloaded from
+[here](http://figshare.com/articles/Synthetic_Data_for_graphdb_benchmark/1221760).
 
-For further information about the study please refer to the [published paper](http://link.springer.com/chapter/10.1007/978-3-319-10518-5_1) on Springer site and the presentation on [Slideshare](http://www.slideshare.net/sympapadopoulos/adbis2014-presentation).
+For further information about the study please refer to the
+[published paper](http://link.springer.com/chapter/10.1007/978-3-319-10518-5_1) on
+Springer site and the presentation on
+[Slideshare](http://www.slideshare.net/sympapadopoulos/adbis2014-presentation).
 
-**Note 1:** The published paper contains the experimental study of Titan, OrientDB and Neo4j. After the publication we included the Sparksee graph database. Sparksee does not implement TinkerPop 3 yet.
+**Note 1:** The published paper contains the experimental study of Titan, OrientDB and Neo4j.
+After the publication we included the Sparksee graph database. Sparksee does not implement TinkerPop 3 yet.
 
-**Note 2:** After the very useful comments and contributions of OrientDB developers, we updated the benchmark implementations and re-run the experiments. We have updated the initial presentation with the new results and uploaded a new version of the paper in the following [link](http://mklab.iti.gr/files/beis_adbis2014_corrected.pdf).
+**Note 2:** After the very useful comments and contributions of OrientDB developers, we
+updated the benchmark implementations and re-run the experiments. We have updated the
+initial presentation with the new results and uploaded a new version of the paper in the
+following [link](http://mklab.iti.gr/files/beis_adbis2014_corrected.pdf).
 
-**Note 3:** Alexander Patrikalakis, a software developer at Amazon Web Services, refactored the benchmark, added support for Apache TinkerPop 3 and added support for the DynamoDB Storage Backend for Titan.
+**Note 3:** Alexander Patrikalakis, a software developer at Amazon Web Services, refactored
+the benchmark, added support for Apache TinkerPop 3 and added support for the DynamoDB Storage
+Backend for Titan. He also added support for the Tupl Storage Backend for Titan.
 
 Instructions
 ------------
-To run the project at first you have to choose one of the aforementioned data sets. Of course you can select any data set, but because there is not any utility class to convert the data set in the appropriate format (for now), the format of the data must be identical with the tested data sets. The input parameters are configured from the src/test/resources/input.properties file. Please follow the instructions in this file to select the correct parameters. Then, run `mvn install && mvn test -Pbench` to execute the benchmarking run.
+To run the project at first you have to choose one of the aforementioned data sets. Of
+course you can select any data set, but because there is not any utility class to
+convert the data set in the appropriate format (for now), the format of the data must
+be identical with the tested data sets. The input parameters are configured from the
+src/test/resources/input.properties file. Please follow the instructions in this file
+to select the correct parameters. Then, run `mvn install && mvn test -Pbench` to execute the
+benchmarking run.
 
 Results
 -------
@@ -112,11 +153,21 @@ The results are measured in seconds.
 |  50k    |  QW-FN   |    41.175  |    14.742  |   **8.489** |
 |   AM    |  QW-FN   |    76.562  |    28.242  |  **12.466** |
 |         |          |            |            |             |
-|   1k    |    MIW   |     1.167  |     0.673  |   **0.481** |
-|   5k    |    MIW   |     4.276  |     2.918  |   **1.239** |
-|  10k    |    MIW   |     8.247  |     5.659  |   **2.334** |
+|   1k    |  QW-FS   |     2.932  |     2.555  |             |
+|   5k    |  QW-FS   |    18.743  |    17.995  |             |
+|  10k    |  QW-FS   |    31.006  |    30.289  |             |
+|   EN    |  QW-FS   |            |            |             |
+|  20k    |  QW-FS   |   122.864  |   122.204  |             |
+|  30k    |  QW-FS   |    21.816  |     8.340  |             |
+|  40k    |  QW-FS   |    31.187  |    11.632  |             |
+|  50k    |  QW-FS   |    41.175  |    14.742  |             |
+|   AM    |  QW-FS   |    76.562  |    28.242  |             |
+|         |          |            |            |             |
+|   1k    |    MIW   |     1.204  |     0.696  |   **0.481** |
+|   5k    |    MIW   |     4.293  |     2.755  |   **1.239** |
+|  10k    |    MIW   |     8.291  |     5.707  |   **2.334** |
 |   EN    |    MIW   |     9.858  |     6.960  |   **2.401** |
-|  20k    |    MIW   |    17.011  |    12.711  |   **4.511** |
+|  20k    |    MIW   |    16.872  |    11.829  |   **4.511** |
 |  30k    |    MIW   |    30.252  |    19.929  |   **8.767** |
 |  40k    |    MIW   |    44.450  |    31.763  |  **12.761** |
 |  50k    |    MIW   |    57.001  |    35.008  |  **15.755** |
