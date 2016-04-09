@@ -23,9 +23,11 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.schema.IndexCreator;
 import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.graphdb.schema.Schema;
 import org.neo4j.helpers.collection.IteratorUtil;
+import org.neo4j.kernel.api.exceptions.index.ExceptionDuringFlipKernelException;
 import org.neo4j.tinkerpop.api.impl.Neo4jGraphAPIImpl;
 import org.neo4j.tooling.GlobalGraphOperations;
 import org.neo4j.unsafe.batchinsert.BatchInserter;
@@ -53,8 +55,7 @@ public class Neo4jGraphDatabase extends GraphDatabaseBase<Iterator<Node>, Iterat
     private final GraphDatabaseService neo4jGraph;
     private final Neo4jGraph neo4jTp;
     private final Schema schema;
-
-    private BatchInserter inserter = null;
+    private final BatchInserter inserter;
 
     public enum RelTypes implements RelationshipType
     {
@@ -66,7 +67,6 @@ public class Neo4jGraphDatabase extends GraphDatabaseBase<Iterator<Node>, Iterat
     public Neo4jGraphDatabase(File dbStorageDirectoryIn, boolean batchLoading, List<Integer> randomNodes, int shortestPathMaxHops)
     {
         super(GraphDatabaseType.NEO4J, dbStorageDirectoryIn, randomNodes, shortestPathMaxHops);
-
         if(batchLoading) {
             neo4jGraph = null;
             neo4jTp = null;
@@ -90,6 +90,7 @@ public class Neo4jGraphDatabase extends GraphDatabaseBase<Iterator<Node>, Iterat
             inserter.createDeferredSchemaIndex(NODE_LABEL).on(COMMUNITY).create();
             inserter.createDeferredSchemaIndex(NODE_LABEL).on(NODE_COMMUNITY).create();
         } else {
+            inserter = null;
             neo4jTp = Neo4jGraph.open(dbStorageDirectory.getAbsolutePath());
             neo4jGraph = ((Neo4jGraphAPIImpl) neo4jTp.getBaseGraph()).getGraphDatabase();
             try (final Transaction tx = neo4jGraph.beginTx())
@@ -107,8 +108,6 @@ public class Neo4jGraphDatabase extends GraphDatabaseBase<Iterator<Node>, Iterat
                 schema.awaitIndexesOnline(10l, TimeUnit.MINUTES);
                 tx.success();
             }
-
-            inserter = null;
         }
     }
 
@@ -181,28 +180,41 @@ public class Neo4jGraphDatabase extends GraphDatabaseBase<Iterator<Node>, Iterat
         {
             throw new BenchmarkingException("could not remove lock");
         }
-
-        inserter = null;
     }
 
     @Override
     public void shortestPaths() {
-        try (Transaction tx = ((Neo4jGraphDatabase) this).neo4jGraph.beginTx()) {
-            super.shortestPaths();
+        try (Transaction tx = neo4jGraph.beginTx()) {
+            try {
+                super.shortestPaths();
+                tx.success();
+            } catch(Exception e) {
+                tx.failure();
+            }
         }
     }
 
     @Override
     public void findNodesOfAllEdges() {
-        try (Transaction tx = ((Neo4jGraphDatabase) this).neo4jGraph.beginTx()) {
-            super.findNodesOfAllEdges();
+        try (Transaction tx = neo4jGraph.beginTx()) {
+            try {
+                super.findNodesOfAllEdges();
+                tx.success();
+            } catch(Exception e) {
+                tx.failure();
+            }
         }
     }
 
     @Override
     public void findAllNodeNeighbours() {
-        try (Transaction tx = ((Neo4jGraphDatabase) this).neo4jGraph.beginTx()) {
-            super.findAllNodeNeighbours();
+        try (Transaction tx = neo4jGraph.beginTx()) {
+            try{
+                super.findAllNodeNeighbours();
+                tx.success();
+            } catch(Exception e) {
+                tx.failure();
+            }
         }
     }
 
@@ -793,8 +805,16 @@ public class Neo4jGraphDatabase extends GraphDatabaseBase<Iterator<Node>, Iterat
     @Override
     public Node getVertex(Integer i)
     {
-        // TODO(amcp) check, this probably should be run in the context of an active transaction.
-        return neo4jGraph.findNodes(Neo4jGraphDatabase.NODE_LABEL, NODE_ID, i).next();
+        Node result = null;
+        try (final Transaction tx = neo4jGraph.beginTx()) {
+            try {
+                result = neo4jGraph.findNodes(Neo4jGraphDatabase.NODE_LABEL, NODE_ID, i).next();
+                tx.success();
+            } catch(Exception e) {
+                tx.failure();
+            }
+        }
+        return result;
     }
 
 }
