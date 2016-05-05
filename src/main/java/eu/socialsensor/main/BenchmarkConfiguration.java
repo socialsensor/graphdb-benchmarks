@@ -1,12 +1,7 @@
 package eu.socialsensor.main;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.math3.util.CombinatoricsUtils;
@@ -17,6 +12,7 @@ import com.google.common.primitives.Ints;
 import com.thinkaurelius.titan.graphdb.configuration.GraphDatabaseConfiguration;
 
 import eu.socialsensor.dataset.DatasetFactory;
+import jp.classmethod.titan.diskstorage.tupl.TuplStoreManager;
 
 /**
  * 
@@ -25,12 +21,6 @@ import eu.socialsensor.dataset.DatasetFactory;
  */
 public class BenchmarkConfiguration
 {
-    // orientdb Configuration
-    private static final String LIGHTWEIGHT_EDGES = "lightweight-edges";
-
-    // Sparksee / DEX configuration
-    private static final String LICENSE_KEY = "license-key";
-
     // Titan specific configuration
     private static final String TITAN = "titan";
     private static final String BUFFER_SIZE = GraphDatabaseConfiguration.BUFFER_SIZE.getName();
@@ -41,6 +31,7 @@ public class BenchmarkConfiguration
     private static final String CSV_DIR = GraphDatabaseConfiguration.METRICS_CSV_DIR.getName();
     public static final String GRAPHITE = GraphDatabaseConfiguration.METRICS_GRAPHITE_NS.getName();
     private static final String GRAPHITE_HOSTNAME = GraphDatabaseConfiguration.GRAPHITE_HOST.getName();
+    private static final String CUSTOM_IDS = "custom-ids";
 
     // DynamoDB Storage Backend for Titan specific configuration
     private static final String CONSTRUCTOR_ARGS = Constants.DYNAMODB_CREDENTIALS_CONSTRUCTOR_ARGS.getName();
@@ -55,13 +46,12 @@ public class BenchmarkConfiguration
     private static final String DATASET = "dataset";
     private static final String DATABASE_STORAGE_DIRECTORY = "database-storage-directory";
     private static final String ACTUAL_COMMUNITIES = "actual-communities";
-    private static final String NODES_COUNT = "nodes-count";
     private static final String RANDOMIZE_CLUSTERING = "randomize-clustering";
-    private static final String CACHE_VALUES = "cache-values";
-    private static final String CACHE_INCREMENT_FACTOR = "cache-increment-factor";
-    private static final String CACHE_VALUES_COUNT = "cache-values-count";
+    private static final String CACHE_PERCENTAGES = "cache-percentages";
     private static final String PERMUTE_BENCHMARKS = "permute-benchmarks";
     private static final String RANDOM_NODES = "shortest-path-random-nodes";
+    private static final String RANDOM_SEED = "random-seed";
+    private static final String MAX_HOPS = "shortest-path-max-hops";
     
     private static final Set<String> metricsReporters = new HashSet<String>();
     static {
@@ -87,18 +77,15 @@ public class BenchmarkConfiguration
     private final long dynamodbTps;
     private final BackendDataModel dynamodbDataModel;
     private final boolean dynamodbConsistentRead;
-    private final Boolean orientLightweightEdges;
-    private final String sparkseeLicenseKey;
 
     // shortest path
-    private final int randomNodes;
+    private final int numShortestPathRandomNodes;
 
     // clustering
     private final Boolean randomizedClustering;
-    private final Integer nodesCount;
     private final Integer cacheValuesCount;
     private final Double cacheIncrementFactor;
-    private final List<Integer> cacheValues;
+    private final List<Integer> cachePercentages;
     private final File actualCommunities;
     private final boolean permuteBenchmarks;
     private final int scenarios;
@@ -111,6 +98,11 @@ public class BenchmarkConfiguration
     private final int dynamodbWorkerThreads;
     private final boolean dynamodbPrecreateTables;
     private final String dynamodbTablePrefix;
+    private final boolean customIds;
+    private final long tuplMinCacheSize;
+    private final int shortestPathMaxHops;
+
+    private final Random random;
 
     public String getDynamodbCredentialsFqClassName()
     {
@@ -164,16 +156,14 @@ public class BenchmarkConfiguration
         this.dynamodbEndpoint = dynamodb.containsKey(ENDPOINT) ? dynamodb.getString(ENDPOINT) : null;
         this.dynamodbTablePrefix = dynamodb.containsKey(TABLE_PREFIX) ? dynamodb.getString(TABLE_PREFIX) : Constants.DYNAMODB_TABLE_PREFIX.getDefaultValue();
 
-        Configuration orient = socialsensor.subset("orient");
-        orientLightweightEdges = orient.containsKey(LIGHTWEIGHT_EDGES) ? orient.getBoolean(LIGHTWEIGHT_EDGES) : null;
-
-        Configuration sparksee = socialsensor.subset("sparksee");
-        sparkseeLicenseKey = sparksee.containsKey(LICENSE_KEY) ? sparksee.getString(LICENSE_KEY) : null;
-
         Configuration titan = socialsensor.subset(TITAN); //TODO(amcp) move dynamodb ns into titan
         bufferSize = titan.getInt(BUFFER_SIZE, GraphDatabaseConfiguration.BUFFER_SIZE.getDefaultValue());
         blocksize = titan.getInt(IDS_BLOCKSIZE, GraphDatabaseConfiguration.IDS_BLOCK_SIZE.getDefaultValue());
         pageSize = titan.getInt(PAGE_SIZE, GraphDatabaseConfiguration.PAGE_SIZE.getDefaultValue());
+        customIds = titan.getBoolean(CUSTOM_IDS, false /*default*/);
+
+        final Configuration tupl = socialsensor.subset("tupl");
+        tuplMinCacheSize = tupl.getLong(TuplStoreManager.TUPL_MIN_CACHE_SIZE.getName(), TuplStoreManager.TUPL_MIN_CACHE_SIZE.getDefaultValue());
 
         // database storage directory
         if (!socialsensor.containsKey(DATABASE_STORAGE_DIRECTORY))
@@ -183,8 +173,12 @@ public class BenchmarkConfiguration
         dbStorageDirectory = new File(socialsensor.getString(DATABASE_STORAGE_DIRECTORY));
         dataset = validateReadableFile(socialsensor.getString(DATASET), DATASET);
 
+
         // load the dataset
-        DatasetFactory.getInstance().getDataset(dataset);
+        random = new Random(socialsensor.getInt(RANDOM_SEED, 17 /*default*/));
+        numShortestPathRandomNodes = socialsensor.getInteger(RANDOM_NODES, new Integer(101));
+        shortestPathMaxHops = socialsensor.getInteger(MAX_HOPS, 5);
+        DatasetFactory.getInstance().createAndGetDataset(dataset, random, numShortestPathRandomNodes);
 
         if (!socialsensor.containsKey(PERMUTE_BENCHMARKS))
         {
@@ -221,16 +215,8 @@ public class BenchmarkConfiguration
             throw new IllegalArgumentException("unable to write to results directory");
         }
 
-        randomNodes = socialsensor.getInteger(RANDOM_NODES, new Integer(100));
-
         if (this.benchmarkTypes.contains(BenchmarkType.CLUSTERING))
         {
-            if (!socialsensor.containsKey(NODES_COUNT))
-            {
-                throw new IllegalArgumentException("the CW benchmark requires nodes-count integer in config");
-            }
-            nodesCount = socialsensor.getInt(NODES_COUNT);
-
             if (!socialsensor.containsKey(RANDOMIZE_CLUSTERING))
             {
                 throw new IllegalArgumentException("the CW benchmark requires randomize-clustering bool in config");
@@ -243,49 +229,30 @@ public class BenchmarkConfiguration
             }
             actualCommunities = validateReadableFile(socialsensor.getString(ACTUAL_COMMUNITIES), ACTUAL_COMMUNITIES);
 
-            final boolean notGenerating = socialsensor.containsKey(CACHE_VALUES);
+            final boolean notGenerating = socialsensor.containsKey(CACHE_PERCENTAGES);
             if (notGenerating)
             {
-                List<?> objects = socialsensor.getList(CACHE_VALUES);
-                cacheValues = new ArrayList<Integer>(objects.size());
+                List<?> objects = socialsensor.getList(CACHE_PERCENTAGES);
+                cachePercentages = new ArrayList<Integer>(objects.size());
                 cacheValuesCount = null;
                 cacheIncrementFactor = null;
                 for (Object o : objects)
                 {
-                    cacheValues.add(Integer.valueOf(o.toString()));
+                    cachePercentages.add(Integer.valueOf(o.toString()));
                 }
-            }
-            else if (socialsensor.containsKey(CACHE_VALUES_COUNT) && socialsensor.containsKey(CACHE_INCREMENT_FACTOR))
-            {
-                cacheValues = null;
-                // generate the cache values with parameters
-                if (!socialsensor.containsKey(CACHE_VALUES_COUNT))
-                {
-                    throw new IllegalArgumentException(
-                        "the CW benchmark requires cache-values-count int in config when cache-values not specified");
-                }
-                cacheValuesCount = socialsensor.getInt(CACHE_VALUES_COUNT);
-
-                if (!socialsensor.containsKey(CACHE_INCREMENT_FACTOR))
-                {
-                    throw new IllegalArgumentException(
-                        "the CW benchmark requires cache-increment-factor int in config when cache-values not specified");
-                }
-                cacheIncrementFactor = socialsensor.getDouble(CACHE_INCREMENT_FACTOR);
             }
             else
             {
                 throw new IllegalArgumentException(
-                    "when doing CW benchmark, must provide cache-values or parameters to generate them");
+                    "when doing CW benchmark, must provide cache-percentages");
             }
         }
         else
         {
             randomizedClustering = null;
-            nodesCount = null;
             cacheValuesCount = null;
             cacheIncrementFactor = null;
-            cacheValues = null;
+            cachePercentages = null;
             actualCommunities = null;
         }
     }
@@ -335,11 +302,6 @@ public class BenchmarkConfiguration
         return randomizedClustering;
     }
 
-    public Integer getNodesCount()
-    {
-        return nodesCount;
-    }
-
     public Integer getCacheValuesCount()
     {
         return cacheValuesCount;
@@ -350,24 +312,14 @@ public class BenchmarkConfiguration
         return cacheIncrementFactor;
     }
 
-    public List<Integer> getCacheValues()
+    public List<Integer> getCachePercentages()
     {
-        return cacheValues;
+        return cachePercentages;
     }
 
     public File getActualCommunitiesFile()
     {
         return actualCommunities;
-    }
-
-    public Boolean orientLightweightEdges()
-    {
-        return orientLightweightEdges;
-    }
-
-    public String getSparkseeLicenseKey()
-    {
-        return sparkseeLicenseKey;
     }
 
     public boolean permuteBenchmarks()
@@ -380,24 +332,16 @@ public class BenchmarkConfiguration
         return scenarios;
     }
 
-    private static final File validateReadableFile(String fileName, String fileType)
-    {
+    private static final File validateReadableFile(String fileName, String fileType) {
         File file = new File(fileName);
-        if (!file.exists())
-        {
+        if (!file.exists()) {
             throw new IllegalArgumentException(String.format("the %s does not exist", fileType));
         }
 
-        if (!(file.isFile() && file.canRead()))
-        {
+        if (!(file.isFile() && file.canRead())) {
             throw new IllegalArgumentException(String.format("the %s must be a file that this user can read", fileType));
         }
         return file;
-    }
-
-    public int getRandomNodes()
-    {
-        return randomNodes;
     }
 
     public long getCsvReportingInterval()
@@ -458,5 +402,24 @@ public class BenchmarkConfiguration
     public boolean publishGraphiteMetrics()
     {
         return graphiteHostname != null && !graphiteHostname.isEmpty();
+    }
+
+    public boolean isCustomIds() {
+        return customIds;
+    }
+
+    public long getTuplMinCacheSize() {
+        return tuplMinCacheSize;
+    }
+
+    public Random getRandom() {
+        return random;
+    }
+    public List<Integer> getRandomNodeList() {
+        return DatasetFactory.getInstance().getDataset(this.dataset).getRandomNodes();
+    }
+
+    public int getShortestPathMaxHops() {
+        return shortestPathMaxHops;
     }
 }

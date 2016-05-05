@@ -17,32 +17,32 @@ import eu.socialsensor.graphdatabases.GraphDatabase;
  */
 public class LouvainMethod
 {
-    boolean isRandomized;
+    private final Random random;
     private double resolution = 1.0;
     private double graphWeightSum;
-    private int N;
+    private int nodeCount;
     private List<Double> communityWeights;
     private boolean communityUpdate = false;
 
     GraphDatabase<?,?,?,?> graphDatabase;
     Cache cache;
 
-    public LouvainMethod(GraphDatabase<?,?,?,?> graphDatabase, int cacheSize, boolean isRandomized) throws ExecutionException
+    public LouvainMethod(GraphDatabase<?,?,?,?> graphDatabase, int cachePercentage, Random random) throws ExecutionException
     {
         this.graphDatabase = graphDatabase;
-        this.isRandomized = isRandomized;
+        this.random = random;
         initialize();
-        cache = new Cache(graphDatabase, cacheSize);
+        cache = new Cache(graphDatabase, cachePercentage, nodeCount);
     }
 
     private void initialize()
     {
-        this.N = this.graphDatabase.getNodeCount();// this step takes a long
+        this.nodeCount = this.graphDatabase.getNodeCount();// this step takes a long
                                                    // time on dynamodb.
         this.graphWeightSum = this.graphDatabase.getGraphWeightSum() / 2;
 
-        this.communityWeights = new ArrayList<Double>(this.N);
-        for (int i = 0; i < this.N; i++)
+        this.communityWeights = new ArrayList<Double>(this.nodeCount);
+        for (int i = 0; i < this.nodeCount; i++)
         {
             this.communityWeights.add(0.0);
         }
@@ -52,7 +52,6 @@ public class LouvainMethod
 
     public void computeModularity() throws ExecutionException
     {
-        Random rand = new Random();
         boolean someChange = true;
         while (someChange)
         {
@@ -62,12 +61,12 @@ public class LouvainMethod
             {
                 localChange = false;
                 int start = 0;
-                if (this.isRandomized)
+                if (null != this.random)
                 {
-                    start = Math.abs(rand.nextInt()) % this.N;
+                    start = Math.abs(random.nextInt()) % this.nodeCount;
                 }
                 int step = 0;
-                for (int i = start; step < this.N; i = (i + 1) % this.N)
+                for (int i = start; step < this.nodeCount; i = (i + 1) % this.nodeCount)
                 {
                     step++;
                     int bestCommunity = updateBestCommunity(i);
@@ -137,18 +136,18 @@ public class LouvainMethod
 
     public void zoomOut()
     {
-        this.N = this.graphDatabase.reInitializeCommunities();
+        this.nodeCount = this.graphDatabase.reInitializeCommunities();
         this.cache.reInitializeCommunities();
-        this.communityWeights = new ArrayList<Double>(this.N);
-        for (int i = 0; i < this.N; i++)
+        this.communityWeights = new ArrayList<Double>(this.nodeCount);
+        for (int i = 0; i < this.nodeCount; i++)
         {
             this.communityWeights.add(graphDatabase.getCommunityWeight(i));
         }
     }
 
-    public int getN()
+    public int getNodeCount()
     {
-        return this.N;
+        return this.nodeCount;
     }
 
 }

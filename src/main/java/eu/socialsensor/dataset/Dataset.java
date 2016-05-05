@@ -1,11 +1,7 @@
 package eu.socialsensor.dataset;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.commons.math3.util.MathArrays;
 
@@ -19,42 +15,44 @@ import eu.socialsensor.utils.Utils;
 public class Dataset implements Iterable<List<String>>
 {
     private final List<List<String>> data;
+    private final List<Integer> generatedNodes;
 
-    public Dataset(File datasetFile)
+    public Dataset(File datasetFile, Random random, int randomNodeSetSize)
     {
         data = Utils.readTabulatedLines(datasetFile, 4 /* numberOfLinesToSkip */);
-    }
-
-    public Set<Integer> generateRandomNodes(int numRandomNodes)
-    {
-        Set<String> nodes = new HashSet<String>();
-        for (List<String> line : data.subList(4, data.size()))
-        {
-            for (String nodeId : line)
-            {
-                nodes.add(nodeId.trim());
-            }
+        final Set<Integer> nodes = new HashSet<>();
+        //read node strings and convert to Integers and add to HashSet
+        data.stream().forEach(line -> { //TODO evaluate parallelStream
+            line.stream().forEach(nodeId -> {
+                nodes.add(Integer.valueOf(nodeId.trim()));
+            });
+        });
+        if(randomNodeSetSize > nodes.size()) {
+            throw new IllegalArgumentException("cant select more random nodes than there are unique nodes in dataset");
         }
 
-        List<String> nodeList = new ArrayList<String>(nodes);
-        int[] nodeIndexList = new int[nodeList.size()];
-        for (int i = 0; i < nodeList.size(); i++)
-        {
-            nodeIndexList[i] = i;
-        }
-        MathArrays.shuffle(nodeIndexList);
+        //shuffle
+        final List<Integer> nodeList = new ArrayList<>(nodes);
+        Collections.shuffle(nodeList, random);
 
-        Set<Integer> generatedNodes = new HashSet<Integer>();
-        for (int i = 0; i < numRandomNodes; i++)
-        {
-            generatedNodes.add(Integer.valueOf(nodeList.get(nodeIndexList[i])));
+        //choose randomNodeSetSize of them
+        generatedNodes = new ArrayList<Integer>(randomNodeSetSize);
+        Iterator<Integer> it = nodeList.iterator();
+        while(generatedNodes.size() < randomNodeSetSize) {
+            generatedNodes.add(it.next());
         }
-        return generatedNodes;
     }
 
     @Override
     public Iterator<List<String>> iterator()
     {
         return data.iterator();
+    }
+
+    public List<List<String>> getList() {
+        return new ArrayList<List<String>>(data);
+    }
+    public List<Integer> getRandomNodes() {
+        return generatedNodes;
     }
 }

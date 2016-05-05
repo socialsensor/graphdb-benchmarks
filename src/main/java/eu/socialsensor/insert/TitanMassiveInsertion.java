@@ -1,9 +1,17 @@
 package eu.socialsensor.insert;
 
-import com.thinkaurelius.titan.core.TitanGraph;
-import com.thinkaurelius.titan.core.util.TitanId;
-import com.tinkerpop.blueprints.Vertex;
-import com.tinkerpop.blueprints.util.wrappers.batch.BatchGraph;
+import java.util.Map;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
+
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
+import com.thinkaurelius.titan.core.TitanVertex;
+import com.thinkaurelius.titan.graphdb.database.StandardTitanGraph;
+import com.thinkaurelius.titan.graphdb.transaction.StandardTitanTx;
 
 import eu.socialsensor.main.GraphDatabaseType;
 
@@ -14,34 +22,45 @@ import eu.socialsensor.main.GraphDatabaseType;
  * @author Alexander Patrikalakis
  * 
  */
-public class TitanMassiveInsertion extends InsertionBase<Vertex>
+public abstract class TitanMassiveInsertion extends InsertionBase<Vertex>
 {
-    private final BatchGraph<TitanGraph> batchGraph;
+    private static final Logger logger = LogManager.getLogger();
+    protected final StandardTitanGraph graph;
+    protected final StandardTitanTx tx;
 
-    public TitanMassiveInsertion(BatchGraph<TitanGraph> batchGraph, GraphDatabaseType type)
+    Map<Long, TitanVertex> vertexCache;
+
+    public TitanMassiveInsertion(StandardTitanGraph graph, GraphDatabaseType type)
     {
         super(type, null /* resultsPath */); // no temp files for massive load
                                              // insert
-        this.batchGraph = batchGraph;
-    }
-
-    @Override
-    public Vertex getOrCreate(String value)
-    {
-        Integer intVal = Integer.valueOf(value);
-        final long titanVertexId = TitanId.toVertexId(intVal);
-        Vertex vertex = batchGraph.getVertex(titanVertexId);
-        if (vertex == null)
-        {
-            vertex = batchGraph.addVertex(titanVertexId);
-            vertex.setProperty("nodeId", intVal);
-        }
-        return vertex;
+        this.graph = graph;
+        Preconditions.checkArgument(graph.getOpenTransactions().isEmpty(),
+                "graph may not have open transactions at this point");
+        graph.tx().open();
+        this.tx = (StandardTitanTx) Iterables.getOnlyElement(graph.getOpenTransactions());
+        this.vertexCache = Maps.newHashMap();
     }
 
     @Override
     public void relateNodes(Vertex src, Vertex dest)
     {
-        src.addEdge("similar", dest);
+        src.addEdge(SIMILAR, dest);
+    }
+
+    @Override
+    protected void post() {
+        logger.trace("vertices: " + vertexCache.size());
+        tx.commit(); //mutation work is done here
+        Preconditions.checkState(graph.getOpenTransactions().isEmpty());
+    }
+
+    public static final TitanMassiveInsertion create(StandardTitanGraph graph, GraphDatabaseType type,
+        boolean customIds) {
+        if(customIds) {
+            return new TitanMassiveCustomIds(graph, type);
+        } else {
+            return new TitanMassiveDefaultIds(graph, type);
+        }
     }
 }

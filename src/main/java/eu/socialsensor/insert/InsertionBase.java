@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -14,6 +15,7 @@ import com.google.common.base.Stopwatch;
 import eu.socialsensor.benchmarks.SingleInsertionBenchmark;
 import eu.socialsensor.dataset.Dataset;
 import eu.socialsensor.dataset.DatasetFactory;
+import eu.socialsensor.graphdatabases.GraphDatabaseBase;
 import eu.socialsensor.main.GraphDatabaseBenchmark;
 import eu.socialsensor.main.GraphDatabaseType;
 import eu.socialsensor.utils.Utils;
@@ -30,6 +32,9 @@ public abstract class InsertionBase<T> implements Insertion
 {
     private static final Logger logger = LogManager.getLogger();
     public static final String INSERTION_CONTEXT = ".eu.socialsensor.insertion.";
+    public static final String SIMILAR = GraphDatabaseBase.SIMILAR;
+    public static final String NODEID = GraphDatabaseBase.NODE_ID;
+    public static final String NODE_LABEL = GraphDatabaseBase.NODE_LABEL;
     private final Timer getOrCreateTimes;
     private final Timer relateNodesTimes;
 
@@ -80,16 +85,14 @@ public abstract class InsertionBase<T> implements Insertion
     {
         logger.info("Loading data in {} mode in {} database . . . .", single ? "single" : "massive",
             type.name());
-        Dataset dataset = DatasetFactory.getInstance().getDataset(datasetFile);
+        final Dataset dataset = DatasetFactory.getInstance().getDataset(datasetFile);
 
-        T srcNode, dstNode;
-        Stopwatch thousandWatch = new Stopwatch(), watch = new Stopwatch();
-        thousandWatch.start();
-        watch.start();
-        int i = 4;
-        for (List<String> line : dataset)
-        {
+        Stopwatch thousandWatch = Stopwatch.createStarted(), watch = Stopwatch.createStarted();
+
+        final AtomicInteger i = new AtomicInteger(4);
+        dataset.getList().stream().forEach(line -> {
             final Timer.Context contextSrc = getOrCreateTimes.time();
+            T srcNode, dstNode;
             try {
                 srcNode = getOrCreate(line.get(0));
             } finally {
@@ -110,16 +113,15 @@ public abstract class InsertionBase<T> implements Insertion
                 contextRelate.stop();
             }
 
-            if (i % 1000 == 0)
-            {
+            if (i.getAndIncrement() % 1000 == 0) {
                 insertionTimes.add((double) thousandWatch.elapsed(TimeUnit.MILLISECONDS));
                 thousandWatch.stop();
-                thousandWatch = new Stopwatch();
+                thousandWatch.reset();
                 thousandWatch.start();
             }
-            i++;
-        }
+        });
         post();
+        logger.trace("Edges: " + i.get());
         insertionTimes.add((double) watch.elapsed(TimeUnit.MILLISECONDS));
 
         if (single)

@@ -36,8 +36,10 @@ public class Cache
     LoadingCache<Integer, Integer> nodeToCommunityMap; // key=nodeId
                                                        // value=communityId
 
-    public Cache(final GraphDatabase<?,?,?,?> graphDatabase, int cacheSize) throws ExecutionException
+    public Cache(final GraphDatabase<?,?,?,?> graphDatabase, int cachePercentage, int nodeCount) throws ExecutionException
     {
+        final int cacheSize = Math.max(0, Math.min(nodeCount,
+                        Math.round(((float) cachePercentage) / 100.0f * nodeCount)));
         nodeNeighbours = CacheBuilder.newBuilder().maximumSize(cacheSize)
             .build(new CacheLoader<Integer, Set<Integer>>() {
                 public Set<Integer> load(Integer nodeId)

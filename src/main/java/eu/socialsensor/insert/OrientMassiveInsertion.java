@@ -1,9 +1,11 @@
 package eu.socialsensor.insert;
 
-import com.orientechnologies.orient.core.config.OGlobalConfiguration;
-import com.orientechnologies.orient.graph.batch.OGraphBatchInsertBasic;
-import com.tinkerpop.blueprints.impls.orient.OrientGraphNoTx;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
+import org.apache.tinkerpop.gremlin.structure.Graph;
+import org.apache.tinkerpop.gremlin.structure.T;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
 
+import eu.socialsensor.graphdatabases.OrientGraphDatabase;
 import eu.socialsensor.main.GraphDatabaseType;
 
 /**
@@ -13,40 +15,34 @@ import eu.socialsensor.main.GraphDatabaseType;
  * @author Alexander Patrikalakis
  * 
  */
-public class OrientMassiveInsertion extends InsertionBase<Long> implements Insertion
+public class OrientMassiveInsertion extends InsertionBase<Vertex> implements Insertion
 {
-    private static final int ESTIMATED_ENTRIES = 1000000;
-    private static final int AVERAGE_NUMBER_OF_EDGES_PER_NODE = 40;
-    private static final int NUMBER_OF_ORIENT_CLUSTERS = 16;
-    private final OGraphBatchInsertBasic graph;
+    private final Graph graph;
 
-    public OrientMassiveInsertion(final String url)
+    public OrientMassiveInsertion(Graph graph)
     {
         super(GraphDatabaseType.ORIENT_DB, null /* resultsPath */);
-        OGlobalConfiguration.ENVIRONMENT_CONCURRENT.setValue(false);
-        OrientGraphNoTx transactionlessGraph = new OrientGraphNoTx(url);
-        for (int i = 0; i < NUMBER_OF_ORIENT_CLUSTERS; ++i)
-        {
-            transactionlessGraph.getVertexBaseType().addCluster("v_" + i);
-            transactionlessGraph.getEdgeBaseType().addCluster("e_" + i);
-        }
-        transactionlessGraph.shutdown();
-
-        graph = new OGraphBatchInsertBasic(url);
-        graph.setAverageEdgeNumberPerNode(AVERAGE_NUMBER_OF_EDGES_PER_NODE);
-        graph.setEstimatedEntries(ESTIMATED_ENTRIES);
-        graph.begin();
+        this.graph = graph;
     }
 
     @Override
-    protected Long getOrCreate(String value)
+    protected Vertex getOrCreate(String value)
     {
-        return Long.parseLong(value);
+        final Integer intValue = Integer.valueOf(value);
+        final GraphTraversal<Vertex, Vertex> traversal = graph.traversal().V().hasLabel(NODE_LABEL).has(NODEID, intValue);
+        final Vertex vertex = traversal.hasNext() ? traversal.next() : graph.addVertex(T.label, OrientGraphDatabase.NODE_LABEL, NODEID, intValue);
+        return vertex;
     }
 
     @Override
-    protected void relateNodes(Long src, Long dest)
+    protected void relateNodes(Vertex src, Vertex dest)
     {
-        graph.createEdge(src, dest);
+        src.addEdge(SIMILAR, dest);
+    }
+
+    @Override
+    protected void post()
+    {
+        graph.tx().commit();
     }
 }

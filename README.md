@@ -1,30 +1,71 @@
 graphdb-benchmarks
 ==================
-The project graphdb-benchmarks is a benchmark between popular graph dataases. Currently the framework supports [Titan](http://thinkaurelius.github.io/titan/), [OrientDB](http://www.orientechnologies.com/orientdb/), [Neo4j](http://neo4j.com/) and [Sparksee](http://www.sparsity-technologies.com/). The purpose of this benchmark is to examine the performance of each graph database in terms of execution time. The benchmark is composed of four workloads, Clustering, Massive Insertion, Single Insertion and Query Workload. Every workload has been designed to simulate common operations in graph database systems.
+The project graphdb-benchmarks is a benchmark between popular graph databases.
+Currently the framework supports [Titan](http://thinkaurelius.github.io/titan/),
+[OrientDB](http://www.orientechnologies.com/orientdb/), and [Neo4j](http://neo4j.com/).
+The purpose of this benchmark is to examine the performance of each graph database in
+terms of execution time. The benchmark is composed of four workloads, Clustering, Massive
+Insertion, Single Insertion and Query Workload. Every workload has been designed to
+simulate common operations in graph database systems.
 
-- *Clustering Workload (CW)*: CW consists of a well-known community detection algorithm for modularity optimization, the Louvain Method. We adapt the algorithm on top of the benchmarked graph databases and employ cache techniques to take advantage of both graph database capabilities and in-memory execution speed. We measure the time the algorithm needs to converge.
-- *Massive Insertion Workload (MIW)*: we create the graph database and configure it for massive loading, then we populate it with a particular dataset. We measure the time for the creation of the whole graph.
-- *Single Insertion Workload (SIW)*: we create the graph database and load it with a particular dataset. Every object insertion (node or edge) is committed directly and the graph is constructed incrementally. We measure the insertion time per block, which consists of one thousand edges and the nodes that appear during the insertion of these edges.
+- *Clustering Workload (CW)*: CW consists of a well-known community detection algorithm
+for modularity optimization, the Louvain Method. We adapt the algorithm on top of the
+benchmarked graph databases and employ cache techniques to take advantage of both graph
+database capabilities and in-memory execution speed. We measure the time the algorithm
+needs to converge.
+- *Massive Insertion Workload (MIW)*: we create the graph database and configure it for
+massive loading, then we populate it with a particular data set. We measure the time for
+the creation of the whole graph.
+- *Single Insertion Workload (SIW)*: we create the graph database and load it with a
+particular data set. Every object insertion (node or edge) is committed directly and
+the graph is constructed incrementally. We measure the insertion time per block, which
+consists of one thousand edges and the nodes that appear during the insertion of these
+edges.
 - *Query Workload (QW)*: we execute three common queries:
-  * FindNeighbours (FN): finds the neighbours of all nodes.
+  * FindNeighbours (FN): finds the neighbors of all nodes.
   * FindAdjacentNodes (FA): finds the adjacent nodes of all edges.
-  * FindShortestPath (FS): finds the shortest path between the first node and 100 randomly picked nodes.
+  * FindShortestPath (FS): finds the shortest path between a random node and 100 other random nodes.
 
 Here we measure the execution time of each query.
 
-For our evaluation we use both synthetic and real data. More specifically, we execute MIW, SIW and QW with real data derived from the SNAP dataset collection ([Enron Dataset](http://snap.stanford.edu/data/email-Enron.html), [Amazon dataset](http://snap.stanford.edu/data/amazon0601.html), [Youtube dataset](http://snap.stanford.edu/data/com-Youtube.html) and [LiveJournal dataset](http://snap.stanford.edu/data/com-LiveJournal.html)). On the other hand, with the CW we use synthetic data generated with the [LFR-Benchmark generator](https://sites.google.com/site/andrealancichinetti/files) which produces networks with power-law degree distribution and implanted communities within the network. The synthetic data can be downloaded form [here](http://figshare.com/articles/Synthetic_Data_for_graphdb_benchmark/1221760).
+For our evaluation we use both synthetic and real data. More specifically, we execute
+MIW, SIW and QW with real data derived from the SNAP data set collection
+([Enron data set](http://snap.stanford.edu/data/email-Enron.html),
+[Amazon data set](http://snap.stanford.edu/data/amazon0601.html),
+[Youtube data set](http://snap.stanford.edu/data/com-Youtube.html) and
+[LiveJournal data set](http://snap.stanford.edu/data/com-LiveJournal.html)). On the
+other hand, with the CW we use synthetic data generated with the
+[LFR-Benchmark generator](https://sites.google.com/site/andrealancichinetti/files) which
+produces networks with power-law degree distribution and implanted communities within the
+network. The synthetic data can be downloaded from
+[here](http://figshare.com/articles/Synthetic_Data_for_graphdb_benchmark/1221760).
 
-For further information about the study please refer to the [published paper](http://link.springer.com/chapter/10.1007/978-3-319-10518-5_1) on Springer site and the presentation on [Slideshare](http://www.slideshare.net/sympapadopoulos/adbis2014-presentation).
+For further information about the study please refer to the
+[published paper](http://link.springer.com/chapter/10.1007/978-3-319-10518-5_1) on
+Springer site and the presentation on
+[Slideshare](http://www.slideshare.net/sympapadopoulos/adbis2014-presentation).
 
-**Note 1:** The published paper contains the experimental study of Titan, OrientDB and Neo4j. After the publication we included the Sparksee graph database.
+**Note 1:** The published paper contains the experimental study of Titan, OrientDB and Neo4j.
+After the publication we included the Sparksee graph database. Sparksee does not implement TinkerPop 3 yet.
 
-**Note 2:** After the very useful comments and contributions of OrientDB developers, we updated the benchmark implementations and re-run the experiments. We have updated the initial presentation with the new results and uploaded a new version of the paper in the following [link](http://mklab.iti.gr/files/beis_adbis2014_corrected.pdf).
+**Note 2:** After the very useful comments and contributions of OrientDB developers, we
+updated the benchmark implementations and re-run the experiments. We have updated the
+initial presentation with the new results and uploaded a new version of the paper in the
+following [link](http://mklab.iti.gr/files/beis_adbis2014_corrected.pdf).
 
-**Note 3:** Alexander Patrikalakis, a software developer at Amazon Web Services, refactored the benchmark, added support for Blueprints 2.5 and added support for the DynamoDB Storage Backend for Titan.
+**Note 3:** Alexander Patrikalakis, a software developer at Amazon Web Services, refactored
+the benchmark, added support for Apache TinkerPop 3 and added support for the DynamoDB Storage
+Backend for Titan. He also added support for the Tupl Storage Backend for Titan.
 
 Instructions
 ------------
-To run the project at first you have to choose one of the aforementioned datasets. Of course you can select any dataset, but because there is not any utility class to convert the dataset in the appropriate format (for now), the format of the data must be identical with the tested datasets. The input parameters are configured from the src/test/resources/input.properties file. Please follow the instructions in this file to select the correct parameters. Then, run `mvn dependency:copy-dependencies && mvn test -Pbench` to execute the benchmarking run.
+To run the project at first you have to choose one of the aforementioned data sets. Of
+course you can select any data set, but because there is not any utility class to
+convert the data set in the appropriate format (for now), the format of the data must
+be identical with the tested data sets. The input parameters are configured from the
+src/test/resources/input.properties file. Please follow the instructions in this file
+to select the correct parameters. Then, run `mvn install && mvn test -Pbench` to execute the
+benchmarking run.
 
 Results
 -------
@@ -88,32 +129,82 @@ Below we list the results of the CW for graphs with 1,000, 5,000, 10,0000, 20,00
 
 ####MIW & QW results
 Below we list the results of MIW and QW for each dataset.
+The results are measured in seconds.
 
-| Dataset | Workload | Titan | OrientDB | Neo4j    |
-| ------- | -------- | ----- | -------- | -----    |
-|   EN    |    MIW   |9.36   |62.77     |**6.77**  |
-|   AM    |    MIW   |34.00  |97.00     |**10.61** |
-|   YT    |    MIW   |104.27 |252.15    |**24.69** |
-|   LJ    |    MIW   |663.03 |9416.74   |**349.55**|
-|                                                  |
-|   EN    |  QW-FN   |1.87   |**0.56**  |0.95      |
-|   AM    |  QW-FN   |6.47   |3.50      |**1.85**  |
-|   YT    |  QW-FN   |20.71  |9.34      |**4.51**  |
-|   LJ    |  QW-FN   |213.41 |303.09    |**47.07** |
-|                                                  |
-|   EN    |  QW-FA   |3.78   |0.71      |**0.16**  |
-|   AM    |  QW-FA   |13.77  |2.30      |**0.36**  |
-|   YT    |  QW-FA   |42.82  |6.15      |**1.46**  |
-|   LJ    |  QW-FA   |460.25 |518.12    |**16.53** |
-|                                                  |
-|   EN    |  QW-FS   |1.63   |3.09      |**0.16**  |
-|   AM    |  QW-FS   |0.12   |83.29     |**0.302** |
-|   YT    |  QW-FS   |24.87  |23.47     |**0.08**  |
-|   LJ    |  QW-FS   |123.50 |86.87     |**18.13** |
+| Dataset | Workload | Titan-BDB  | Titan-Tupl | Neo4j       |
+| ------- | -------- | ---------- | ---------- | ----------- |
+|   1k    |  QW-FA   |     0.331  |     0.104  |   **0.043** |
+|   5k    |  QW-FA   |     2.235  |     0.645  |   **0.203** |
+|  10k    |  QW-FA   |     5.059  |     1.182  |   **0.389** |
+|   EN    |  QW-FA   |     5.842  |     1.653  |   **0.403** |
+|  20k    |  QW-FA   |    10.568  |     2.521  |   **0.826** |
+|  30k    |  QW-FA   |    18.356  |     4.638  |   **1.383** |
+|  40k    |  QW-FA   |    27.907  |     7.107  |   **2.010** |
+|  50k    |  QW-FA   |    34.284  |     9.521  |   **2.472** |
+|   AM    |  QW-FA   |    61.811  |    19.015  |   **3.413** |
+|         |          |            |            |             |
+|   1k    |  QW-FN   |     0.607  |     0.229  |   **0.131** |
+|   5k    |  QW-FN   |     2.850  |     0.964  |   **0.626** |
+|  10k    |  QW-FN   |     5.960  |     2.063  |   **1.349** |
+|   EN    |  QW-FN   |     7.711  |     3.915  |   **1.633** |
+|  20k    |  QW-FN   |    12.861  |     5.218  |   **2.841** |
+|  30k    |  QW-FN   |    21.816  |     8.340  |   **4.603** |
+|  40k    |  QW-FN   |    31.187  |    11.632  |   **7.272** |
+|  50k    |  QW-FN   |    41.175  |    14.742  |   **8.489** |
+|   AM    |  QW-FN   |    76.562  |    28.242  |  **12.466** |
+|         |          |            |            |             |
+|   1k    |  QW-FS   |     2.932  |     2.555  |             |
+|   5k    |  QW-FS   |    18.743  |    17.995  |             |
+|  10k    |  QW-FS   |    31.006  |    30.289  |             |
+|   EN    |  QW-FS   |            |            |             |
+|  20k    |  QW-FS   |   122.864  |   122.204  |             |
+|  30k    |  QW-FS   |   136.276  |   124.886  |             |
+|  40k    |  QW-FS   |   276.389  |   261.699  |             |
+|  50k    |  QW-FS   |   339.146  |   310.307  |             |
+|   AM    |  QW-FS   |            |            |             |
+|         |          |            |            |             |
+|   1k    |    MIW   |     1.204  |     0.696  |   **0.481** |
+|   5k    |    MIW   |     4.293  |     2.755  |   **1.239** |
+|  10k    |    MIW   |     8.291  |     5.707  |   **2.334** |
+|   EN    |    MIW   |     9.858  |     6.960  |   **2.401** |
+|  20k    |    MIW   |    16.872  |    11.829  |   **4.511** |
+|  30k    |    MIW   |    29.851  |    20.081  |   **8.767** |
+|  40k    |    MIW   |    44.257  |    34.078  |  **12.761** |
+|  50k    |    MIW   |    57.001  |    35.008  |  **15.755** |
+|   AM    |    MIW   |    98.405  |    64.286  |  **23.867** |
 
+Note, Find Shortest Path benchmark is currently broken.
+Consequently, I did not update the QW-FS numbers.
+Also, OrientDB's TP3 implementation is not official yet,
+so I did not run numbers for OrientDB as well.
+These benchmarks were performed on the RAM disk (/dev/shm) of a m4.10xlarge with a maximum heap size of 32 GiB.
+
+I also analyzed storage the footprint of each of these databases.
+I conclude that the storage footprint in MiB for all of them is linear with respect
+to the number of vertices and edges.
+
+| Dataset | Vertices | Edges   | Titan-BDB | Titan-Tupl | Neo4j     |
+| ------- | -------- | ------- | --------- | ---------- | --------- |
+|   1k    |    1000  |   15160 |     1.7   |   **0.9**  |     1.0   |
+|   5k    |    5000  |  148198 |    16.0   |     7.5    |   **5.7** |
+|  10k    |   10000  |  360632 |    38.4   |    18.3    |  **13.1** |
+|   EN    |   36692  |  367666 |    43.8   |    21.4    |  **15.7** |
+|  20k    |   20000  |  778900 |    83.8   |    42.0    |  **27.7** |
+|  30k    |   30000  | 1332020 |   145.4   |    73.8    |  **46.8** |
+|  40k    |   40000  | 2013894 |   221.2   |   111.3    |  **70.2** |
+|  50k    |   50000  | 2512092 |   277.0   |   138.1    |  **87.3** |
+|   AM    |  403394  | 3387392 |   441.2   |   213.3    | **147.4** |
+
+Applying least squares optimization to this multitude of data points yields the following estimates of space
+in bytes required to store each vertex and edge (assuming no labels and no properties).
+
+| Bytes on disk | Titan-BDB | Titan-Tupl | Neo4j     |
+| ------------- | --------- | ---------- | --------- |
+| Per vertex    | 0.212     | **0.082**  |   0.090   |
+| Per edge      | 0.108     |   0.055    | **0.034** |
 
 ####SIW results
-Below we list the results of SIW for each dataset.
+Below we list the results of SIW for each data set.
 
 ![siw_benchmark_updated](https://cloud.githubusercontent.com/assets/8163869/12272282/62b1c9f4-b914-11e5-85be-efd3f58e1e05.png)
 <!---

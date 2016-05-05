@@ -23,7 +23,6 @@ import org.apache.logging.log4j.Logger;
 import eu.socialsensor.graphdatabases.GraphDatabase;
 import eu.socialsensor.graphdatabases.Neo4jGraphDatabase;
 import eu.socialsensor.graphdatabases.OrientGraphDatabase;
-import eu.socialsensor.graphdatabases.SparkseeGraphDatabase;
 import eu.socialsensor.graphdatabases.TitanGraphDatabase;
 import eu.socialsensor.main.BenchmarkConfiguration;
 import eu.socialsensor.main.BenchmarkingException;
@@ -181,25 +180,23 @@ public class Utils
         return new File(storageBaseDir, type.getShortname());
     }
 
-    public static final GraphDatabase<?,?,?,?> createDatabaseInstance(BenchmarkConfiguration config, GraphDatabaseType type)
+    public static final GraphDatabase<?,?,?,?> createDatabaseInstance(BenchmarkConfiguration config,
+            GraphDatabaseType type, boolean batchLoading)
     {
         final GraphDatabase<?,?,?,?> graphDatabase;
         final File dbStorageDirectory = generateStorageDirectory(type, config.getDbStorageDirectory());
         if (GraphDatabaseType.TITAN_FLAVORS.contains(type))
         {
-            graphDatabase = new TitanGraphDatabase(type, config, dbStorageDirectory);
+            graphDatabase = new TitanGraphDatabase(type, config, dbStorageDirectory, batchLoading);
         }
         else if (GraphDatabaseType.NEO4J == type)
         {
-            graphDatabase = new Neo4jGraphDatabase(dbStorageDirectory);
+            graphDatabase = new Neo4jGraphDatabase(dbStorageDirectory, batchLoading, config.getRandomNodeList(),
+                    config.getShortestPathMaxHops());
         }
         else if (GraphDatabaseType.ORIENT_DB == type)
         {
             graphDatabase = new OrientGraphDatabase(config, dbStorageDirectory);
-        }
-        else if (GraphDatabaseType.SPARKSEE == type)
-        {
-            graphDatabase = new SparkseeGraphDatabase(config, dbStorageDirectory);
         }
         else
         {
@@ -212,8 +209,7 @@ public class Utils
 
     public static void createMassiveLoadDatabase(GraphDatabaseType type, BenchmarkConfiguration config)
     {
-        final GraphDatabase<?,?,?,?> graphDatabase = createDatabaseInstance(config, type);
-        graphDatabase.createGraphForMassiveLoad();
+        final GraphDatabase<?,?,?,?> graphDatabase = createDatabaseInstance(config, type, true /*batchLoading*/);
         graphDatabase.massiveModeLoading(config.getDataset());
         graphDatabase.shutdownMassiveGraph();
     }
@@ -230,8 +226,7 @@ public class Utils
      */
     public static GraphDatabase<?,?,?,?> createSingleLoadDatabase(GraphDatabaseType type, BenchmarkConfiguration config)
     {
-        final GraphDatabase<?,?,?,?> graphDatabase = createDatabaseInstance(config, type);
-        graphDatabase.createGraphForSingleLoad();
+        final GraphDatabase<?,?,?,?> graphDatabase = createDatabaseInstance(config, type, false /*batchLoading*/);
         graphDatabase.singleModeLoading(config.getDataset(), null /* resultsPath */, 0);
         return graphDatabase;
     }
@@ -240,7 +235,8 @@ public class Utils
     {
         logger.info(String.format("Deleting graph database %s . . . .", type.getShortname()));
 
-        final GraphDatabase<?,?,?,?> graphDatabase = createDatabaseInstance(config, type);
+        final GraphDatabase<?,?,?,?> graphDatabase =
+            createDatabaseInstance(config, type, false /*batchLoading - value here doesnt really matter*/);
         graphDatabase.delete();
     }
 

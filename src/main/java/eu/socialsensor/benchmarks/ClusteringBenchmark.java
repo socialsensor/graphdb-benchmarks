@@ -35,24 +35,12 @@ import eu.socialsensor.utils.Utils;
 public class ClusteringBenchmark extends BenchmarkBase implements RequiresGraphData
 {
     private static final Logger LOG = LogManager.getLogger();
-    private final List<Integer> cacheValues;
+    private final List<Integer> cachePercentages;
 
     public ClusteringBenchmark(BenchmarkConfiguration config)
     {
         super(config, BenchmarkType.CLUSTERING);
-        this.cacheValues = new ArrayList<Integer>();
-        if (config.getCacheValues() == null)
-        {
-            int cacheValueMultiplier = (int) config.getCacheIncrementFactor().intValue() * config.getNodesCount();
-            for (int i = 1; i <= config.getCacheValuesCount(); i++)
-            {
-                cacheValues.add(i * cacheValueMultiplier);
-            }
-        }
-        else
-        {
-            cacheValues.addAll(config.getCacheValues());
-        }
+        this.cachePercentages = new ArrayList<Integer>(config.getCachePercentages());
     }
 
     @Override
@@ -93,27 +81,26 @@ public class ClusteringBenchmark extends BenchmarkBase implements RequiresGraphD
 
     private SortedMap<Integer, Double> clusteringBenchmark(GraphDatabaseType type) throws ExecutionException
     {
-        GraphDatabase<?,?,?,?> graphDatabase = Utils.createDatabaseInstance(bench, type);
-        graphDatabase.open();
+        GraphDatabase<?,?,?,?> graphDatabase = Utils.createDatabaseInstance(bench, type, false /*batchLoading*/);
 
         SortedMap<Integer, Double> timeMap = new TreeMap<Integer, Double>();
-        for (int cacheSize : cacheValues)
+        for (int cachePercentage : cachePercentages)
         {
             LOG.info("Graph Database: " + type.getShortname() + ", Dataset: " + bench.getDataset().getName()
-                + ", Cache Size: " + cacheSize);
+                + ", Cache Size: " + cachePercentage);
 
-            Stopwatch watch = new Stopwatch();
-            watch.start();
-            LouvainMethod louvainMethodCache = new LouvainMethod(graphDatabase, cacheSize, bench.randomizedClustering());
+            Stopwatch watch = Stopwatch.createStarted();
+            LouvainMethod louvainMethodCache = new LouvainMethod(graphDatabase, cachePercentage,
+                    bench.randomizedClustering() ? bench.getRandom() : null);
             louvainMethodCache.computeModularity();
-            timeMap.put(cacheSize, watch.elapsed(TimeUnit.MILLISECONDS) / 1000.0);
+            timeMap.put(cachePercentage, watch.elapsed(TimeUnit.MILLISECONDS) / 1000.0);
 
             // evaluation with NMI
-            Map<Integer, List<Integer>> predictedCommunities = graphDatabase.mapCommunities(louvainMethodCache.getN());
+            Map<Integer, List<Integer>> predictedCommunities = graphDatabase.mapCommunities(louvainMethodCache.getNodeCount());
             Map<Integer, List<Integer>> actualCommunities = mapNodesToCommunities(Utils.readTabulatedLines(
                 bench.getActualCommunitiesFile(), 4 /* numberOfLinesToSkip */));
             Metrics metrics = new Metrics();
-            double NMI = metrics.normalizedMutualInformation(bench.getNodesCount(), actualCommunities,
+            double NMI = metrics.normalizedMutualInformation(louvainMethodCache.getNodeCount(), actualCommunities,
                 predictedCommunities);
             LOG.info("NMI value: " + NMI);
         }

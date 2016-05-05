@@ -9,6 +9,7 @@ public class GraphDatabaseBenchmarkTest
     public void testGraphDatabaseBenchmark()
     {
         GraphDatabaseBenchmark bench = new GraphDatabaseBenchmark(null /* inputPath */);
+
         try
         {
             bench.run();
@@ -16,6 +17,10 @@ public class GraphDatabaseBenchmarkTest
         catch (Exception e)
         {
             e.printStackTrace();
+            fail("Got unexpected exception: " + e.getMessage());
+        }
+        catch (AssertionError e)
+        {
             fail("Got unexpected exception: " + e.getMessage());
         }
 

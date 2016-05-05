@@ -1,7 +1,7 @@
 package eu.socialsensor.graphdatabases;
 
 import java.io.File;
-import java.io.IOError;
+import java.util.Set;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -9,11 +9,22 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import com.google.common.base.Stopwatch;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.MapConfiguration;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.tinkerpop.gremlin.process.traversal.Path;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
+import org.apache.tinkerpop.gremlin.structure.Direction;
+import org.apache.tinkerpop.gremlin.structure.Edge;
+import org.apache.tinkerpop.gremlin.structure.Property;
+import org.apache.tinkerpop.gremlin.structure.T;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
 
 import com.amazon.titan.diskstorage.dynamodb.BackendDataModel;
 import com.amazon.titan.diskstorage.dynamodb.Client;
@@ -24,22 +35,15 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
 import com.amazonaws.services.dynamodbv2.model.ResourceInUseException;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
 import com.thinkaurelius.titan.core.Multiplicity;
 import com.thinkaurelius.titan.core.PropertyKey;
 import com.thinkaurelius.titan.core.TitanFactory;
-import com.thinkaurelius.titan.core.TitanGraph;
 import com.thinkaurelius.titan.core.schema.TitanManagement;
+import com.thinkaurelius.titan.core.schema.VertexLabelMaker;
 import com.thinkaurelius.titan.core.util.TitanCleanup;
 import com.thinkaurelius.titan.graphdb.configuration.GraphDatabaseConfiguration;
-import com.tinkerpop.blueprints.Direction;
-import com.tinkerpop.blueprints.Edge;
-import com.tinkerpop.blueprints.Vertex;
-import com.tinkerpop.blueprints.util.wrappers.batch.BatchGraph;
-import com.tinkerpop.blueprints.util.wrappers.batch.VertexIDType;
-import com.tinkerpop.gremlin.java.GremlinPipeline;
-import com.tinkerpop.pipes.PipeFunction;
-import com.tinkerpop.pipes.branch.LoopPipe.LoopBundle;
+import com.thinkaurelius.titan.graphdb.database.StandardTitanGraph;
 
 import eu.socialsensor.insert.Insertion;
 import eu.socialsensor.insert.TitanMassiveInsertion;
@@ -47,6 +51,9 @@ import eu.socialsensor.insert.TitanSingleInsertion;
 import eu.socialsensor.main.BenchmarkConfiguration;
 import eu.socialsensor.main.GraphDatabaseType;
 import eu.socialsensor.utils.Utils;
+import jp.classmethod.titan.diskstorage.tupl.TuplStoreManager;
+
+import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource.computer;
 
 /**
  * Titan graph database implementation
@@ -56,33 +63,27 @@ import eu.socialsensor.utils.Utils;
  */
 public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iterator<Edge>, Vertex, Edge>
 {
-    public static final String INSERTION_TIMES_OUTPUT_PATH = "data/titan.insertion.times";
+    private static final Logger LOG = LogManager.getLogger();
 
-    double totalWeight;
+    private final StandardTitanGraph graph;
+    private final BenchmarkConfiguration config;
 
-    private TitanGraph titanGraph;
-    private BatchGraph<TitanGraph> batchGraph;
-    public final BenchmarkConfiguration config;
-
-    public TitanGraphDatabase(GraphDatabaseType type, BenchmarkConfiguration config, File dbStorageDirectory)
+    public TitanGraphDatabase(GraphDatabaseType type, BenchmarkConfiguration config, File dbStorageDirectory,
+            boolean batchLoading)
     {
-        super(type, dbStorageDirectory);
+        super(type, dbStorageDirectory, config.getRandomNodeList(), config.getShortestPathMaxHops());
         this.config = config;
         if (!GraphDatabaseType.TITAN_FLAVORS.contains(type))
         {
             throw new IllegalArgumentException(String.format("The graph database %s is not a Titan database.",
                 type == null ? "null" : type.name()));
         }
+        graph = open(batchLoading);
+        createSchema();
     }
 
-    @Override
-    public void open()
-    {
-        open(false /* batchLoading */);
-    }
-
-    private static final Configuration generateBaseTitanConfiguration(GraphDatabaseType type, File dbPath,
-        boolean batchLoading, BenchmarkConfiguration bench)
+    private static final StandardTitanGraph buildTitanGraph(GraphDatabaseType type, File dbPath, BenchmarkConfiguration bench,
+        boolean batchLoading)
     {
         if (!GraphDatabaseType.TITAN_FLAVORS.contains(type))
         {
@@ -98,28 +99,44 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
         {
             throw new IllegalArgumentException("db path must exist as a directory and must be writeable");
         }
-
         final Configuration conf = new MapConfiguration(new HashMap<String, String>());
+        final Configuration graph = conf.subset(GraphDatabaseConfiguration.GRAPH_NS.getName());
         final Configuration storage = conf.subset(GraphDatabaseConfiguration.STORAGE_NS.getName());
         final Configuration ids = conf.subset(GraphDatabaseConfiguration.IDS_NS.getName());
         final Configuration metrics = conf.subset(GraphDatabaseConfiguration.METRICS_NS.getName());
+        final Configuration cluster = conf.subset(GraphDatabaseConfiguration.CLUSTER_NS.getName());
 
-        conf.addProperty(GraphDatabaseConfiguration.ALLOW_SETTING_VERTEX_ID.getName(), "true");
+        //graph NS config
+        if(bench.isCustomIds()) {
+            //TODO(amcp) figure out a way to claim the ids used for this unique-instance-id
+            graph.addProperty(GraphDatabaseConfiguration.ALLOW_SETTING_VERTEX_ID.getName(), "true");
+        }
+        graph.addProperty(GraphDatabaseConfiguration.UNIQUE_INSTANCE_ID.getName(), "DEADBEEF");
+
+        //cluster NS config. only two partitions for now
+        //recall the number of partitions is a FIXED property so user cant override
+        //initial value stored in system_properties the first time the graph is loaded.
+        //default is 32
+        cluster.addProperty(GraphDatabaseConfiguration.CLUSTER_MAX_PARTITIONS.getName(), 2);
 
         // storage NS config. FYI, storage.idauthority-wait-time is 300ms
         storage.addProperty(GraphDatabaseConfiguration.STORAGE_BACKEND.getName(), type.getBackend());
         storage.addProperty(GraphDatabaseConfiguration.STORAGE_DIRECTORY.getName(), dbPath.getAbsolutePath());
-        //storage.addProperty(GraphDatabaseConfiguration.INSTANCE_RID_RAW.getName(), "DEADBEEF");
         storage.addProperty(GraphDatabaseConfiguration.STORAGE_BATCH.getName(), Boolean.toString(batchLoading));
+        storage.addProperty(GraphDatabaseConfiguration.STORAGE_TRANSACTIONAL.getName(), Boolean.toString(!batchLoading));
         storage.addProperty(GraphDatabaseConfiguration.BUFFER_SIZE.getName(), bench.getTitanBufferSize());
         storage.addProperty(GraphDatabaseConfiguration.PAGE_SIZE.getName(), bench.getTitanPageSize());
+        storage.addProperty(GraphDatabaseConfiguration.PARALLEL_BACKEND_OPS.getName(), "true");
 
         // ids NS config
         ids.addProperty(GraphDatabaseConfiguration.IDS_BLOCK_SIZE.getName(), bench.getTitanIdsBlocksize());
 
         // Titan metrics - https://github.com/thinkaurelius/titan/wiki/Titan-Performance-and-Monitoring
-        metrics.addProperty(GraphDatabaseConfiguration.BASIC_METRICS.getName(), "true");
-        metrics.addProperty("prefix", type.getShortname());
+        boolean anyMetrics = bench.publishGraphiteMetrics() || bench.publishCsvMetrics();
+        if(anyMetrics) {
+            metrics.addProperty(GraphDatabaseConfiguration.BASIC_METRICS.getName(), anyMetrics);
+            metrics.addProperty("prefix", type.getShortname());
+        }
         if(bench.publishGraphiteMetrics()) {
             final Configuration graphite = metrics.subset(BenchmarkConfiguration.GRAPHITE);
             graphite.addProperty("hostname", bench.getGraphiteHostname());
@@ -130,35 +147,28 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
             csv.addProperty(GraphDatabaseConfiguration.METRICS_CSV_DIR.getName(), bench.getCsvDir().getAbsolutePath());
             csv.addProperty(BenchmarkConfiguration.CSV_INTERVAL, bench.getCsvReportingInterval());
         }
-        
-        return conf;
-    }
-
-    private static final TitanGraph buildTitanGraph(GraphDatabaseType type, File dbPath, BenchmarkConfiguration bench,
-        boolean batchLoading)
-    {
-        final Configuration conf = generateBaseTitanConfiguration(type, dbPath, batchLoading, bench);
-        final Configuration storage = conf.subset(GraphDatabaseConfiguration.STORAGE_NS.getName());
 
         if (GraphDatabaseType.TITAN_CASSANDRA == type)
         {
-            storage.addProperty("hostname", "localhost");
-            storage.addProperty("transactions", Boolean.toString(batchLoading));
+            storage.addProperty(GraphDatabaseConfiguration.STORAGE_HOSTS.getName(),
+                    "localhost");
         }
-        else if (GraphDatabaseType.TITAN_CASSANDRA_EMBEDDED == type)
+        else if (GraphDatabaseType.TITAN_TUPL == type)
         {
-            // TODO(amcp) - this line seems broken:
-            // throws: Unknown configuration element in namespace
-            // [root.storage]: cassandra-config-dir
-            storage.addProperty("cassandra-config-dir", "configuration/cassandra.yaml");
-            storage.addProperty("transactions", Boolean.toString(batchLoading));
+            final Configuration tupl = storage.subset(TuplStoreManager.TUPL_NS.getName());
+            tupl.addProperty(TuplStoreManager.TUPL_PREFIX.getName(), "tupldb");
+            tupl.addProperty(TuplStoreManager.TUPL_DIRECT_PAGE_ACCESS.getName(), Boolean.TRUE.toString());
+            tupl.addProperty(TuplStoreManager.TUPL_MIN_CACHE_SIZE.getName(), Long.toString(bench.getTuplMinCacheSize()));
+            tupl.addProperty(TuplStoreManager.TUPL_MAP_DATA_FILES.getName(), Boolean.TRUE.toString());
+            final Configuration checkpoint = tupl.subset(TuplStoreManager.TUPL_CHECKPOINT_NS.getName());
+            //TODO make this conditioned on running the Massive Insertion Workload
+            //checkpoint.addProperty(TuplStoreManager.TUPL_CHECKPOINT_SIZE_THRESHOLD.getName(), 0);
         }
         else if (GraphDatabaseType.TITAN_DYNAMODB == type)
         {
             final Configuration dynamodb = storage.subset("dynamodb");
             final Configuration client = dynamodb.subset(Constants.DYNAMODB_CLIENT_NAMESPACE.getName());
             final Configuration credentials = client.subset(Constants.DYNAMODB_CLIENT_CREDENTIALS_NAMESPACE.getName());
-            storage.addProperty("transactions", Boolean.toString(batchLoading));
             if (bench.getDynamodbDataModel() == null)
             {
                 throw new IllegalArgumentException("data model must be set for dynamodb benchmarking");
@@ -205,11 +215,12 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
                 store.addProperty(Constants.STORES_WRITE_RATE_LIMIT.getName(), writeTps);
             }
         }
-        return TitanFactory.open(conf);
+        return (StandardTitanGraph) TitanFactory.open(conf);
     }
 
-    private void open(boolean batchLoading)
+    private StandardTitanGraph open(boolean batchLoading)
     {
+        //if using DynamoDB Storage Backend for Titan, prep the tables in parallel
         if(type == GraphDatabaseType.TITAN_DYNAMODB && config.getDynamodbPrecreateTables()) {
             List<CreateTableRequest> requests = new LinkedList<>();
             long wcu = config.getDynamodbTps();
@@ -237,158 +248,94 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
             }
             client.shutdown();
         }
-        titanGraph = buildTitanGraph(type, dbStorageDirectory, config, batchLoading);
-    }
-
-    @Override
-    public void createGraphForSingleLoad()
-    {
-        open();
-        createSchema();
-    }
-
-    @Override
-    public void createGraphForMassiveLoad()
-    {
-        open(true /* batchLoading */);
-        createSchema();
-
-        batchGraph = new BatchGraph<TitanGraph>(titanGraph, VertexIDType.NUMBER, 100000 /* bufferSize */);
-        batchGraph.setVertexIdKey(NODE_ID);
-        batchGraph.setLoadingFromScratch(true /* fromScratch */);
+        return buildTitanGraph(type, dbStorageDirectory, config, batchLoading);
     }
 
     @Override
     public void massiveModeLoading(File dataPath)
     {
-        Insertion titanMassiveInsertion = new TitanMassiveInsertion(this.batchGraph, type);
+        Insertion titanMassiveInsertion = TitanMassiveInsertion.create(graph, type, config.isCustomIds());
         titanMassiveInsertion.createGraph(dataPath, 0 /* scenarioNumber */);
+        //TODO(amcp) figure out a way to claim the ids used for this unique-instance-id
     }
 
     @Override
     public void singleModeLoading(File dataPath, File resultsPath, int scenarioNumber)
     {
-        Insertion titanSingleInsertion = new TitanSingleInsertion(this.titanGraph, type, resultsPath);
+        Insertion titanSingleInsertion = new TitanSingleInsertion(this.graph, type, resultsPath);
         titanSingleInsertion.createGraph(dataPath, scenarioNumber);
     }
 
     @Override
     public void shutdown()
     {
-        if (titanGraph == null)
-        {
-            return;
-        }
-        try
-        {
-            titanGraph.shutdown();
-        }
-        catch (IOError e)
-        {
-            // TODO Fix issue in shutting down titan-cassandra-embedded
-            System.err.println("Failed to shutdown titan graph: " + e.getMessage());
-        }
-
-        titanGraph = null;
+        graph.close();
     }
 
     @Override
     public void delete()
     {
-        titanGraph = buildTitanGraph(type, dbStorageDirectory, config, false /* batchLoading */);
-        try
-        {
-            titanGraph.shutdown();
-        }
-        catch (IOError e)
-        {
-            // TODO Fix issue in shutting down titan-cassandra-embedded
-            System.err.println("Failed to shutdown titan graph: " + e.getMessage());
-        }
-        TitanCleanup.clear(titanGraph);
-        try
-        {
-            titanGraph.shutdown();
-        }
-        catch (IOError e)
-        {
-            // TODO Fix issue in shutting down titan-cassandra-embedded
-            System.err.println("Failed to shutdown titan graph: " + e.getMessage());
-        }
+        shutdown();
+        TitanCleanup.clear(graph);
         Utils.deleteRecursively(dbStorageDirectory);
     }
 
     @Override
     public void shutdownMassiveGraph()
     {
-        if (titanGraph == null)
-        {
-            return;
-        }
-        try
-        {
-            batchGraph.shutdown();
-        }
-        catch (IOError e)
-        {
-            // TODO Fix issue in shutting down titan-cassandra-embedded
-            System.err.println("Failed to shutdown batch graph: " + e.getMessage());
-        }
-        try
-        {
-            titanGraph.shutdown();
-        }
-        catch (IOError e)
-        {
-            // TODO Fix issue in shutting down titan-cassandra-embedded
-            System.err.println("Failed to shutdown titan graph: " + e.getMessage());
-        }
-        batchGraph = null;
-        titanGraph = null;
+        shutdown();
     }
 
     @Override
-    public void shortestPath(final Vertex fromNode, Integer node)
+    public void shortestPath(final Vertex fromNode, Integer targetNode)
     {
-        final Vertex v2 = titanGraph.getVertices(NODE_ID, node).iterator().next();
-        @SuppressWarnings("rawtypes")
-        final GremlinPipeline<String, List> pathPipe = new GremlinPipeline<String, List>(fromNode).as(SIMILAR)
-            .out(SIMILAR).loop(SIMILAR, new PipeFunction<LoopBundle<Vertex>, Boolean>() {
-                // @Override
-                public Boolean compute(LoopBundle<Vertex> bundle)
-                {
-                    return bundle.getLoops() < 5 && !bundle.getObject().equals(v2);
-                }
-            }).path();
-        @SuppressWarnings("unused")
-        int length = pathPipe.iterator().next().size();
+        final GraphTraversalSource g = graph.traversal();
+        final Stopwatch watch = Stopwatch.createStarted();
+        final DepthPredicate maxDepth = new DepthPredicate(maxHops);
+        final Integer fromNodeId = fromNode.<Integer>value(NODE_ID);
+        LOG.trace("finding path from {} to {} max hops {}", fromNodeId, targetNode, maxHops);
+        final GraphTraversal<?, Path> t =
+        g.V().has(NODE_ID, fromNodeId)
+                .repeat(
+                        __.out(SIMILAR)
+                                .simplePath())
+                .until(
+                        __.has(NODE_ID, targetNode)
+                        .and(__.filter( maxDepth ))
+                )
+                .limit(1)
+                .path();
+
+        t.tryNext()
+                .ifPresent( it -> {
+                    final int pathSize = it.size();
+                    final long elapsed = watch.elapsed(TimeUnit.MILLISECONDS);
+                    watch.stop();
+                    if(elapsed > 2000) { //threshold for debugging
+                        LOG.warn("from @ " + fromNode.value(NODE_ID) +
+                                " to @ " + targetNode.toString() +
+                                " took " + elapsed + " ms, " + pathSize + ": " + it.toString());
+                    }
+        });
     }
 
     @Override
     public int getNodeCount()
     {
-        long nodeCount = new GremlinPipeline<Object, Object>(titanGraph).V().count();
+        final GraphTraversalSource g = graph.traversal();
+        final long nodeCount = g.V().count().toList().get(0);
         return (int) nodeCount;
     }
 
     @Override
     public Set<Integer> getNeighborsIds(int nodeId)
     {
-        // Set<Integer> neighbours = new HashSet<Integer>();
-        // Vertex vertex = titanGraph.getVertices("nodeId",
-        // nodeId).iterator().next();
-        // for (Vertex v : vertex.getVertices(Direction.IN, SIMILAR)) {
-        // Integer neighborId = v.getProperty("nodeId");
-        // neighbours.add(neighborId);
-        // }
-        // return neighbours;
+        final Vertex vertex = getVertex(nodeId);
         Set<Integer> neighbors = new HashSet<Integer>();
-        Vertex vertex = titanGraph.getVertices(NODE_ID, nodeId).iterator().next();
-        GremlinPipeline<String, Vertex> pipe = new GremlinPipeline<String, Vertex>(vertex).out(SIMILAR);
-        Iterator<Vertex> iter = pipe.iterator();
+        Iterator<Vertex> iter = vertex.vertices(Direction.OUT, SIMILAR);
         while (iter.hasNext())
         {
-            Integer neighborId = iter.next().getProperty(NODE_ID);
+            Integer neighborId = Integer.valueOf(iter.next().property(NODE_ID).value().toString());
             neighbors.add(neighborId);
         }
         return neighbors;
@@ -397,37 +344,29 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
     @Override
     public double getNodeWeight(int nodeId)
     {
-        Vertex vertex = titanGraph.getVertices(NODE_ID, nodeId).iterator().next();
+        Vertex vertex = getVertex(nodeId);
         double weight = getNodeOutDegree(vertex);
         return weight;
     }
 
     public double getNodeInDegree(Vertex vertex)
     {
-        // Iterable<Vertex> result = vertex.getVertices(Direction.IN,
-        // SIMILAR);
-        // return (double)Iterables.size(result);
-        GremlinPipeline<String, Vertex> pipe = new GremlinPipeline<String, Vertex>(vertex).in(SIMILAR);
-        return (double) pipe.count();
+        return (double) Iterators.size(vertex.edges(Direction.IN, SIMILAR));
     }
 
     public double getNodeOutDegree(Vertex vertex)
     {
-        // Iterable<Vertex> result = vertex.getVertices(Direction.OUT,
-        // SIMILAR);
-        // return (double)Iterables.size(result);
-        GremlinPipeline<String, Vertex> pipe = new GremlinPipeline<String, Vertex>(vertex).out(SIMILAR);
-        return (double) pipe.count();
+        return (double) Iterators.size(vertex.edges(Direction.OUT, SIMILAR));
     }
 
     @Override
     public void initCommunityProperty()
     {
         int communityCounter = 0;
-        for (Vertex v : titanGraph.getVertices())
+        for (Vertex v : graph.traversal().V(T.label, NODE_LABEL).toList())
         {
-            v.setProperty(NODE_COMMUNITY, communityCounter);
-            v.setProperty(COMMUNITY, communityCounter);
+            v.property(NODE_COMMUNITY, communityCounter);
+            v.property(COMMUNITY, communityCounter);
             communityCounter++;
         }
     }
@@ -436,22 +375,11 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
     public Set<Integer> getCommunitiesConnectedToNodeCommunities(int nodeCommunities)
     {
         Set<Integer> communities = new HashSet<Integer>();
-        Iterable<Vertex> vertices = titanGraph.getVertices(NODE_COMMUNITY, nodeCommunities);
-        for (Vertex vertex : vertices)
+        final GraphTraversalSource g = graph.traversal();
+
+        for (Property<?> p : g.V().has(NODE_COMMUNITY, nodeCommunities).out(SIMILAR).properties(COMMUNITY).toSet())
         {
-            // for(Vertex v : vertex.getVertices(Direction.OUT, SIMILAR)) {
-            // int community = v.getProperty("community");
-            // if(!communities.contains(community)) {
-            // communities.add(community);
-            // }
-            // }
-            GremlinPipeline<String, Vertex> pipe = new GremlinPipeline<String, Vertex>(vertex).out(SIMILAR);
-            Iterator<Vertex> iter = pipe.iterator();
-            while (iter.hasNext())
-            {
-                int community = iter.next().getProperty(COMMUNITY);
-                communities.add(community);
-            }
+            communities.add((Integer) p.value());
         }
         return communities;
     }
@@ -459,11 +387,11 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
     @Override
     public Set<Integer> getNodesFromCommunity(int community)
     {
+        final GraphTraversalSource g = graph.traversal();
         Set<Integer> nodes = new HashSet<Integer>();
-        Iterable<Vertex> iter = titanGraph.getVertices(COMMUNITY, community);
-        for (Vertex v : iter)
+        for (Vertex v : g.V().has(COMMUNITY, community).toList())
         {
-            Integer nodeId = v.getProperty(NODE_ID);
+            Integer nodeId = (Integer) v.property(NODE_ID).value();
             nodes.add(nodeId);
         }
         return nodes;
@@ -473,11 +401,11 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
     public Set<Integer> getNodesFromNodeCommunity(int nodeCommunity)
     {
         Set<Integer> nodes = new HashSet<Integer>();
-        Iterable<Vertex> iter = titanGraph.getVertices(NODE_COMMUNITY, nodeCommunity);
-        for (Vertex v : iter)
+        final GraphTraversalSource g = graph.traversal();
+        
+        for (Property<?> property : g.V().has(NODE_COMMUNITY, nodeCommunity).properties(NODE_ID).toList())
         {
-            Integer nodeId = v.getProperty(NODE_ID);
-            nodes.add(nodeId);
+            nodes.add((Integer) property.value());
         }
         return nodes;
     }
@@ -486,25 +414,17 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
     public double getEdgesInsideCommunity(int vertexCommunity, int communityVertices)
     {
         double edges = 0;
-        Iterable<Vertex> vertices = titanGraph.getVertices(NODE_COMMUNITY, vertexCommunity);
-        Iterable<Vertex> comVertices = titanGraph.getVertices(COMMUNITY, communityVertices);
-        for (Vertex vertex : vertices)
+        Set<Vertex> comVertices = graph.traversal().V().has(COMMUNITY, communityVertices).toSet();
+        for (Vertex vertex : graph.traversal().V().has(NODE_COMMUNITY, vertexCommunity).toList())
         {
-            for (Vertex v : vertex.getVertices(Direction.OUT, SIMILAR))
+            Iterator<Vertex> it = vertex.vertices(Direction.OUT, SIMILAR);
+            for (Vertex v; it.hasNext();)
             {
-                if (Iterables.contains(comVertices, v))
-                {
+                v = it.next();
+                if(comVertices.contains(v)) {
                     edges++;
                 }
             }
-            // GremlinPipeline<String, Vertex> pipe = new
-            // GremlinPipeline<String, Vertex>(vertex).out(SIMILAR);
-            // Iterator<Vertex> iter = pipe.iterator();
-            // while(iter.hasNext()) {
-            // if(Iterables.contains(comVertices, iter.next())){
-            // edges++;
-            // }
-            // }
         }
         return edges;
     }
@@ -513,13 +433,13 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
     public double getCommunityWeight(int community)
     {
         double communityWeight = 0;
-        Iterable<Vertex> iter = titanGraph.getVertices(COMMUNITY, community);
-        if (Iterables.size(iter) > 1)
+        final List<Vertex> list = graph.traversal().V().has(COMMUNITY, community).toList();
+        if (list.size() <= 1) {
+            return communityWeight;
+        }
+        for (Vertex vertex : list)
         {
-            for (Vertex vertex : iter)
-            {
-                communityWeight += getNodeOutDegree(vertex);
-            }
+            communityWeight += getNodeOutDegree(vertex);
         }
         return communityWeight;
     }
@@ -528,8 +448,7 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
     public double getNodeCommunityWeight(int nodeCommunity)
     {
         double nodeCommunityWeight = 0;
-        Iterable<Vertex> iter = titanGraph.getVertices(NODE_COMMUNITY, nodeCommunity);
-        for (Vertex vertex : iter)
+        for (Vertex vertex : graph.traversal().V().has(NODE_COMMUNITY, nodeCommunity).toList())
         {
             nodeCommunityWeight += getNodeOutDegree(vertex);
         }
@@ -539,18 +458,17 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
     @Override
     public void moveNode(int nodeCommunity, int toCommunity)
     {
-        Iterable<Vertex> fromIter = titanGraph.getVertices(NODE_COMMUNITY, nodeCommunity);
-        for (Vertex vertex : fromIter)
+        for (Vertex vertex : graph.traversal().V().has(NODE_COMMUNITY, nodeCommunity).toList())
         {
-            vertex.setProperty(COMMUNITY, toCommunity);
+            vertex.property(COMMUNITY, toCommunity);
         }
     }
 
     @Override
     public double getGraphWeightSum()
     {
-        Iterable<Edge> edges = titanGraph.getEdges();
-        return (double) Iterables.size(edges);
+        final Iterator<Edge> edges = graph.edges();
+        return (double) Iterators.size(edges);
     }
 
     @Override
@@ -558,17 +476,19 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
     {
         Map<Integer, Integer> initCommunities = new HashMap<Integer, Integer>();
         int communityCounter = 0;
-        for (Vertex v : titanGraph.getVertices())
+        Iterator<Vertex> it = graph.vertices();
+        for (Vertex v; it.hasNext();)
         {
-            int communityId = v.getProperty(COMMUNITY);
+            v = it.next();
+            int communityId = (Integer) v.property(COMMUNITY).value();
             if (!initCommunities.containsKey(communityId))
             {
                 initCommunities.put(communityId, communityCounter);
                 communityCounter++;
             }
             int newCommunityId = initCommunities.get(communityId);
-            v.setProperty(COMMUNITY, newCommunityId);
-            v.setProperty(NODE_COMMUNITY, newCommunityId);
+            v.property(COMMUNITY, newCommunityId);
+            v.property(NODE_COMMUNITY, newCommunityId);
         }
         return communityCounter;
     }
@@ -576,26 +496,25 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
     @Override
     public int getCommunity(int nodeCommunity)
     {
-        Vertex vertex = titanGraph.getVertices(NODE_COMMUNITY, nodeCommunity).iterator().next();
-        int community = vertex.getProperty(COMMUNITY);
+        Vertex vertex = graph.traversal().V().has(NODE_COMMUNITY, nodeCommunity).next();
+        int community = (Integer) vertex.property(COMMUNITY).value();
         return community;
     }
 
     @Override
     public int getCommunityFromNode(int nodeId)
     {
-        Vertex vertex = titanGraph.getVertices(NODE_ID, nodeId).iterator().next();
-        return vertex.getProperty(COMMUNITY);
+        Vertex vertex = getVertex(nodeId);
+        return (Integer) vertex.property(COMMUNITY).value();
     }
 
     @Override
     public int getCommunitySize(int community)
     {
-        Iterable<Vertex> vertices = titanGraph.getVertices(COMMUNITY, community);
         Set<Integer> nodeCommunities = new HashSet<Integer>();
-        for (Vertex v : vertices)
+        for (Vertex v : graph.traversal().V().has(COMMUNITY, community).toList())
         {
-            int nodeCommunity = v.getProperty(NODE_COMMUNITY);
+            int nodeCommunity = (Integer) v.property(NODE_COMMUNITY).value();
             if (!nodeCommunities.contains(nodeCommunity))
             {
                 nodeCommunities.add(nodeCommunity);
@@ -610,11 +529,11 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
         Map<Integer, List<Integer>> communities = new HashMap<Integer, List<Integer>>();
         for (int i = 0; i < numberOfCommunities; i++)
         {
-            Iterator<Vertex> verticesIter = titanGraph.getVertices(COMMUNITY, i).iterator();
+            GraphTraversal<Vertex, Vertex> t = graph.traversal().V().has(COMMUNITY, i);
             List<Integer> vertices = new ArrayList<Integer>();
-            while (verticesIter.hasNext())
+            while (t.hasNext())
             {
-                Integer nodeId = verticesIter.next().getProperty(NODE_ID);
+                Integer nodeId = (Integer) t.next().property(NODE_ID).value();
                 vertices.add(nodeId);
             }
             communities.put(i, vertices);
@@ -624,47 +543,44 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
 
     private void createSchema()
     {
-        final TitanManagement mgmt = titanGraph.getManagementSystem();
-        if (!titanGraph.getIndexedKeys(Vertex.class).contains(NODE_ID))
+        final TitanManagement mgmt = graph.openManagement();
+        if(!mgmt.containsVertexLabel(NODE_LABEL)) {
+            final VertexLabelMaker maker = mgmt.makeVertexLabel(NODE_LABEL);
+            maker.make();
+        }
+        if (null == mgmt.getGraphIndex(NODE_ID))
         {
             final PropertyKey key = mgmt.makePropertyKey(NODE_ID).dataType(Integer.class).make();
             mgmt.buildIndex(NODE_ID, Vertex.class).addKey(key).unique().buildCompositeIndex();
         }
-        if (!titanGraph.getIndexedKeys(Vertex.class).contains(COMMUNITY))
+        if (null == mgmt.getGraphIndex(COMMUNITY))
         {
             final PropertyKey key = mgmt.makePropertyKey(COMMUNITY).dataType(Integer.class).make();
             mgmt.buildIndex(COMMUNITY, Vertex.class).addKey(key).buildCompositeIndex();
         }
-        if (!titanGraph.getIndexedKeys(Vertex.class).contains(NODE_COMMUNITY))
+        if (null == mgmt.getGraphIndex(NODE_COMMUNITY))
         {
             final PropertyKey key = mgmt.makePropertyKey(NODE_COMMUNITY).dataType(Integer.class).make();
             mgmt.buildIndex(NODE_COMMUNITY, Vertex.class).addKey(key).buildCompositeIndex();
         }
-
         if (mgmt.getEdgeLabel(SIMILAR) == null)
         {
             mgmt.makeEdgeLabel(SIMILAR).multiplicity(Multiplicity.MULTI).directed().make();
         }
         mgmt.commit();
-    }
-
-    @Override
-    public boolean nodeExists(int nodeId)
-    {
-        Iterable<Vertex> iter = titanGraph.getVertices(NODE_ID, nodeId);
-        return iter.iterator().hasNext();
+        graph.tx().commit();
     }
 
     @Override
     public Iterator<Vertex> getVertexIterator()
     {
-        return titanGraph.getVertices().iterator();
+        return graph.traversal().V().hasLabel(NODE_LABEL).toStream().iterator();
     }
 
     @Override
     public Iterator<Edge> getNeighborsOfVertex(Vertex v)
     {
-        return v.getEdges(Direction.BOTH, SIMILAR).iterator();
+        return v.edges(Direction.BOTH, SIMILAR);
     }
 
     @Override
@@ -676,25 +592,25 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
     @Override
     public Vertex getOtherVertexFromEdge(Edge edge, Vertex oneVertex)
     {
-        return edge.getVertex(Direction.IN).equals(oneVertex) ? edge.getVertex(Direction.OUT) : edge.getVertex(Direction.IN);
+        return edge.inVertex().equals(oneVertex) ? edge.outVertex() : edge.inVertex();
     }
 
     @Override
     public Iterator<Edge> getAllEdges()
     {
-        return titanGraph.getEdges().iterator();
+        return graph.edges();
     }
 
     @Override
     public Vertex getSrcVertexFromEdge(Edge edge)
     {
-        return edge.getVertex(Direction.IN);
+        return edge.outVertex();
     }
 
     @Override
     public Vertex getDestVertexFromEdge(Edge edge)
     {
-        return edge.getVertex(Direction.OUT);
+        return edge.inVertex();
     }
 
     @Override
@@ -730,6 +646,8 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
     @Override
     public Vertex getVertex(Integer i)
     {
-        return titanGraph.getVertices(NODE_ID, i.intValue()).iterator().next();
+        final GraphTraversalSource g = graph.traversal();
+        final Vertex vertex = g.V().has(NODE_ID, i).next();
+        return vertex;
     }
 }
