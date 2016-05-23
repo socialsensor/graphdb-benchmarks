@@ -40,8 +40,7 @@ public class MassiveInsertionBenchmark extends PermutingBenchmarkBase implements
         // it is not related to the action of inserting.
         graphDatabase.createGraphForMassiveLoad();
         logger.debug("Massive load graph in database type {}", type.getShortname());
-        Stopwatch watch = new Stopwatch();
-        watch.start();
+        Stopwatch watch = Stopwatch.createStarted();        
         graphDatabase.massiveModeLoading(bench.getDataset());
         logger.debug("Shutdown massive graph in database type {}", type.getShortname());
         graphDatabase.shutdownMassiveGraph();

@@ -24,8 +24,7 @@ public class DeleteGraphBenchmark extends PermutingBenchmarkBase implements Requ
     @Override
     public void benchmarkOne(GraphDatabaseType type, int scenarioNumber)
     {
-        Stopwatch watch = new Stopwatch();
-        watch.start();
+        Stopwatch watch = Stopwatch.createStarted();        
         Utils.deleteDatabase(type, bench);
         times.get(type).add((double) watch.elapsed(TimeUnit.MILLISECONDS));
     }

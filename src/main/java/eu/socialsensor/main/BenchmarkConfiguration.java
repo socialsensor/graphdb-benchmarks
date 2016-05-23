@@ -51,6 +51,12 @@ public class BenchmarkConfiguration
     private static final String ENDPOINT = Constants.DYNAMODB_CLIENT_ENDPOINT.getName();
     private static final String TABLE_PREFIX = Constants.DYNAMODB_TABLE_PREFIX.getName();
 
+    // Google Cloud Bigtable Backend for Titan specific configuration
+    private static final String CONNECTION_IMPL = "connection-impl";    
+    private static final String CLUSTER_NAME = "cluster-name";
+    private static final String PROJECT_ID = "project-id";
+    private static final String ZONE = "zone";    
+    
     // benchmark configuration
     private static final String DATASET = "dataset";
     private static final String DATABASE_STORAGE_DIRECTORY = "database-storage-directory";
@@ -89,6 +95,13 @@ public class BenchmarkConfiguration
     private final boolean dynamodbConsistentRead;
     private final Boolean orientLightweightEdges;
     private final String sparkseeLicenseKey;
+    
+    // cloud bigtable settings
+    private final String bigtableConnectionImpl;
+    private final String bigtableProjectId;
+    private final String bigtableClusterName;
+    private final String bigtableZone;
+    
 
     // shortest path
     private final int randomNodes;
@@ -164,6 +177,12 @@ public class BenchmarkConfiguration
         this.dynamodbEndpoint = dynamodb.containsKey(ENDPOINT) ? dynamodb.getString(ENDPOINT) : null;
         this.dynamodbTablePrefix = dynamodb.containsKey(TABLE_PREFIX) ? dynamodb.getString(TABLE_PREFIX) : Constants.DYNAMODB_TABLE_PREFIX.getDefaultValue();
 
+        Configuration googleCloudBigtable = socialsensor.subset("bigtable");
+        this.bigtableConnectionImpl = googleCloudBigtable.getString(CONNECTION_IMPL);
+        this.bigtableProjectId = googleCloudBigtable.getString(PROJECT_ID);
+        this.bigtableZone = googleCloudBigtable.getString(ZONE);
+        this.bigtableClusterName = googleCloudBigtable.getString(CLUSTER_NAME);                
+        
         Configuration orient = socialsensor.subset("orient");
         orientLightweightEdges = orient.containsKey(LIGHTWEIGHT_EDGES) ? orient.getBoolean(LIGHTWEIGHT_EDGES) : null;
 
@@ -206,7 +225,7 @@ public class BenchmarkConfiguration
             {
                 throw new IllegalArgumentException(String.format("selected database %s not supported",
                     database.toString()));
-            }
+            }         
             selectedDatabases.add(GraphDatabaseType.STRING_REP_MAP.get(database));
         }
         scenarios = permuteBenchmarks ? Ints.checkedCast(CombinatoricsUtils.factorial(selectedDatabases.size())) : 1;
@@ -296,7 +315,7 @@ public class BenchmarkConfiguration
     }
 
     public SortedSet<GraphDatabaseType> getSelectedDatabases()
-    {
+    {        
         return selectedDatabases;
     }
 
@@ -459,4 +478,25 @@ public class BenchmarkConfiguration
     {
         return graphiteHostname != null && !graphiteHostname.isEmpty();
     }
+    
+    public String getBigtableConnectionImpl() 
+    {
+      return bigtableConnectionImpl;
+    }
+  
+    public String getBigtableClusterName() 
+    {
+      return bigtableClusterName;
+    }
+  
+    public String getBigtableProjectId() 
+    {
+      return bigtableProjectId;
+    }
+  
+    public String getBigtableZone() 
+    {
+      return bigtableZone;
+    }
+
 }

@@ -141,7 +141,7 @@ public class Utils
         {
             for (Double insertionTime : insertionTimes)
             {
-                out.write(String.format("%d\n", String.valueOf(insertionTime)));
+                out.write(String.format("%s\n", String.valueOf(insertionTime)));
             }
         }
         catch (IOException e)

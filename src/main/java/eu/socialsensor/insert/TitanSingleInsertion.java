@@ -1,20 +1,22 @@
 package eu.socialsensor.insert;
 
-import java.io.File;
-
 import com.thinkaurelius.titan.core.TitanGraph;
-import com.thinkaurelius.titan.core.util.TitanId;
-import com.tinkerpop.blueprints.Compare;
-import com.tinkerpop.blueprints.Vertex;
+import com.thinkaurelius.titan.core.TitanVertex;
+import com.thinkaurelius.titan.core.attribute.Cmp;
 
 import eu.socialsensor.main.GraphDatabaseType;
+
+import org.apache.tinkerpop.gremlin.structure.Vertex;
+
+import java.io.File;
+import java.util.Iterator;
 
 /**
  * Implementation of single Insertion in Titan graph database
  * 
  * @author sotbeis, sotbeis@iti.gr
  * @author Alexander Patrikalakis
- * 
+ * @author Lindsay Smith lindsaysmith@google.com
  */
 public class TitanSingleInsertion extends InsertionBase<Vertex>
 {
@@ -29,33 +31,33 @@ public class TitanSingleInsertion extends InsertionBase<Vertex>
     @Override
     public Vertex getOrCreate(String value)
     {
-        Integer intValue = Integer.valueOf(value);
+        Integer intValue = Integer.valueOf(value.trim());
         final Vertex v;
-        if (titanGraph.query().has("nodeId", Compare.EQUAL, intValue).vertices().iterator().hasNext())
+        Iterator<TitanVertex> i = titanGraph.query().has("nodeId", Cmp.EQUAL, intValue).vertices().iterator();
+        if (i.hasNext())
         {
-            v = (Vertex) titanGraph.query().has("nodeId", Compare.EQUAL, intValue).vertices().iterator().next();
+            v = (Vertex) i.next();
         }
         else
-        {
-            final long titanVertexId = TitanId.toVertexId(intValue);
-            v = titanGraph.addVertex(titanVertexId);
-            v.setProperty("nodeId", intValue);
-            titanGraph.commit();
+        {            
+            v = titanGraph.addVertex();
+            v.property("nodeId", intValue);
+            titanGraph.tx().commit();
         }
         return v;
     }
 
     @Override
     public void relateNodes(Vertex src, Vertex dest)
-    {
+    {        
         try
-        {
-            titanGraph.addEdge(null, src, dest, "similar");
-            titanGraph.commit();
+        {            
+            src.addEdge("similar", dest);
+            titanGraph.tx().commit();
         }
         catch (Exception e)
         {
-            titanGraph.rollback(); //TODO(amcp) why can this happen? doesn't this indicate illegal state?
+            titanGraph.tx().rollback(); //TODO(amcp) why can this happen? doesn't this indicate illegal state?
         }
     }
 }
