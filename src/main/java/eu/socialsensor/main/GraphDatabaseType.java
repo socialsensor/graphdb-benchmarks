@@ -17,7 +17,8 @@ public enum GraphDatabaseType
     TITAN_CASSANDRA("Titan", "cassandra", "tc"),
     TITAN_CASSANDRA_EMBEDDED("TitanEmbedded", "embeddedcassandra", "tce"),
     TITAN_HBASE("Titan", "hbase", "thb"),
-    TITAN_PERSISTIT("TitanEmbedded", "persistit", "tp"),
+    TITAN_CLOUDBIGTABLE("Titan", "hbase", "tcbt"),
+    TITAN_PERSISTIT("TitanEmbedded", "persistit", "tp"),    
     ORIENT_DB("OrientDB", null, "orient"),
     NEO4J("Neo4j", null, "neo4j"),
     SPARKSEE("Sparksee", null, "sparksee");
@@ -40,6 +41,7 @@ public enum GraphDatabaseType
         TITAN_FLAVORS.add(TITAN_CASSANDRA_EMBEDDED);
         TITAN_FLAVORS.add(TITAN_HBASE);
         TITAN_FLAVORS.add(TITAN_PERSISTIT);
+        TITAN_FLAVORS.add(TITAN_CLOUDBIGTABLE);
     }
 
     private GraphDatabaseType(String api, String backend, String shortname)

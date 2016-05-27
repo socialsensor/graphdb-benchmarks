@@ -1,47 +1,42 @@
 package eu.socialsensor.insert;
 
 import com.thinkaurelius.titan.core.TitanGraph;
-import com.thinkaurelius.titan.core.util.TitanId;
-import com.tinkerpop.blueprints.Vertex;
-import com.tinkerpop.blueprints.util.wrappers.batch.BatchGraph;
 
 import eu.socialsensor.main.GraphDatabaseType;
 
+import org.apache.tinkerpop.gremlin.structure.Vertex;
+
+import java.io.File;
+
 /**
- * Implementation of massive Insertion in Titan graph database
+ * Implementation of massive Insertion in Titan graph database.
+ * April 2016(lindsaysmith): Massive Insertion into Titan 1.0.0 doesn't have specialized classes, 
+ * just different configuration recommendations.  This insertion is currently implemented the same 
+ * way as the simple insertion.
+ * 
  * 
  * @author sotbeis, sotbeis@iti.gr
  * @author Alexander Patrikalakis
- * 
+ * @author Lindsay Smith lindsaysmith@google.com
  */
 public class TitanMassiveInsertion extends InsertionBase<Vertex>
 {
-    private final BatchGraph<TitanGraph> batchGraph;
-
-    public TitanMassiveInsertion(BatchGraph<TitanGraph> batchGraph, GraphDatabaseType type)
-    {
-        super(type, null /* resultsPath */); // no temp files for massive load
-                                             // insert
-        this.batchGraph = batchGraph;
-    }
+    private final TitanSingleInsertion delegate;
+    
+    public TitanMassiveInsertion(TitanGraph titanGraph, GraphDatabaseType type, File resultsPath) {
+      super(type, resultsPath);
+      delegate = new TitanSingleInsertion(titanGraph, type, resultsPath);
+    }    
 
     @Override
     public Vertex getOrCreate(String value)
     {
-        Integer intVal = Integer.valueOf(value);
-        final long titanVertexId = TitanId.toVertexId(intVal);
-        Vertex vertex = batchGraph.getVertex(titanVertexId);
-        if (vertex == null)
-        {
-            vertex = batchGraph.addVertex(titanVertexId);
-            vertex.setProperty("nodeId", intVal);
-        }
-        return vertex;
+        return delegate.getOrCreate(value);
     }
 
     @Override
     public void relateNodes(Vertex src, Vertex dest)
     {
-        src.addEdge("similar", dest);
+        delegate.relateNodes(src, dest);
     }
 }
