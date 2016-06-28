@@ -193,8 +193,6 @@ public class SparkseeGraphDatabase extends GraphDatabaseBase<ObjectsIterator, Ob
     @Override
     public void shortestPath(final Long srcNodeID, Integer i)
     {
-        @SuppressWarnings("unused")
-        double length = 0;
         int nodeType = sparkseeGraph.findType(NODE);
         int edgeType = sparkseeGraph.findType(SIMILAR);
 
@@ -204,10 +202,6 @@ public class SparkseeGraphDatabase extends GraphDatabaseBase<ObjectsIterator, Ob
         shortestPathBFS.addEdgeType(edgeType, EdgesDirection.Outgoing);
         shortestPathBFS.setMaximumHops(4);
         shortestPathBFS.run();
-        if (shortestPathBFS.exists())
-        {
-            length = shortestPathBFS.getCost();
-        }
         shortestPathBFS.close();
     }
 
