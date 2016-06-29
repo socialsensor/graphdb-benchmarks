@@ -43,7 +43,7 @@ public class ClusteringBenchmark extends BenchmarkBase implements RequiresGraphD
         this.cacheValues = new ArrayList<Integer>();
         if (config.getCacheValues() == null)
         {
-            int cacheValueMultiplier = (int) config.getCacheIncrementFactor().intValue() * config.getNodesCount();
+            int cacheValueMultiplier = config.getCacheIncrementFactor().intValue() * config.getNodesCount();
             for (int i = 1; i <= config.getCacheValuesCount(); i++)
             {
                 cacheValues.add(i * cacheValueMultiplier);

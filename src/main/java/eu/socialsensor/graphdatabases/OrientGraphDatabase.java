@@ -126,7 +126,7 @@ public class OrientGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Ite
     {
         final OrientVertex v2 = (OrientVertex) getVertex(i);
 
-        List<ORID> result = (List<ORID>) new OSQLFunctionShortestPath().execute(graph,
+        List<ORID> result = new OSQLFunctionShortestPath().execute(graph,
             null, null, new Object[] { ((OrientVertex) v1).getRecord(), v2.getRecord(), Direction.OUT, 5 },
             new OBasicCommandContext());
 
@@ -405,7 +405,7 @@ public class OrientGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Ite
         OrientGraph g;
         OrientGraphFactory graphFactory = new OrientGraphFactory("plocal:" + dbPath.getAbsolutePath());
         g = graphFactory.getTx();
-        ((OrientGraph) g).setUseLightweightEdges(this.useLightWeightEdges);
+        g.setUseLightweightEdges(this.useLightWeightEdges);
         return g;
     }
 
