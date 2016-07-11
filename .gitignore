@@ -6,3 +6,8 @@ target/*
 /.gitignore
 /.settings
 /.classpath
+.idea/
+graphdb-benchmarks.iml
+metrics/
+results/
+storage/
