@@ -773,7 +773,7 @@ public class Neo4jGraphDatabase extends GraphDatabaseBase<Iterator<Node>, Iterat
     public Node getVertex(Integer i)
     {
         // note, this probably should be run in the context of an active transaction.
-        return neo4jGraph.findNodesByLabelAndProperty(Neo4jGraphDatabase.NODE_LABEL, NODE_ID, i).iterator()
+        return neo4jGraph.findNodesByLabelAndProperty(Neo4jGraphDatabase.NODE_LABEL, NODE_ID, i.toString()).iterator()
             .next();
     }
 
