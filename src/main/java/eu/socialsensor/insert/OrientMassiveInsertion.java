@@ -35,13 +35,21 @@ public class OrientMassiveInsertion extends InsertionBase<Long> implements Inser
         graph = new OGraphBatchInsertBasic(url);
         graph.setAverageEdgeNumberPerNode(AVERAGE_NUMBER_OF_EDGES_PER_NODE);
         graph.setEstimatedEntries(ESTIMATED_ENTRIES);
+        graph.setIdPropertyName("nodeId");
         graph.begin();
+    }
+
+    @Override
+    protected void post() {
+        graph.end();
     }
 
     @Override
     protected Long getOrCreate(String value)
     {
-        return Long.parseLong(value);
+        final long v = Long.parseLong(value);
+        graph.createVertex(v);
+        return v;
     }
 
     @Override
