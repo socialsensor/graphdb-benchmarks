@@ -1,6 +1,7 @@
 package eu.socialsensor.insert;
 
 import com.orientechnologies.orient.core.config.OGlobalConfiguration;
+import com.orientechnologies.orient.core.intent.OIntentMassiveInsert;
 import com.orientechnologies.orient.graph.batch.OGraphBatchInsertBasic;
 import com.tinkerpop.blueprints.impls.orient.OrientGraphNoTx;
 
@@ -25,6 +26,7 @@ public class OrientMassiveInsertion extends InsertionBase<Long> implements Inser
         super(GraphDatabaseType.ORIENT_DB, null /* resultsPath */);
         OGlobalConfiguration.ENVIRONMENT_CONCURRENT.setValue(false);
         OrientGraphNoTx transactionlessGraph = new OrientGraphNoTx(url);
+//        transactionlessGraph.declareIntent(new OIntentMassiveInsert());
         for (int i = 0; i < NUMBER_OF_ORIENT_CLUSTERS; ++i)
         {
             transactionlessGraph.getVertexBaseType().addCluster("v_" + i);
@@ -36,6 +38,7 @@ public class OrientMassiveInsertion extends InsertionBase<Long> implements Inser
         graph.setAverageEdgeNumberPerNode(AVERAGE_NUMBER_OF_EDGES_PER_NODE);
         graph.setEstimatedEntries(ESTIMATED_ENTRIES);
         graph.setIdPropertyName("nodeId");
+        graph.setEdgeClass("similar");
         graph.begin();
     }
 

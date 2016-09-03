@@ -26,6 +26,7 @@ import eu.socialsensor.insert.OrientSingleInsertion;
 import eu.socialsensor.main.BenchmarkConfiguration;
 import eu.socialsensor.main.GraphDatabaseType;
 import eu.socialsensor.utils.Utils;
+import org.apache.commons.collections.map.HashedMap;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -53,7 +54,7 @@ public class OrientGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Ite
     {
         super(GraphDatabaseType.ORIENT_DB, dbStorageDirectoryIn);
         OGlobalConfiguration.STORAGE_COMPRESSION_METHOD.setValue("nothing");
-        this.useLightWeightEdges = config.orientLightweightEdges() == null ? true : config.orientLightweightEdges()
+        this.useLightWeightEdges = config.orientLightweightEdges() == null ? false : config.orientLightweightEdges()
             .booleanValue();
     }
 
@@ -67,7 +68,7 @@ public class OrientGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Ite
     @Override
     public void createGraphForSingleLoad()
     {
-        OGlobalConfiguration.STORAGE_KEEP_OPEN.setValue(false);
+//        OGlobalConfiguration.STORAGE_KEEP_OPEN.setValue(false);
         graph = getGraph(dbStorageDirectory);
         createSchema();
     }
@@ -76,7 +77,7 @@ public class OrientGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Ite
     @Override
     public void createGraphForMassiveLoad()
     {
-        OGlobalConfiguration.STORAGE_KEEP_OPEN.setValue(false);
+//        OGlobalConfiguration.STORAGE_KEEP_OPEN.setValue(false);
         graph = getGraph(dbStorageDirectory);
         createSchema();
     }
@@ -102,6 +103,7 @@ public class OrientGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Ite
         {
             return;
         }
+        graph.commit();
         graph.shutdown();
         graph = null;
     }
@@ -125,9 +127,10 @@ public class OrientGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Ite
     public void shortestPath(final Vertex v1, Integer i)
     {
         final OrientVertex v2 = (OrientVertex) getVertex(i);
-
+        Map attrs = new HashMap();
+        attrs.put("maxDepth",5);
         List<ORID> result = new OSQLFunctionShortestPath().execute(graph,
-            null, null, new Object[] { ((OrientVertex) v1).getRecord(), v2.getRecord(), Direction.OUT, 5 },
+            null, null, new Object[] { ((OrientVertex) v1).getRecord(), v2.getRecord(), Direction.OUT, "similar", attrs},
             new OBasicCommandContext());
 
         result.size();
@@ -384,11 +387,14 @@ public class OrientGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Ite
                     g.createKeyIndex(NODE_ID, Vertex.class, new Parameter("type", "UNIQUE_HASH_INDEX"), new Parameter(
                         "keytype", "INTEGER"));
 
-                    v.createEdgeProperty(Direction.OUT, SIMILAR, OType.LINKBAG);
-                    v.createEdgeProperty(Direction.IN, SIMILAR, OType.LINKBAG);
                     OrientEdgeType similar = g.createEdgeType(SIMILAR);
                     similar.createProperty("out", OType.LINK, v);
                     similar.createProperty("in", OType.LINK, v);
+
+                    v.createEdgeProperty(Direction.OUT, SIMILAR, OType.LINKBAG);
+                    v.createEdgeProperty(Direction.IN, SIMILAR, OType.LINKBAG);
+
+
                     g.createKeyIndex(COMMUNITY, Vertex.class, new Parameter("type", "NOTUNIQUE_HASH_INDEX"),
                         new Parameter("keytype", "INTEGER"));
                     g.createKeyIndex(NODE_COMMUNITY, Vertex.class, new Parameter("type", "NOTUNIQUE_HASH_INDEX"),
@@ -406,6 +412,7 @@ public class OrientGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Ite
         OrientGraphFactory graphFactory = new OrientGraphFactory("plocal:" + dbPath.getAbsolutePath());
         g = graphFactory.getTx();
         g.setUseLightweightEdges(this.useLightWeightEdges);
+
         return g;
     }
 

@@ -51,10 +51,10 @@
 
     <properties>
         <blueprints.version>2.6.0</blueprints.version>
-        <orientdb.version>2.2.5-SNAPSHOT</orientdb.version>
+        <orientdb.version>2.2.8</orientdb.version>
         <titan.version>0.5.4</titan.version>
         <hbase.version>0.98.8-hadoop2</hbase.version>
-        <neo4j.version>2.0.1</neo4j.version>
+        <neo4j.version>3.1.0-M07</neo4j.version>
         <dynamodb.titan.version>1.0.0</dynamodb.titan.version>
         <log4j2.version>2.1</log4j2.version>
         <maven.surefire.version>2.18.1</maven.surefire.version>
@@ -148,22 +148,47 @@
             <artifactId>jna</artifactId>
             <version>4.0.0</version>
         </dependency>
-        <dependency>
+        <!--dependency>
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-core</artifactId>
             <version>3.6.2</version>
-        </dependency>
-        <dependency>
+        </dependency-->
+        <!--dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j-cypher</artifactId>
             <version>${neo4j.version}</version>
-        </dependency>
+        </dependency-->
         <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j</artifactId>
             <version>${neo4j.version}</version>
         </dependency>
+        <!--dependency>
+            <groupId>org.neo4j</groupId>
+            <artifactId>neo4j-lucene-index</artifactId>
+            <version>${neo4j.version}</version>
+        </dependency>
         <dependency>
+            <groupId>org.neo4j</groupId>
+            <artifactId>neo4j-io</artifactId>
+            <version>${neo4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.neo4j</groupId>
+            <artifactId>neo4j-backup</artifactId>
+            <version>${neo4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.neo4j</groupId>
+            <artifactId>neo4j-ha</artifactId>
+            <version>${neo4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.neo4j</groupId>
+            <artifactId>neo4j-cluster</artifactId>
+            <version>${neo4j.version}</version>
+        </dependency-->
+        <!--dependency>
             <groupId>com.tinkerpop.blueprints</groupId>
             <artifactId>blueprints-neo4j2-graph</artifactId>
             <version>${blueprints.version}</version>
@@ -173,7 +198,7 @@
                     <artifactId>logback-classic</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
+        </dependency-->
         <dependency>
             <groupId>com.orientechnologies</groupId>
             <artifactId>orientdb-graphdb</artifactId>
