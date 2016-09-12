@@ -77,7 +77,7 @@ public class OrientGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Ite
     @Override
     public void createGraphForMassiveLoad()
     {
-//        OGlobalConfiguration.STORAGE_KEEP_OPEN.setValue(false);
+        OGlobalConfiguration.STORAGE_KEEP_OPEN.setValue(false);
         graph = getGraph(dbStorageDirectory);
         createSchema();
     }
@@ -412,7 +412,6 @@ public class OrientGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Ite
         OrientGraphFactory graphFactory = new OrientGraphFactory("plocal:" + dbPath.getAbsolutePath());
         g = graphFactory.getTx();
         g.setUseLightweightEdges(this.useLightWeightEdges);
-
         return g;
     }
 

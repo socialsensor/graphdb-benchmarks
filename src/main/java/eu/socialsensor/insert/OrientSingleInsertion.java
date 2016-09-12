@@ -56,6 +56,7 @@ public final class OrientSingleInsertion extends InsertionBase<Vertex>
 
         v = orientGraph.addVertex(key, "nodeId", key);
 
+
         if (orientGraph instanceof TransactionalGraph)
         {
             orientGraph.commit();
