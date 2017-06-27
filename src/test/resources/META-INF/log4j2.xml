@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="fatal">
+<Configuration status="debug">
   <Appenders>
     <Console name="Console" target="SYSTEM_OUT">
       <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %c{1} - %msg%n"/>
     </Console>
   </Appenders>
   <Loggers>
-    <Root level="info">
+    <Root level="debug">
       <AppenderRef ref="Console"/>
     </Root>
   </Loggers>

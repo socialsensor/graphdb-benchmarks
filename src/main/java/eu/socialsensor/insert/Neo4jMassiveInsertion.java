@@ -29,6 +29,7 @@ public final class Neo4jMassiveInsertion extends InsertionBase<Long>
     @Override
     protected Long getOrCreate(String value)
     {
+        value = value.trim();
         Long id = cache.get(Long.valueOf(value));
         if (id == null)
         {

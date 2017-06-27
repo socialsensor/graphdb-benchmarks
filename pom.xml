@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>eu.socialsensor</groupId>
     <artifactId>graphdb-benchmarks</artifactId>
-    <version>1.0</version>
+    <version>1.1</version>
 
     <name>graphdb-benchmarks</name>
     <url>https://github.com/socialsensor/graphdb-benchmarks</url>
@@ -53,16 +53,23 @@
         <blueprints.version>2.6.0</blueprints.version>
         <orientdb.version>2.2.5</orientdb.version>
         <titan.version>0.5.4</titan.version>
-        <hbase.version>0.98.8-hadoop2</hbase.version>
+        <!--<hbase.version>0.98.8-hadoop2</hbase.version>-->
+        <hbase.version>1.2.0</hbase.version>
         <neo4j.version>2.0.1</neo4j.version>
         <dynamodb.titan.version>1.0.0</dynamodb.titan.version>
         <log4j2.version>2.1</log4j2.version>
         <maven.surefire.version>2.18.1</maven.surefire.version>
         <jdk.version>1.8</jdk.version>
         <metrics.version>3.0.0-BETA3</metrics.version>
+        <hugegraph.client.version>1.0-SNAPSHOT</hugegraph.client.version>
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>com.baidu.hugegraph</groupId>
+            <artifactId>hugegraph-client</artifactId>
+            <version>${hugegraph.client.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.antlr</groupId>
             <artifactId>antlr-runtime</artifactId>
@@ -262,6 +269,16 @@
             <groupId>com.codahale.metrics</groupId>
             <artifactId>metrics-core</artifactId>
             <version>${metrics.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.jaxrs</groupId>
+            <artifactId>jackson-jaxrs-base</artifactId>
+            <version>2.8.4</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.jaxrs</groupId>
+            <artifactId>jackson-jaxrs-json-provider</artifactId>
+            <version>2.8.4</version>
         </dependency>
     </dependencies>
     <build>
