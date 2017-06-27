@@ -30,8 +30,8 @@ public class HugeGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Itera
 
     public HugeGraphDatabase(BenchmarkConfiguration config, File dbStorageDirectoryIn) {
         super(GraphDatabaseType.HUGEGRAPH_CASSANDRA, dbStorageDirectoryIn);
-        hugeClient = HugeClient.open("http://localhost:8080",
-                "hugegraph");
+        hugeClient = HugeClient.open(config.getHugegraphUrl(),
+                config.getHugegraphGraph());
     }
 
     @Override
@@ -101,7 +101,8 @@ public class HugeGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Itera
 
     @Override
     public void open() {
-
+//        hugeClient = HugeClient.open("http://localhost:8080",
+//                "hugegraph");
     }
 
     @Override

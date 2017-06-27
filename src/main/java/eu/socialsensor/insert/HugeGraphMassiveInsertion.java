@@ -45,14 +45,8 @@ public class HugeGraphMassiveInsertion extends InsertionBase<Vertex> {
             String id = HugeGraphUtils.createId("node",value);
             vertex = cache.get(id);
             if (vertex == null){
-//                vertex = graphManager.addVertex(T.label,"node","nodeId",value);
                 vertex = new Vertex("node").property("nodeId",value);
                 vertexList.add(vertex);
-//
-//                if(++vertexCounter%100==0){
-//                    graphManager.addVertices(vertexList);
-//                    vertexList.clear();
-//                }
                 cache.put(id,vertex);
             }
 
@@ -63,7 +57,6 @@ public class HugeGraphMassiveInsertion extends InsertionBase<Vertex> {
 
     @Override
     protected void relateNodes(Vertex src, Vertex dest) {
-
 
         Edge edge = new Edge("link");
         if(HugeGraphUtils.isStringEmpty(src.id())){
