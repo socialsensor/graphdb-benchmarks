@@ -5,10 +5,16 @@ package eu.socialsensor.insert;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
+import eu.socialsensor.graphdatabases.HugeGraphDatabase;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -23,83 +29,89 @@ import eu.socialsensor.utils.HugeGraphUtils;
 /**
  * Created by zhangsuochao on 17/6/21.
  */
-public class HugeGraphMassiveInsertion extends InsertionBase<Vertex> {
+public class HugeGraphMassiveInsertion extends InsertionBase<Integer> {
 
     private static final Logger LOG = LogManager.getLogger();
     private final GraphManager graphManager;
-    private Map<String,Vertex> cache = new HashMap<>();
+    private Set<Integer> vertices = new HashSet<>();
+    private static final int VERTEXBATCHNUMBER = 500;
+    private static final int EDGEBATCHNUMBER = 500;
 
     private List<Vertex> vertexList = new LinkedList<>();
     private List<Edge> edgeList = new LinkedList<>();
-    private transient int vertexCounter = 0; //
-    private transient int edgeCounter = 0;
+    ExecutorService pool;
     public HugeGraphMassiveInsertion(GraphManager graphManager) {
-        super(GraphDatabaseType.HUGEGRAPH_CASSANDRA, null /* resultsPath */);
+        super(GraphDatabaseType.HUGEGRAPH_CASSANDRA, null);
         this.graphManager = graphManager;
+        pool = Executors.newCachedThreadPool();
     }
 
     @Override
-    protected Vertex getOrCreate(String value) {
-        Vertex vertex = null;
-        if(!HugeGraphUtils.isStringEmpty(value)){
-            String id = HugeGraphUtils.createId("node",value);
-            vertex = cache.get(id);
-            if (vertex == null){
-                vertex = new Vertex("node").property("nodeId",value);
-                vertexList.add(vertex);
-                cache.put(id,vertex);
-            }
-
+    protected Integer getOrCreate(String value) {
+        Vertex vertex;
+        Integer v = Integer.valueOf(value);
+        if (!vertices.contains(v)) {
+            vertices.add(v);
+            vertex = new Vertex(HugeGraphDatabase.NODE)
+                    .property(HugeGraphDatabase.NODE_ID, value);
+            vertexList.add(vertex);
         }
 
-        return vertex;
+        if (vertexList.size() >= VERTEXBATCHNUMBER) {
+            batchcommitVertex();
+        }
+        return v;
     }
 
     @Override
-    protected void relateNodes(Vertex src, Vertex dest) {
-
-        Edge edge = new Edge("link");
-        if(HugeGraphUtils.isStringEmpty(src.id())){
-            String srcId = HugeGraphUtils.createId("node",(String)src.properties().get("nodeId"));
-            edge.source(srcId);
-            edge.sourceLabel("node");
-        }else{
-            edge.source(src);
-        }
-
-        if(HugeGraphUtils.isStringEmpty(dest.id())){
-            String destId = HugeGraphUtils.createId("node",(String)dest.properties().get("nodeId"));
-            edge.target(destId);
-            edge.targetLabel("node");
-        }else {
-            edge.target(dest);
-        }
+    protected void relateNodes(Integer src, Integer dest) {
+        Edge edge = new Edge(HugeGraphDatabase.SIMILAR);
+        String srcId = HugeGraphUtils.createId(HugeGraphDatabase.NODE,
+                src.toString());
+        edge.source(srcId);
+        edge.sourceLabel(HugeGraphDatabase.NODE);
+        String destId = HugeGraphUtils.createId(HugeGraphDatabase.NODE,
+                dest.toString());
+        edge.target(destId);
+        edge.targetLabel(HugeGraphDatabase.NODE);
 
         edgeList.add(edge);
-
-        if(++edgeCounter%100==0){
-            graphManager.addVertices(vertexList);
-            vertexList.clear();
-//            graphManager.addEdge(src,"link",dest);
-            graphManager.addEdges(edgeList);
-            edgeList.clear();
+        if (edgeList.size() >= EDGEBATCHNUMBER) {
+            batchcommitEdge();
         }
+    }
+
+    List<Thread> threads = new LinkedList<>();
+
+    public void batchcommitVertex() {
+        List<Vertex> list = vertexList;
+        vertexList = new LinkedList<>();
+        pool.submit(() -> {
+            graphManager.addVertices(list);
+        });
+    }
+
+    public void batchcommitEdge() {
+        List<Edge> list = edgeList;
+        edgeList = new LinkedList<>();
+        pool.submit(() -> {
+            graphManager.addEdges(list, false);
+        });
     }
 
     @Override
-    protected void post(){
-        if(vertexList.size()>0){
-            graphManager.addVertices(vertexList);
-            LOG.info("Post {} vertices",vertexList.size());
-            vertexList.clear();
+    protected void post() {
+        if (vertexList.size() > 0) {
+            batchcommitVertex();
         }
-
-        if (edgeList.size()>0){
-            graphManager.addEdges(edgeList);
-            LOG.info("Post {} edges",edgeList.size());
-            edgeList.clear();
-
+        if (edgeList.size() > 0) {
+            batchcommitEdge();
+        }
+        pool.shutdown();
+        try {
+            pool.awaitTermination(3, TimeUnit.HOURS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
-
 }
