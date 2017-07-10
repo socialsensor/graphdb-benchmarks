@@ -16,7 +16,9 @@ import java.util.Set;
 import com.baidu.hugegraph.driver.GremlinManager;
 import com.baidu.hugegraph.driver.HugeClient;
 import com.baidu.hugegraph.driver.SchemaManager;
+import com.baidu.hugegraph.structure.GraphElement;
 import com.baidu.hugegraph.structure.graph.Edge;
+import com.baidu.hugegraph.structure.graph.Path;
 import com.baidu.hugegraph.structure.graph.Vertex;
 
 import com.baidu.hugegraph.structure.gremlin.Result;
@@ -70,13 +72,13 @@ public class HugeGraphDatabase extends
 
     @Override
     public Vertex getVertex(Integer i) {
-        return hugeClient.graph().getVertex(HugeGraphUtils.createId("node",
+        return hugeClient.graph().getVertex(HugeGraphUtils.createId(NODE,
                 i.toString()));
     }
 
     @Override
     public Iterator<Edge> getAllEdges() {
-        return hugeClient.graph().getEdges().iterator();
+        return hugeClient.graph().getEdges(1000).iterator();
     }
 
     @Override
@@ -108,7 +110,7 @@ public class HugeGraphDatabase extends
 
     @Override
     public Iterator<Vertex> getVertexIterator() {
-        return hugeClient.graph().getVertices().iterator();
+        return hugeClient.graph().getVertices(1000).iterator();
     }
 
     @Override
@@ -171,13 +173,35 @@ public class HugeGraphDatabase extends
 
     }
 
+    static int counter = 0;
     @Override
     public void shortestPath(Vertex fromNode, Integer node) {
+        System.out.println(">>>>>" + counter++ + " round,(from node: "
+                + fromNode.id() + ", to node: " + node + ")");
         String targetId  = HugeGraphUtils.createId(NODE, node.toString());
         String query = String.format("g.V('%s').repeat(out().simplePath())"
-                + ".until(hasId('%s').or().loops().is(gt(1)))" + ".hasId('%s')"
+                + ".until(hasId('%s').or().loops().is(gt(2)))" + ".hasId('%s')"
                 + ".path().limit(1)", fromNode.id(), targetId, targetId);
-        gremlin.gremlin(query).execute();
+        ResultSet resultSet = gremlin.gremlin(query).execute();
+
+        Iterator<Result> results = resultSet.iterator();
+        results.forEachRemaining(result -> {
+            //System.out.println(result.getObject().getClass());
+            Object object = result.getObject();
+            if (object instanceof Vertex) {
+                System.out.println(((Vertex) object).id());
+            } else if (object instanceof Edge) {
+                System.out.println(((Edge) object).id());
+            } else if (object instanceof Path) {
+                List<GraphElement> elements = ((Path) object).objects();
+                elements.stream().forEach(element -> {
+                    //System.out.println(element.getClass());
+                    System.out.println(element);
+                });
+            } else {
+                System.out.println(object);
+            }
+        });
     }
 
     @Override

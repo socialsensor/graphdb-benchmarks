@@ -101,10 +101,11 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
 
         final Configuration conf = new MapConfiguration(new HashMap<String, String>());
         final Configuration storage = conf.subset(GraphDatabaseConfiguration.STORAGE_NS.getName());
+        final Configuration graph = conf.subset(GraphDatabaseConfiguration.GRAPH_NS.getName());
         final Configuration ids = conf.subset(GraphDatabaseConfiguration.IDS_NS.getName());
         final Configuration metrics = conf.subset(GraphDatabaseConfiguration.METRICS_NS.getName());
 
-        conf.addProperty(GraphDatabaseConfiguration.ALLOW_SETTING_VERTEX_ID.getName(), "true");
+        graph.addProperty(GraphDatabaseConfiguration.ALLOW_SETTING_VERTEX_ID.getName(), "true");
 
         // storage NS config. FYI, storage.idauthority-wait-time is 300ms
         storage.addProperty(GraphDatabaseConfiguration.STORAGE_BACKEND.getName(), type.getBackend());
@@ -349,16 +350,42 @@ public class TitanGraphDatabase extends GraphDatabaseBase<Iterator<Vertex>, Iter
     @Override
     public void shortestPath(final Vertex fromNode, Integer node)
     {
+
+        int number = 0;
         final Vertex v2 = titanGraph.getVertices(NODE_ID, node).iterator().next();
+        System.out.println("source vertex: " + fromNode + ", dest vertex: "
+                + v2 + "dest integer: " + node);
         @SuppressWarnings("rawtypes")
         final GremlinPipeline<String, List> pathPipe = new GremlinPipeline<String, List>(fromNode).as(SIMILAR)
             .out(SIMILAR).loop(SIMILAR, new PipeFunction<LoopBundle<Vertex>, Boolean>() {
                 // @Override
                 public Boolean compute(LoopBundle<Vertex> bundle)
                 {
-                    return bundle.getLoops() < 5 && !bundle.getObject().equals(v2);
+                    return bundle.getLoops() < 4 && !bundle.getObject()
+                            .equals(v2);
                 }
-            }).path();
+            }).has("id", v2.getId()).path();
+        try {
+            while (pathPipe.hasNext()) {
+                number ++;
+                pathPipe.next();
+            }
+        } catch (Throwable e) {
+            System.out.println("can't find path to: " + v2.getId());
+        }
+        System.out.println("path number is: " + number);
+        /*
+         *for (List l : result) {
+         *    System.out.println(">>>>>>>outer list:");
+         *    for (Object ll : l) {
+         *        System.out.println(">>>>>>>>>inner list:");
+         *        System.out.println(ll.toString());
+         *    }
+         *}
+         *
+         *System.out.println("result:" + pathPipe.toList().toString());
+         *Assert.check(false);
+         */
     }
 
     @Override

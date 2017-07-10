@@ -39,7 +39,7 @@ public class HugeGraphMassiveInsertion extends InsertionBase<Integer> {
 
     private List<Vertex> vertexList = new LinkedList<>();
     private List<Edge> edgeList = new LinkedList<>();
-    ExecutorService pool;
+    private ExecutorService pool;
     public HugeGraphMassiveInsertion(GraphManager graphManager) {
         super(GraphDatabaseType.HUGEGRAPH_CASSANDRA, null);
         this.graphManager = graphManager;
@@ -80,8 +80,6 @@ public class HugeGraphMassiveInsertion extends InsertionBase<Integer> {
             batchcommitEdge();
         }
     }
-
-    List<Thread> threads = new LinkedList<>();
 
     public void batchcommitVertex() {
         List<Vertex> list = vertexList;
