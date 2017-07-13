@@ -3,61 +3,57 @@
  */
 package eu.socialsensor.insert;
 
-import java.io.File;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import eu.socialsensor.graphdatabases.HugeGraphDatabase;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.baidu.hugegraph.driver.GraphManager;
-import com.baidu.hugegraph.structure.constant.T;
 import com.baidu.hugegraph.structure.graph.Edge;
 import com.baidu.hugegraph.structure.graph.Vertex;
 
+import eu.socialsensor.graphdatabases.HugeGraphDatabase;
 import eu.socialsensor.main.GraphDatabaseType;
 import eu.socialsensor.utils.HugeGraphUtils;
 
-/**
- * Created by zhangsuochao on 17/6/21.
- */
 public class HugeGraphMassiveInsertion extends InsertionBase<Integer> {
 
     private static final Logger LOG = LogManager.getLogger();
-    private final GraphManager graphManager;
-    private Set<Integer> vertices = new HashSet<>();
-    private static final int VERTEXBATCHNUMBER = 500;
-    private static final int EDGEBATCHNUMBER = 500;
 
-    private List<Vertex> vertexList = new LinkedList<>();
-    private List<Edge> edgeList = new LinkedList<>();
-    private ExecutorService pool;
+    private ExecutorService pool = Executors.newFixedThreadPool(8);
+    private Set<Integer> vertices = new HashSet<>();
+
+    private static final int VERTEX_BATCH_NUMBER = 500;
+    private static final int EDGE_BATCH_NUMBER = 500;
+
+    private List<Vertex> vertexList = new ArrayList<>(VERTEX_BATCH_NUMBER);
+    private List<Edge> edgeList = new ArrayList<>(EDGE_BATCH_NUMBER);
+
+    private final GraphManager graphManager;
+
     public HugeGraphMassiveInsertion(GraphManager graphManager) {
         super(GraphDatabaseType.HUGEGRAPH_CASSANDRA, null);
         this.graphManager = graphManager;
-        pool = Executors.newCachedThreadPool();
     }
 
     @Override
     protected Integer getOrCreate(String value) {
         Vertex vertex;
         Integer v = Integer.valueOf(value);
-        if (!vertices.contains(v)) {
-            vertices.add(v);
+        if (!this.vertices.contains(v)) {
+            this.vertices.add(v);
             vertex = new Vertex(HugeGraphDatabase.NODE)
                     .property(HugeGraphDatabase.NODE_ID, value);
-            vertexList.add(vertex);
+            this.vertexList.add(vertex);
         }
 
-        if (vertexList.size() >= VERTEXBATCHNUMBER) {
+        if (this.vertexList.size() >= VERTEX_BATCH_NUMBER) {
             batchcommitVertex();
         }
         return v;
@@ -75,39 +71,39 @@ public class HugeGraphMassiveInsertion extends InsertionBase<Integer> {
         edge.target(destId);
         edge.targetLabel(HugeGraphDatabase.NODE);
 
-        edgeList.add(edge);
-        if (edgeList.size() >= EDGEBATCHNUMBER) {
+        this.edgeList.add(edge);
+        if (this.edgeList.size() >= EDGE_BATCH_NUMBER) {
             batchcommitEdge();
         }
     }
 
     public void batchcommitVertex() {
-        List<Vertex> list = vertexList;
-        vertexList = new LinkedList<>();
-        pool.submit(() -> {
-            graphManager.addVertices(list);
+        List<Vertex> list = this.vertexList;
+        this.vertexList = new ArrayList<>(VERTEX_BATCH_NUMBER);
+        this.pool.submit(() -> {
+            this.graphManager.addVertices(list);
         });
     }
 
     public void batchcommitEdge() {
-        List<Edge> list = edgeList;
-        edgeList = new LinkedList<>();
-        pool.submit(() -> {
-            graphManager.addEdges(list, false);
+        List<Edge> list = this.edgeList;
+        this.edgeList = new ArrayList<>(EDGE_BATCH_NUMBER);
+        this.pool.submit(() -> {
+            this.graphManager.addEdges(list, false);
         });
     }
 
     @Override
     protected void post() {
-        if (vertexList.size() > 0) {
+        if (this.vertexList.size() > 0) {
             batchcommitVertex();
         }
-        if (edgeList.size() > 0) {
+        if (this.edgeList.size() > 0) {
             batchcommitEdge();
         }
-        pool.shutdown();
+        this.pool.shutdown();
         try {
-            pool.awaitTermination(3, TimeUnit.HOURS);
+            this.pool.awaitTermination(3, TimeUnit.HOURS);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
