@@ -6,10 +6,9 @@ package eu.socialsensor.utils;
 /**
  * Created by zhangsuochao on 17/6/22.
  */
-
 public class HugeGraphUtils {
 
-    public static final String ID_DELEMITER = "\u0002";
+    public static final String ID_DELEMITER = ":";
 
     public static String createId(String vertexLabel, String key) {
         StringBuilder sb = new StringBuilder(vertexLabel);
