@@ -24,7 +24,6 @@ import com.baidu.hugegraph.structure.graph.Path;
 import com.baidu.hugegraph.structure.graph.Vertex;
 import com.baidu.hugegraph.structure.gremlin.Result;
 import com.baidu.hugegraph.structure.gremlin.ResultSet;
-import com.baidu.hugegraph.structure.schema.VertexLabel;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.tinkerpop.blueprints.Direction;
@@ -407,23 +406,20 @@ public class HugeGraphDatabase extends GraphDatabaseBase<
                           this.conf.getHugegraphGraph());
         this.gremlin = this.hugeClient.gremlin();
 
-        SchemaManager schemaManager = this.hugeClient.schema();
-        schemaManager.makePropertyKey(NODE_ID).asText().ifNotExist().create();
-        schemaManager.makePropertyKey(COMMUNITY).asInt().ifNotExist().create();
-        schemaManager.makePropertyKey(NODE_COMMUNITY).asInt()
-                     .ifNotExist().create();
+        SchemaManager schema = this.hugeClient.schema();
+        schema.propertyKey(NODE_ID).asText().ifNotExist().create();
+        schema.propertyKey(COMMUNITY).asInt().ifNotExist().create();
+        schema.propertyKey(NODE_COMMUNITY).asInt().ifNotExist().create();
 
-        @SuppressWarnings("unused")
-        VertexLabel node = schemaManager.makeVertexLabel(NODE)
-                .properties(NODE_ID, COMMUNITY, NODE_COMMUNITY)
-                .primaryKeys(NODE_ID).ifNotExist().create();
-        schemaManager.makeEdgeLabel(SIMILAR).link(NODE, NODE)
-                .ifNotExist().create();
-        /**
-         *schemaManager.makeIndexLabel("nodeByCommunity")
-         *       .on(node).secondary().by(COMMUNITY).create();
-         *schemaManager.makeIndexLabel("nodeByNodeCommunity")
-         *       .on(node).secondary().by(NODE_COMMUNITY).create();
+        schema.vertexLabel(NODE)
+              .properties(NODE_ID, COMMUNITY, NODE_COMMUNITY)
+              .primaryKeys(NODE_ID).ifNotExist().create();
+        schema.edgeLabel(SIMILAR).link(NODE, NODE).ifNotExist().create();
+        /*
+         *schema.makeIndexLabel("nodeByCommunity")
+         *      .onV(NODE).secondary().by(COMMUNITY).create();
+         *schema.makeIndexLabel("nodeByNodeCommunity")
+         *      .onV(NODE).secondary().by(NODE_COMMUNITY).create();
          */
     }
 
