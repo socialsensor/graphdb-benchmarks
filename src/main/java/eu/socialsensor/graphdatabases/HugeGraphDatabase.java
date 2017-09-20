@@ -413,6 +413,7 @@ public class HugeGraphDatabase extends GraphDatabaseBase<
 
         schema.vertexLabel(NODE)
               .properties(NODE_ID, COMMUNITY, NODE_COMMUNITY)
+              .nullableKeys(COMMUNITY, NODE_COMMUNITY)
               .primaryKeys(NODE_ID).ifNotExist().create();
         schema.edgeLabel(SIMILAR).link(NODE, NODE).ifNotExist().create();
         /*
