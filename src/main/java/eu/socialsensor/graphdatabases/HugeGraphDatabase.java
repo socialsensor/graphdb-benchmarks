@@ -43,8 +43,11 @@ public class HugeGraphDatabase extends GraphDatabaseBase<
     protected HugeClient hugeClient = null;
     protected GremlinManager gremlin = null;
     protected final BenchmarkConfiguration conf;
+
     public static final String NODE = "node";
     public static final int NODEID_INDEX = 5;
+
+    private static final int CLIENT_TIMEOUT = 60;
 
     public HugeGraphDatabase(BenchmarkConfiguration config,
                              File dbStorageDirectoryIn) {
@@ -402,8 +405,9 @@ public class HugeGraphDatabase extends GraphDatabaseBase<
     }
 
     private void buildGraphEnv() {
-        this.hugeClient = HugeClient.open(this.conf.getHugegraphUrl(),
-                          this.conf.getHugegraphGraph());
+        this.hugeClient = new HugeClient(this.conf.getHugegraphUrl(),
+                                         this.conf.getHugegraphGraph(),
+                                         CLIENT_TIMEOUT);
         this.gremlin = this.hugeClient.gremlin();
 
         SchemaManager schema = this.hugeClient.schema();
