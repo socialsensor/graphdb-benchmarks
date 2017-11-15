@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.baidu.hugegraph.driver.GraphManager;
 import com.baidu.hugegraph.driver.GremlinManager;
 import com.baidu.hugegraph.driver.HugeClient;
 import com.baidu.hugegraph.driver.SchemaManager;
@@ -25,6 +26,7 @@ import com.baidu.hugegraph.structure.graph.Vertex;
 import com.baidu.hugegraph.structure.gremlin.Result;
 import com.baidu.hugegraph.structure.gremlin.ResultSet;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.tinkerpop.blueprints.Direction;
 
@@ -40,12 +42,12 @@ public class HugeGraphDatabase extends GraphDatabaseBase<
              HugeVertex,
              HugeEdge> {
 
-    protected HugeClient hugeClient = null;
-    protected GremlinManager gremlin = null;
-    protected final BenchmarkConfiguration conf;
+    private HugeClient hugeClient = null;
+    private GremlinManager gremlin = null;
+    private final BenchmarkConfiguration conf;
 
     public static final String NODE = "node";
-    public static final int NODEID_INDEX = 5;
+    private static final int NODEID_INDEX = 5;
 
     private static final int CLIENT_TIMEOUT = 60;
 
@@ -183,7 +185,7 @@ public class HugeGraphDatabase extends GraphDatabaseBase<
             } else if (object instanceof HugeEdge) {
                 System.out.println(((HugeEdge) object).edge().id());
             } else if (object instanceof Path) {
-                List<GraphElement> elements = ((Path) object).objects();
+                List<Object> elements = ((Path) object).objects();
                 elements.stream().forEach(element -> {
                     //System.out.println(element.getClass());
                     System.out.println(element);
@@ -196,7 +198,7 @@ public class HugeGraphDatabase extends GraphDatabaseBase<
 
     @Override
     public int getNodeCount() {
-        String query = String.format("g.V().count()");
+        String query = String.format("g.V().hasLabel('node').count()");
         ResultSet resultSet = this.gremlin.gremlin(query).execute();
         return (int) resultSet.iterator().next().getObject();
     }
@@ -204,14 +206,12 @@ public class HugeGraphDatabase extends GraphDatabaseBase<
     @Override
     public Set<Integer> getNeighborsIds(int nodeId) {
         Set<Integer> neighbors = new HashSet<Integer>();
-        Vertex vertex = getVerticesByProperty(
-                NODE_ID, nodeId).iterator().next();
+        Vertex vertex = getVerticesByProperty(NODE_ID, nodeId)
+                        .iterator().next();
         Iterable<Vertex> vertices = getVertices(vertex, Direction.OUT, SIMILAR);
-        Iterator<Vertex> iter = vertices.iterator();
-        while (iter.hasNext()) {
-            Integer neighborId = Integer.valueOf(
-                                 iter.next().id().substring(NODEID_INDEX));
-            neighbors.add(neighborId);
+        for (Vertex v : vertices) {
+            Integer neighbor = Integer.valueOf(v.id().substring(NODEID_INDEX));
+            neighbors.add(neighbor);
         }
         return neighbors;
     }
@@ -220,34 +220,28 @@ public class HugeGraphDatabase extends GraphDatabaseBase<
     public double getNodeWeight(int nodeId) {
         Vertex vertex = getVerticesByProperty(NODE_ID, nodeId)
                         .iterator().next();
-        double weight = getNodeOutDegree(vertex);
-        return weight;
+        return getNodeOutDegree(vertex);
     }
 
     @Override
     public void initCommunityProperty() {
         int communityCounter = 0;
-        for (Vertex v : this.hugeClient.graph().getVertices()) {
+        for (Vertex v : this.hugeClient.graph().listVertices("node")) {
             v.property(NODE_COMMUNITY, communityCounter);
             v.property(COMMUNITY, communityCounter);
-            Vertex vertex = vertexWithoutId(v);
-            this.hugeClient.graph().addVertices(ImmutableList.of(vertex));
             communityCounter++;
         }
     }
 
     @Override
     public Set<Integer> getCommunitiesConnectedToNodeCommunities(
-            int nodeCommunities) {
+                        int nodeCommunities) {
         Set<Integer> communities = new HashSet<Integer>();
         Iterable<Vertex> vertices = getVerticesByProperty(NODE_COMMUNITY,
                                                           nodeCommunities);
-        for (Vertex vertex : vertices) {
-            Iterable<Vertex> neighVertices = getVertices(vertex, Direction.OUT,
-                                                         SIMILAR);
-            Iterator<Vertex> iter = neighVertices.iterator();
-            while (iter.hasNext()) {
-                int community = (int) iter.next().properties().get(COMMUNITY);
+        for (Vertex v : vertices) {
+            for (Vertex neighbor : getVertices(v, Direction.OUT, SIMILAR)) {
+                int community = (Integer) neighbor.properties().get(COMMUNITY);
                 communities.add(community);
             }
         }
@@ -257,8 +251,7 @@ public class HugeGraphDatabase extends GraphDatabaseBase<
     @Override
     public Set<Integer> getNodesFromCommunity(int community) {
         Set<Integer> nodes = new HashSet<Integer>();
-        Iterable<Vertex> iter = getVerticesByProperty(COMMUNITY, community);
-        for (Vertex v : iter) {
+        for (Vertex v : getVerticesByProperty(COMMUNITY, community)) {
             Integer nodeId = Integer.valueOf(v.id().substring(NODEID_INDEX));
             nodes.add(nodeId);
         }
@@ -268,9 +261,7 @@ public class HugeGraphDatabase extends GraphDatabaseBase<
     @Override
     public Set<Integer> getNodesFromNodeCommunity(int nodeCommunity) {
         Set<Integer> nodes = new HashSet<Integer>();
-        Iterable<Vertex> iter = getVerticesByProperty(NODE_COMMUNITY,
-                                                      nodeCommunity);
-        for (Vertex v : iter) {
+        for (Vertex v : getVerticesByProperty(NODE_COMMUNITY, nodeCommunity)) {
             Integer nodeId = Integer.valueOf(v.id().substring(NODEID_INDEX));
             nodes.add(nodeId);
         }
@@ -308,13 +299,11 @@ public class HugeGraphDatabase extends GraphDatabaseBase<
     }
 
     @Override
-    public double getNodeCommunityWeight(int nodeCommunity) {
+    public double getNodeCommunityWeight(int nodeCom) {
 
         double nodeCommunityWeight = 0;
-        Iterable<Vertex> iter = getVerticesByProperty(NODE_COMMUNITY,
-                                                      nodeCommunity);
-        for (Vertex vertex : iter) {
-            nodeCommunityWeight += getNodeOutDegree(vertex);
+        for (Vertex v : getVerticesByProperty(NODE_COMMUNITY, nodeCom)) {
+            nodeCommunityWeight += getNodeOutDegree(v);
         }
         return nodeCommunityWeight;
     }
@@ -322,10 +311,8 @@ public class HugeGraphDatabase extends GraphDatabaseBase<
     @Override
     public void moveNode(int from, int to) {
         Iterable<Vertex> fromIter = getVerticesByProperty(NODE_COMMUNITY, from);
-        for (Vertex vertex : fromIter) {
-            vertex.property(COMMUNITY, to);
-            Vertex v = vertexWithoutId(vertex);
-            this.hugeClient.graph().addVertices(ImmutableList.of(v));
+        for (Vertex v : fromIter) {
+            v.property(COMMUNITY, to);
         }
     }
 
@@ -340,7 +327,7 @@ public class HugeGraphDatabase extends GraphDatabaseBase<
     public int reInitializeCommunities() {
         Map<Integer, Integer> initCommunities = new HashMap<>();
         int communityCounter = 0;
-        for (Vertex v : this.hugeClient.graph().getVertices()) {
+        for (Vertex v : this.hugeClient.graph().listVertices("node")) {
             int communityId = (int) v.properties().get(COMMUNITY);
             if (!initCommunities.containsKey(communityId)) {
                 initCommunities.put(communityId, communityCounter);
@@ -349,8 +336,6 @@ public class HugeGraphDatabase extends GraphDatabaseBase<
             int newCommunityId = initCommunities.get(communityId);
             v.property(COMMUNITY, newCommunityId);
             v.property(NODE_COMMUNITY, newCommunityId);
-            Vertex vertex = vertexWithoutId(v);
-            this.hugeClient.graph().addVertices(ImmutableList.of(vertex));
         }
         return communityCounter;
     }
@@ -359,22 +344,21 @@ public class HugeGraphDatabase extends GraphDatabaseBase<
     public int getCommunityFromNode(int nodeId) {
         Vertex vertex = getVerticesByProperty(NODE_ID, nodeId)
                         .iterator().next();
-        return (int) vertex.properties().get(COMMUNITY);
+        return (Integer) vertex.properties().get(COMMUNITY);
     }
 
     @Override
     public int getCommunity(int nodeCommunity) {
         Vertex vertex = getVerticesByProperty(NODE_COMMUNITY, nodeCommunity)
                         .iterator().next();
-        return (int) vertex.properties().get(COMMUNITY);
+        return (Integer) vertex.properties().get(COMMUNITY);
     }
 
     @Override
     public int getCommunitySize(int community) {
-        Iterable<Vertex> vertices = getVerticesByProperty(COMMUNITY, community);
         Set<Integer> nodeCommunities = new HashSet<Integer>();
-        for (Vertex v : vertices) {
-            int nodeCommunity = (int) v.properties().get(NODE_COMMUNITY);
+        for (Vertex v : getVerticesByProperty(COMMUNITY, community)) {
+            int nodeCommunity = (Integer) v.properties().get(NODE_COMMUNITY);
             if (!nodeCommunities.contains(nodeCommunity)) {
                 nodeCommunities.add(nodeCommunity);
             }
@@ -386,11 +370,9 @@ public class HugeGraphDatabase extends GraphDatabaseBase<
     public Map<Integer, List<Integer>> mapCommunities(int numberOfCommunities) {
         Map<Integer, List<Integer>> communities = new HashMap<>();
         for (int i = 0; i < numberOfCommunities; i++) {
-            Iterable<Vertex> vertexlist = getVerticesByProperty(COMMUNITY, i);
-            Iterator<Vertex> verticesIter = vertexlist.iterator();
             List<Integer> vertices = new ArrayList<Integer>();
-            while (verticesIter.hasNext()) {
-                String id = verticesIter.next().id().substring(NODEID_INDEX);
+            for (Vertex v : getVerticesByProperty(COMMUNITY, i)) {
+                String id = v.id().substring(NODEID_INDEX);
                 Integer nodeId = Integer.valueOf(id);
                 vertices.add(nodeId);
             }
@@ -411,7 +393,7 @@ public class HugeGraphDatabase extends GraphDatabaseBase<
         this.gremlin = this.hugeClient.gremlin();
 
         SchemaManager schema = this.hugeClient.schema();
-        schema.propertyKey(NODE_ID).asText().ifNotExist().create();
+        schema.propertyKey(NODE_ID).asInt().ifNotExist().create();
         schema.propertyKey(COMMUNITY).asInt().ifNotExist().create();
         schema.propertyKey(NODE_COMMUNITY).asInt().ifNotExist().create();
 
@@ -420,24 +402,15 @@ public class HugeGraphDatabase extends GraphDatabaseBase<
               .nullableKeys(COMMUNITY, NODE_COMMUNITY)
               .primaryKeys(NODE_ID).ifNotExist().create();
         schema.edgeLabel(SIMILAR).link(NODE, NODE).ifNotExist().create();
-        /*
-         *schema.makeIndexLabel("nodeByCommunity")
-         *      .onV(NODE).secondary().by(COMMUNITY).create();
-         *schema.makeIndexLabel("nodeByNodeCommunity")
-         *      .onV(NODE).secondary().by(NODE_COMMUNITY).create();
-         */
+        schema.indexLabel("nodeByCommunity")
+              .onV(NODE).by(COMMUNITY).ifNotExist().create();
+        schema.indexLabel("nodeByNodeCommunity")
+              .onV(NODE).by(NODE_COMMUNITY).ifNotExist().create();
     }
 
     private Iterable<Vertex> getVerticesByProperty(String pKey, int pValue) {
-        String query = String.format("g.V().hasLabel('node')has('%s', %s)",
-                                     pKey, pValue);
-        ResultSet resultSet = this.gremlin.gremlin(query).execute();
-        Iterator<Result> it = resultSet.iterator();
-        List<Vertex> vertices = new LinkedList<>();
-        while (it.hasNext()) {
-            vertices.add(it.next().getVertex());
-        }
-        return vertices;
+        return this.hugeClient.graph()
+                   .listVertices("node", ImmutableMap.of(pKey, pValue));
     }
 
     public double getNodeOutDegree(Vertex vertex) {
@@ -450,18 +423,18 @@ public class HugeGraphDatabase extends GraphDatabaseBase<
 
     public double getNodeDegree(Vertex vertex, Direction direction) {
         String direct = direction.equals(Direction.OUT) ? "out" : "in";
-        String query = String.format("g.V('%s').%s(%s).count()",
+        String query = String.format("g.V('%s').%s('%s').count()",
                                      vertex.id(), direct, SIMILAR);
         ResultSet resultSet = this.gremlin.gremlin(query).execute();
         Iterator<Result> it = resultSet.iterator();
-        return (double) it.next().getObject();
+        return Double.parseDouble(it.next().getObject().toString());
     }
 
     private Iterable<Vertex> getVertices(Vertex vertex, Direction direct,
                                          String edgetype) {
         String vertexId = vertex == null ? "" : vertex.id();
         String direction = direct.equals(Direction.OUT) ? "out" : "in";
-        String query = String.format("g.V('%s').%s(%s)%s",
+        String query = String.format("g.V('%s').%s('%s')",
                                      vertexId, direction, SIMILAR);
         ResultSet resultSet = this.gremlin.gremlin(query).execute();
         Iterator<Result> it = resultSet.iterator();
@@ -470,19 +443,5 @@ public class HugeGraphDatabase extends GraphDatabaseBase<
             vertices.add(it.next().getVertex());
         }
         return vertices;
-    }
-
-    private Vertex vertexWithoutId(Vertex v) {
-        Vertex vertex = new Vertex(NODE).property(NODE_ID, v.id());
-        Map<String, Object> props = v.properties();
-        Iterator<String> it = props.keySet().iterator();
-        String key;
-        while (it.hasNext()) {
-            key = it.next();
-            if (!key.equals(NODE_ID)) {
-                vertex.property(key, props.get(key));
-            }
-        }
-        return vertex;
     }
 }

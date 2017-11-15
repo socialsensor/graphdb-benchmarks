@@ -24,8 +24,6 @@ import eu.socialsensor.utils.HugeGraphUtils;
 
 public class HugeGraphMassiveInsertion extends InsertionBase<Integer> {
 
-    private static final Logger LOG = LogManager.getLogger();
-
     private ExecutorService pool = Executors.newFixedThreadPool(8);
     private Set<Integer> vertices = new HashSet<>();
 
@@ -49,7 +47,7 @@ public class HugeGraphMassiveInsertion extends InsertionBase<Integer> {
         if (!this.vertices.contains(v)) {
             this.vertices.add(v);
             vertex = new Vertex(HugeGraphDatabase.NODE)
-                    .property(HugeGraphDatabase.NODE_ID, value);
+                     .property(HugeGraphDatabase.NODE_ID, v);
             this.vertexList.add(vertex);
         }
 
@@ -63,11 +61,11 @@ public class HugeGraphMassiveInsertion extends InsertionBase<Integer> {
     protected void relateNodes(Integer src, Integer dest) {
         Edge edge = new Edge(HugeGraphDatabase.SIMILAR);
         String srcId = HugeGraphUtils.createId(HugeGraphDatabase.NODE,
-                src.toString());
+                                               src.toString());
         edge.source(srcId);
         edge.sourceLabel(HugeGraphDatabase.NODE);
         String destId = HugeGraphUtils.createId(HugeGraphDatabase.NODE,
-                dest.toString());
+                                                dest.toString());
         edge.target(destId);
         edge.targetLabel(HugeGraphDatabase.NODE);
 
