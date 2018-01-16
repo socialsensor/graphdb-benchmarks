@@ -42,12 +42,11 @@ public class HugeGraphMassiveInsertion extends InsertionBase<Integer> {
 
     @Override
     protected Integer getOrCreate(String value) {
-        Vertex vertex;
         Integer v = Integer.valueOf(value);
         if (!this.vertices.contains(v)) {
             this.vertices.add(v);
-            vertex = new Vertex(HugeGraphDatabase.NODE)
-                     .property(HugeGraphDatabase.NODE_ID, v);
+            Vertex vertex = new Vertex(HugeGraphDatabase.NODE);
+            vertex.id(v);
             this.vertexList.add(vertex);
         }
 
@@ -60,13 +59,9 @@ public class HugeGraphMassiveInsertion extends InsertionBase<Integer> {
     @Override
     protected void relateNodes(Integer src, Integer dest) {
         Edge edge = new Edge(HugeGraphDatabase.SIMILAR);
-        String srcId = HugeGraphUtils.createId(HugeGraphDatabase.NODE,
-                                               src.toString());
-        edge.source(srcId);
+        edge.source(src);
         edge.sourceLabel(HugeGraphDatabase.NODE);
-        String destId = HugeGraphUtils.createId(HugeGraphDatabase.NODE,
-                                                dest.toString());
-        edge.target(destId);
+        edge.target(dest);
         edge.targetLabel(HugeGraphDatabase.NODE);
 
         this.edgeList.add(edge);

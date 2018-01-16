@@ -75,8 +75,7 @@ public class HugeGraphDatabase extends GraphDatabaseBase<
 
     @Override
     public HugeVertex getVertex(Integer i) {
-        String id = HugeGraphUtils.createId(NODE, i.toString());
-        return new HugeVertex(this.hugeClient.graph().getVertex(id));
+        return new HugeVertex(this.hugeClient.graph().getVertex(i));
     }
 
     @Override
@@ -198,19 +197,20 @@ public class HugeGraphDatabase extends GraphDatabaseBase<
 
     @Override
     public int getNodeCount() {
-        String query = String.format("g.V().hasLabel('node').count()");
+        String query = "g.V().hasLabel('node').count()";
         ResultSet resultSet = this.gremlin.gremlin(query).execute();
         return (int) resultSet.iterator().next().getObject();
     }
 
     @Override
     public Set<Integer> getNeighborsIds(int nodeId) {
-        Set<Integer> neighbors = new HashSet<Integer>();
+        Set<Integer> neighbors = new HashSet<>();
         Vertex vertex = getVerticesByProperty(NODE_ID, nodeId)
                         .iterator().next();
         Iterable<Vertex> vertices = getVertices(vertex, Direction.OUT, SIMILAR);
         for (Vertex v : vertices) {
-            Integer neighbor = Integer.valueOf(v.id().substring(NODEID_INDEX));
+            String numStr = v.id().toString().substring(NODEID_INDEX);
+            Integer neighbor = Integer.valueOf(numStr);
             neighbors.add(neighbor);
         }
         return neighbors;
@@ -252,7 +252,8 @@ public class HugeGraphDatabase extends GraphDatabaseBase<
     public Set<Integer> getNodesFromCommunity(int community) {
         Set<Integer> nodes = new HashSet<Integer>();
         for (Vertex v : getVerticesByProperty(COMMUNITY, community)) {
-            Integer nodeId = Integer.valueOf(v.id().substring(NODEID_INDEX));
+            String numStr = v.id().toString().substring(NODEID_INDEX);
+            Integer nodeId = Integer.valueOf(numStr);
             nodes.add(nodeId);
         }
         return nodes;
@@ -262,7 +263,8 @@ public class HugeGraphDatabase extends GraphDatabaseBase<
     public Set<Integer> getNodesFromNodeCommunity(int nodeCommunity) {
         Set<Integer> nodes = new HashSet<Integer>();
         for (Vertex v : getVerticesByProperty(NODE_COMMUNITY, nodeCommunity)) {
-            Integer nodeId = Integer.valueOf(v.id().substring(NODEID_INDEX));
+            String numStr = v.id().toString().substring(NODEID_INDEX);
+            Integer nodeId = Integer.valueOf(numStr);
             nodes.add(nodeId);
         }
         return nodes;
@@ -372,7 +374,7 @@ public class HugeGraphDatabase extends GraphDatabaseBase<
         for (int i = 0; i < numberOfCommunities; i++) {
             List<Integer> vertices = new ArrayList<Integer>();
             for (Vertex v : getVerticesByProperty(COMMUNITY, i)) {
-                String id = v.id().substring(NODEID_INDEX);
+                String id = v.id().toString().substring(NODEID_INDEX);
                 Integer nodeId = Integer.valueOf(id);
                 vertices.add(nodeId);
             }
@@ -393,19 +395,25 @@ public class HugeGraphDatabase extends GraphDatabaseBase<
         this.gremlin = this.hugeClient.gremlin();
 
         SchemaManager schema = this.hugeClient.schema();
-        schema.propertyKey(NODE_ID).asInt().ifNotExist().create();
-        schema.propertyKey(COMMUNITY).asInt().ifNotExist().create();
-        schema.propertyKey(NODE_COMMUNITY).asInt().ifNotExist().create();
 
-        schema.vertexLabel(NODE)
-              .properties(NODE_ID, COMMUNITY, NODE_COMMUNITY)
-              .nullableKeys(COMMUNITY, NODE_COMMUNITY)
-              .primaryKeys(NODE_ID).ifNotExist().create();
+        /**
+         * schema.propertyKey(NODE_ID).asInt().ifNotExist().create();
+         * schema.propertyKey(COMMUNITY).asInt().ifNotExist().create();
+         * schema.propertyKey(NODE_COMMUNITY).asInt().ifNotExist().create();
+         *
+         * schema.vertexLabel(NODE)
+         *       .properties(NODE_ID, COMMUNITY, NODE_COMMUNITY)
+         *       .nullableKeys(COMMUNITY, NODE_COMMUNITY)
+         *       .primaryKeys(NODE_ID).ifNotExist().create();
+         * schema.edgeLabel(SIMILAR).link(NODE, NODE).ifNotExist().create();
+         * schema.indexLabel("nodeByCommunity")
+         *       .onV(NODE).by(COMMUNITY).ifNotExist().create();
+         * schema.indexLabel("nodeByNodeCommunity")
+         *       .onV(NODE).by(NODE_COMMUNITY).ifNotExist().create();
+         */
+
+        schema.vertexLabel(NODE).useCustomizeNumberId().ifNotExist().create();
         schema.edgeLabel(SIMILAR).link(NODE, NODE).ifNotExist().create();
-        schema.indexLabel("nodeByCommunity")
-              .onV(NODE).by(COMMUNITY).ifNotExist().create();
-        schema.indexLabel("nodeByNodeCommunity")
-              .onV(NODE).by(NODE_COMMUNITY).ifNotExist().create();
     }
 
     private Iterable<Vertex> getVerticesByProperty(String pKey, int pValue) {
@@ -432,7 +440,7 @@ public class HugeGraphDatabase extends GraphDatabaseBase<
 
     private Iterable<Vertex> getVertices(Vertex vertex, Direction direct,
                                          String edgetype) {
-        String vertexId = vertex == null ? "" : vertex.id();
+        String vertexId = vertex == null ? "" : vertex.id().toString();
         String direction = direct.equals(Direction.OUT) ? "out" : "in";
         String query = String.format("g.V('%s').%s('%s')",
                                      vertexId, direction, SIMILAR);

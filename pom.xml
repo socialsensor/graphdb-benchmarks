@@ -61,7 +61,7 @@
         <maven.surefire.version>2.18.1</maven.surefire.version>
         <jdk.version>1.8</jdk.version>
         <metrics.version>3.0.0-BETA3</metrics.version>
-        <hugegraph.client.version>1.4.4-SNAPSHOT</hugegraph.client.version>
+        <hugegraph.client.version>1.4.7-SNAPSHOT</hugegraph.client.version>
     </properties>
 
     <dependencies>
@@ -386,7 +386,7 @@
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>${maven.surefire.version}</version>
                     <configuration>
-                        <skip>true</skip>
+                        <skip>false</skip>
                     </configuration>
                 </plugin>
                 <plugin>
