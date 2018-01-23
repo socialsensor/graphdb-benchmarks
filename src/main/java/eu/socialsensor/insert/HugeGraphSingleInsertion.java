@@ -12,9 +12,6 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 
-/**
- * Created by zhangyi51 on 17/6/28.
- */
 public class HugeGraphSingleInsertion extends InsertionBase<Vertex> {
 
     private static final Logger LOG = LogManager.getLogger();
@@ -22,7 +19,7 @@ public class HugeGraphSingleInsertion extends InsertionBase<Vertex> {
 
     public HugeGraphSingleInsertion(GraphManager graphManager,
                                     File resultPath) {
-        super(GraphDatabaseType.HUGEGRAPH_CASSANDRA, resultPath);
+        super(GraphDatabaseType.HUGEGRAPH, resultPath);
         this.graphManager = graphManager;
     }
 

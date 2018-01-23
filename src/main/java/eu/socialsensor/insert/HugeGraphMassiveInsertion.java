@@ -11,16 +11,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import com.baidu.hugegraph.driver.GraphManager;
 import com.baidu.hugegraph.structure.graph.Edge;
 import com.baidu.hugegraph.structure.graph.Vertex;
 
 import eu.socialsensor.graphdatabases.HugeGraphDatabase;
 import eu.socialsensor.main.GraphDatabaseType;
-import eu.socialsensor.utils.HugeGraphUtils;
 
 public class HugeGraphMassiveInsertion extends InsertionBase<Integer> {
 
@@ -36,7 +32,7 @@ public class HugeGraphMassiveInsertion extends InsertionBase<Integer> {
     private final GraphManager graphManager;
 
     public HugeGraphMassiveInsertion(GraphManager graphManager) {
-        super(GraphDatabaseType.HUGEGRAPH_CASSANDRA, null);
+        super(GraphDatabaseType.HUGEGRAPH, null);
         this.graphManager = graphManager;
     }
 

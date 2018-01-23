@@ -21,6 +21,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import eu.socialsensor.graphdatabases.GraphDatabase;
+import eu.socialsensor.graphdatabases.HugeGraphCoreDatabase;
 import eu.socialsensor.graphdatabases.HugeGraphDatabase;
 import eu.socialsensor.graphdatabases.Neo4jGraphDatabase;
 import eu.socialsensor.graphdatabases.OrientGraphDatabase;
@@ -200,9 +201,13 @@ public class Utils
         {
             graphDatabase = new SparkseeGraphDatabase(config, dbStorageDirectory);
         }
-        else if (GraphDatabaseType.HUGEGRAPH_CASSANDRA == type)
+        else if (GraphDatabaseType.HUGEGRAPH == type)
         {
             graphDatabase = new HugeGraphDatabase(config, dbStorageDirectory);
+        }
+        else if (GraphDatabaseType.HUGEGRAPH_CORE == type)
+        {
+            graphDatabase = new HugeGraphCoreDatabase(config, dbStorageDirectory);
         }
         else
         {

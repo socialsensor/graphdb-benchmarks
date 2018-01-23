@@ -62,6 +62,8 @@
         <jdk.version>1.8</jdk.version>
         <metrics.version>3.0.0-BETA3</metrics.version>
         <hugegraph.client.version>1.4.7-SNAPSHOT</hugegraph.client.version>
+        <hugegraph.core.version>0.4.4-SNAPSHOT</hugegraph.core.version>
+        <hugegraph.example.version>0.4.4-SNAPSHOT</hugegraph.example.version>
     </properties>
 
     <dependencies>
@@ -71,6 +73,16 @@
             <version>${hugegraph.client.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.baidu.hugegraph</groupId>
+            <artifactId>hugegraph-core</artifactId>
+            <version>${hugegraph.core.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.baidu.hugegraph</groupId>
+            <artifactId>hugegraph-example</artifactId>
+            <version>${hugegraph.example.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.antlr</groupId>
             <artifactId>antlr-runtime</artifactId>
             <version>3.2</version>
@@ -78,7 +90,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>14.0.1</version>
+            <version>16.0.1</version>
         </dependency>
         <dependency>
             <groupId>colt</groupId>
