@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2017 Baidu, Inc. All Rights Reserved.
  */
+
 package eu.socialsensor.graphdatabases;
 
 import java.io.File;
@@ -14,16 +15,18 @@ import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.tinkerpop.gremlin.process.traversal.P;
-import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 
 import com.baidu.hugegraph.HugeGraph;
+import com.baidu.hugegraph.backend.id.Id;
+import com.baidu.hugegraph.backend.id.IdGenerator;
 import com.baidu.hugegraph.example.ExampleUtil;
 import com.baidu.hugegraph.schema.SchemaManager;
 import com.baidu.hugegraph.structure.HugeEdge;
 import com.baidu.hugegraph.structure.HugeVertex;
+import com.baidu.hugegraph.traversal.optimize.HugeTraverser;
+import com.baidu.hugegraph.type.define.Directions;
 import com.tinkerpop.blueprints.Direction;
 
 import eu.socialsensor.insert.HugeGraphCoreMassiveInsertion;
@@ -182,11 +185,12 @@ public class HugeGraphCoreDatabase extends GraphDatabaseBase<
     public void shortestPath(HugeVertex fromNode, Integer node) {
         LOG.debug(">>>>>" + counter++ + " round,(from node: "
                   + fromNode.id() + ", to node: " + node + ")");
-        Object result = this.graph.traversal().V(fromNode.id())
-                            .repeat(__.out().simplePath())
-                            .until(__.hasId(node).or().loops().is(P.gte(3)))
-                            .hasId(node).path().limit(1).toList();
-        LOG.debug(result);
+        HugeTraverser traverser = new HugeTraverser(this.graph);
+        List<Id> path = traverser.shortestPath(fromNode.id(),
+                                               IdGenerator.of(node.longValue()),
+                                               Directions.OUT, SIMILAR, 5);
+        System.out.println(counter++ + ": " + path);
+        LOG.debug(path);
     }
 
     @Override

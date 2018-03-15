@@ -62,16 +62,11 @@
         <jdk.version>1.8</jdk.version>
         <metrics.version>3.0.0-BETA3</metrics.version>
         <hugegraph.client.version>1.4.7-SNAPSHOT</hugegraph.client.version>
-        <hugegraph.core.version>0.4.4-SNAPSHOT</hugegraph.core.version>
-        <hugegraph.example.version>0.4.4-SNAPSHOT</hugegraph.example.version>
+        <hugegraph.core.version>0.4.5-SNAPSHOT</hugegraph.core.version>
+        <hugegraph.example.version>0.4.5-SNAPSHOT</hugegraph.example.version>
     </properties>
 
     <dependencies>
-        <dependency>
-            <groupId>com.baidu.hugegraph</groupId>
-            <artifactId>hugegraph-client</artifactId>
-            <version>${hugegraph.client.version}</version>
-        </dependency>
         <dependency>
             <groupId>com.baidu.hugegraph</groupId>
             <artifactId>hugegraph-core</artifactId>
@@ -81,6 +76,11 @@
             <groupId>com.baidu.hugegraph</groupId>
             <artifactId>hugegraph-example</artifactId>
             <version>${hugegraph.example.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.baidu.hugegraph</groupId>
+            <artifactId>hugegraph-client</artifactId>
+            <version>${hugegraph.client.version}</version>
         </dependency>
         <dependency>
             <groupId>org.antlr</groupId>

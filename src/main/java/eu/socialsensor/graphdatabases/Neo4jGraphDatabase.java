@@ -53,6 +53,7 @@ public class Neo4jGraphDatabase extends GraphDatabaseBase<Iterator<Node>, Iterat
     private Schema schema = null;
 
     private BatchInserter inserter = null;
+    private static int counter = 1;
 
     public static enum RelTypes implements RelationshipType
     {
@@ -188,11 +189,18 @@ public class Neo4jGraphDatabase extends GraphDatabaseBase<Iterator<Node>, Iterat
     @Override
     public void shortestPath(Node n1, Integer i)
     {
-        PathFinder<Path> finder
-            = GraphAlgoFactory.shortestPath(Traversal.expanderForTypes(Neo4jGraphDatabase.RelTypes.SIMILAR), 5);
+        PathFinder<Path> finder = GraphAlgoFactory.shortestPath(
+                Traversal.expanderForTypes(Neo4jGraphDatabase.RelTypes.SIMILAR,
+                                           Direction.OUTGOING),
+                5);
         Node n2 = getVertex(i);
         Path path = finder.findSinglePath(n1, n2);
-
+        System.out.println(i + ">>>>>>>>>>>>>>>>>>>>>>" + counter++);
+        if (path != null) {
+            for (Node node : path.nodes()) {
+                System.out.println(node.getProperty("nodeId"));
+            }
+        }
     }
 
     //TODO can unforced option be pulled into configuration?
