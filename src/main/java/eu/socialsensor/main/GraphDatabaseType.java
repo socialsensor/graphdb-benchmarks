@@ -21,8 +21,8 @@ public enum GraphDatabaseType
     ORIENT_DB("OrientDB", null, "orient"),
     NEO4J("Neo4j", null, "neo4j"),
     SPARKSEE("Sparksee", null, "sparksee"),
-    HUGEGRAPH("HugeGraph", null, "hgc"),
-    HUGEGRAPH_CORE("HugeGraphCore", null, "hgcc");
+    HUGEGRAPH("HugeGraph", null, "hugegraphclient"),
+    HUGEGRAPH_CORE("HugeGraphCore", null, "hugegraphcore");
 
     private final String backend;
     private final String api;

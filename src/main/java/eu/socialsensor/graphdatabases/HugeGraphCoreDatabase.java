@@ -21,11 +21,13 @@ import org.apache.tinkerpop.gremlin.structure.Vertex;
 import com.baidu.hugegraph.HugeGraph;
 import com.baidu.hugegraph.backend.id.Id;
 import com.baidu.hugegraph.backend.id.IdGenerator;
+import com.baidu.hugegraph.backend.query.Query;
 import com.baidu.hugegraph.example.ExampleUtil;
 import com.baidu.hugegraph.schema.SchemaManager;
 import com.baidu.hugegraph.structure.HugeEdge;
 import com.baidu.hugegraph.structure.HugeVertex;
 import com.baidu.hugegraph.traversal.optimize.HugeTraverser;
+import com.baidu.hugegraph.type.HugeType;
 import com.baidu.hugegraph.type.define.Directions;
 import com.tinkerpop.blueprints.Direction;
 
@@ -75,7 +77,9 @@ public class HugeGraphCoreDatabase extends GraphDatabaseBase<
 
     @Override
     public Iterator<Edge> getAllEdges() {
-        return this.graph.edges();
+        Query query = new Query(HugeType.EDGE);
+        query.capacity(Query.NO_CAPACITY);
+        return this.graph.edges(query);
     }
 
     @Override
@@ -100,7 +104,9 @@ public class HugeGraphCoreDatabase extends GraphDatabaseBase<
 
     @Override
     public Iterator<Vertex> getVertexIterator() {
-        return this.graph.vertices();
+        Query query = new Query(HugeType.VERTEX);
+        query.capacity(Query.NO_CAPACITY);
+        return this.graph.vertices(query);
     }
 
     @Override
