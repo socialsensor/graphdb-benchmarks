@@ -18,11 +18,12 @@ import org.apache.logging.log4j.Logger;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 
+import com.baidu.hugegraph.HugeFactory;
 import com.baidu.hugegraph.HugeGraph;
 import com.baidu.hugegraph.backend.id.Id;
 import com.baidu.hugegraph.backend.id.IdGenerator;
 import com.baidu.hugegraph.backend.query.Query;
-import com.baidu.hugegraph.example.ExampleUtil;
+import com.baidu.hugegraph.dist.RegisterUtil;
 import com.baidu.hugegraph.schema.SchemaManager;
 import com.baidu.hugegraph.structure.HugeEdge;
 import com.baidu.hugegraph.structure.HugeVertex;
@@ -45,6 +46,8 @@ public class HugeGraphCoreDatabase extends GraphDatabaseBase<
     private static final Logger LOG = LogManager.getLogger();
 
     private HugeGraph graph = null;
+    private static final String CONF = "hugegraph.properties";
+    private static boolean registered = false;
 
     private static final String NODE = "node";
     private static int counter = 0;
@@ -171,7 +174,7 @@ public class HugeGraphCoreDatabase extends GraphDatabaseBase<
     }
 
     private void buildGraphEnv(boolean clear) {
-        this.graph = ExampleUtil.loadGraph(clear, false);
+        this.graph = loadGraph(clear);
         SchemaManager schema = this.graph.schema();
 
         schema.propertyKey(COMMUNITY).asInt().ifNotExist().create();
@@ -434,5 +437,35 @@ public class HugeGraphCoreDatabase extends GraphDatabaseBase<
                 throw new AssertionError(String.format(
                           "Only support IN or OUT, but got: '%s'", direction));
         }
+    }
+
+    private static HugeGraph loadGraph(boolean needClear) {
+        // Register backends if needed
+        if (!registered) {
+            RegisterUtil.registerBackends();
+            registered = true;
+        }
+
+        String conf = CONF;
+        try {
+            String path = HugeGraphCoreDatabase.class.getClassLoader()
+                                               .getResource(CONF).getPath();
+            File file = new File(path);
+            if (file.exists() && file.isFile()) {
+                conf = path;
+            }
+        } catch (Exception ignored) {
+        }
+        // Open graph using configuration file
+        HugeGraph graph = HugeFactory.open(conf);
+
+        // Clear graph if needed
+        if (needClear) {
+            graph.clearBackend();
+        }
+        // Init backend
+        graph.initBackend();
+
+        return graph;
     }
 }

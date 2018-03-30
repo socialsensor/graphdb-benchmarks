@@ -61,21 +61,15 @@
         <maven.surefire.version>2.18.1</maven.surefire.version>
         <jdk.version>1.8</jdk.version>
         <metrics.version>3.0.0-BETA3</metrics.version>
-        <hugegraph.client.version>1.4.7-SNAPSHOT</hugegraph.client.version>
-        <hugegraph.core.version>0.4.5-SNAPSHOT</hugegraph.core.version>
-        <hugegraph.example.version>0.4.5-SNAPSHOT</hugegraph.example.version>
+        <hugegraph.dist.version>0.5.6-SNAPSHOT</hugegraph.dist.version>
+        <hugegraph.client.version>1.5.0-SNAPSHOT</hugegraph.client.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>com.baidu.hugegraph</groupId>
-            <artifactId>hugegraph-core</artifactId>
-            <version>${hugegraph.core.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.baidu.hugegraph</groupId>
-            <artifactId>hugegraph-example</artifactId>
-            <version>${hugegraph.example.version}</version>
+            <artifactId>hugegraph-dist</artifactId>
+            <version>${hugegraph.dist.version}</version>
         </dependency>
         <dependency>
             <groupId>com.baidu.hugegraph</groupId>
@@ -115,7 +109,7 @@
         <dependency>
             <groupId>commons-configuration</groupId>
             <artifactId>commons-configuration</artifactId>
-            <version>1.6</version>
+            <version>1.10</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
