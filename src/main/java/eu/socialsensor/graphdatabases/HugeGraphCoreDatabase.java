@@ -15,8 +15,11 @@ import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.apache.tinkerpop.gremlin.structure.util.CloseableIterator;
+import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 
 import com.baidu.hugegraph.HugeFactory;
 import com.baidu.hugegraph.HugeGraph;
@@ -30,7 +33,6 @@ import com.baidu.hugegraph.structure.HugeVertex;
 import com.baidu.hugegraph.traversal.optimize.HugeTraverser;
 import com.baidu.hugegraph.type.HugeType;
 import com.baidu.hugegraph.type.define.Directions;
-import com.tinkerpop.blueprints.Direction;
 
 import eu.socialsensor.insert.HugeGraphCoreMassiveInsertion;
 import eu.socialsensor.insert.HugeGraphCoreSingleInsertion;
@@ -50,6 +52,7 @@ public class HugeGraphCoreDatabase extends GraphDatabaseBase<
     private static boolean registered = false;
 
     private static final String NODE = "node";
+    private static final int BATCH_SIZE = 500;
     private static int counter = 0;
 
     public HugeGraphCoreDatabase(BenchmarkConfiguration config,
@@ -87,8 +90,7 @@ public class HugeGraphCoreDatabase extends GraphDatabaseBase<
 
     @Override
     public Iterator<Edge> getNeighborsOfVertex(HugeVertex v) {
-        return v.edges(org.apache.tinkerpop.gremlin.structure.Direction.BOTH,
-                       SIMILAR);
+        return v.edges(Direction.BOTH, SIMILAR);
     }
 
     @Override
@@ -103,6 +105,7 @@ public class HugeGraphCoreDatabase extends GraphDatabaseBase<
 
     @Override
     public void cleanupEdgeIterator(Iterator<Edge> it) {
+        CloseableIterator.closeIterator(it);
     }
 
     @Override
@@ -124,6 +127,7 @@ public class HugeGraphCoreDatabase extends GraphDatabaseBase<
 
     @Override
     public void cleanupVertexIterator(Iterator<Vertex> it) {
+        CloseableIterator.closeIterator(it);
     }
 
     /* Massive insertion */
@@ -198,43 +202,41 @@ public class HugeGraphCoreDatabase extends GraphDatabaseBase<
         List<Id> path = traverser.shortestPath(fromNode.id(),
                                                IdGenerator.of(node.longValue()),
                                                Directions.OUT, SIMILAR, 5);
-        System.out.println(counter++ + ": " + path);
         LOG.debug(path);
     }
 
     @Override
     public int getNodeCount() {
-        return this.graph.traversal().V().hasLabel(NODE).count()
-                   .next().intValue();
+        return this.graph.traversal().V().count().next().intValue();
     }
 
     @Override
     public Set<Integer> getNeighborsIds(int nodeId) {
         Set<Integer> neighbors = new HashSet<>();
-        List<Vertex> vertices = this.graph.traversal().V(nodeId).out(SIMILAR)
-                                    .toList();
-        for (Vertex v : vertices) {
-            neighbors.add(((Number) v.id()).intValue());
+        Iterator<Vertex> vertices = this.graph.traversal().V(nodeId)
+                                              .outE(SIMILAR).otherV();
+        while (vertices.hasNext()) {
+            neighbors.add(((Number) vertices.next().id()).intValue());
         }
         return neighbors;
     }
 
     @Override
     public double getNodeWeight(int nodeId) {
-        return this.graph.traversal().V(nodeId).out().count().next();
+        return this.getNodeDegree(nodeId, Direction.OUT);
     }
 
     @Override
     public void initCommunityProperty() {
         LOG.debug("Init community property");
         int communityCounter = 0;
-        List<Vertex> vertices = this.graph.traversal().V().hasLabel(NODE)
-                                    .toList();
-        for (Vertex v : vertices) {
+        Iterator<Vertex> vertices = this.graph.traversal().V();
+        while (vertices.hasNext()) {
+            Vertex v = vertices.next();
             v.property(NODE_COMMUNITY, communityCounter);
             v.property(COMMUNITY, communityCounter);
             communityCounter++;
-            if (communityCounter % 500 == 0) {
+            if (communityCounter % BATCH_SIZE == 0) {
                 this.graph.tx().commit();
             }
         }
@@ -246,13 +248,14 @@ public class HugeGraphCoreDatabase extends GraphDatabaseBase<
     public Set<Integer> getCommunitiesConnectedToNodeCommunities(
                         int nodeCommunities) {
         Set<Integer> communities = new HashSet<>();
-        List<Vertex> vertices = this.graph.traversal().V()
-                                    .has(NODE_COMMUNITY, nodeCommunities)
-                                    .toList();
-        for (Vertex v : vertices) {
-            List<Vertex> neighbors = this.graph.traversal().V(v.id())
-                                         .out(SIMILAR).toList();
-            for (Vertex neighbor : neighbors) {
+        Iterator<Vertex> vertices = this.vertices(NODE_COMMUNITY,
+                                                  nodeCommunities);
+        while (vertices.hasNext()) {
+            Vertex v = vertices.next();
+            Iterator<Vertex> neighbors = this.graph.traversal().V(v.id())
+                                             .out(SIMILAR);
+            while (neighbors.hasNext()) {
+                Vertex neighbor = neighbors.next();
                 int community = (Integer) neighbor.property(COMMUNITY).value();
                 communities.add(community);
             }
@@ -263,9 +266,9 @@ public class HugeGraphCoreDatabase extends GraphDatabaseBase<
     @Override
     public Set<Integer> getNodesFromCommunity(int community) {
         Set<Integer> nodes = new HashSet<>();
-        List<Vertex> vertices = this.graph.traversal().V()
-                                    .has(COMMUNITY, community).toList();
-        for (Vertex v : vertices) {
+        Iterator<Vertex> vertices = this.vertices(COMMUNITY, community);
+        while (vertices.hasNext()) {
+            Vertex v = vertices.next();
             nodes.add(((Number) v.id()).intValue());
         }
         return nodes;
@@ -274,10 +277,10 @@ public class HugeGraphCoreDatabase extends GraphDatabaseBase<
     @Override
     public Set<Integer> getNodesFromNodeCommunity(int nodeCommunity) {
         Set<Integer> nodes = new HashSet<>();
-        List<Vertex> vertices = this.graph.traversal().V()
-                                    .has(NODE_COMMUNITY, nodeCommunity)
-                                    .toList();
-        for (Vertex v : vertices) {
+        Iterator<Vertex> vertices = this.vertices(NODE_COMMUNITY,
+                                                  nodeCommunity);
+        while (vertices.hasNext()) {
+            Vertex v = vertices.next();
             nodes.add(((Number) v.id()).intValue());
         }
         return nodes;
@@ -287,17 +290,17 @@ public class HugeGraphCoreDatabase extends GraphDatabaseBase<
     public double getEdgesInsideCommunity(int nodeCommunity,
                                           int communityNodes) {
         double edges = 0;
-        List<Vertex> vertices = this.graph.traversal().V()
-                                    .has(NODE_COMMUNITY, nodeCommunity)
-                                    .toList();
-        List<Vertex> commVertices = this.graph.traversal().V()
-                                        .has(COMMUNITY, communityNodes)
-                                        .toList();
-        for (Vertex v : vertices) {
-            List<Vertex> neighbors = this.graph.traversal().V(v.id())
-                                         .out(SIMILAR).toList();
-            for (Vertex n : neighbors) {
-                if (commVertices.contains(n)) {
+        Iterator<Vertex> vertices = this.vertices(NODE_COMMUNITY,
+                                                  nodeCommunity);
+        Set<Vertex> commVertices = new HashSet<>();
+        IteratorUtils.fill(this.vertices(COMMUNITY, communityNodes),
+                           commVertices);
+        while (vertices.hasNext()) {
+            Iterator<Vertex> neighbors = this.graph.traversal()
+                                             .V(vertices.next().id())
+                                             .out(SIMILAR);
+            while (neighbors.hasNext()) {
+                if (commVertices.contains(neighbors.next())) {
                     edges++;
                 }
             }
@@ -308,10 +311,9 @@ public class HugeGraphCoreDatabase extends GraphDatabaseBase<
     @Override
     public double getCommunityWeight(int community) {
         double communityWeight = 0;
-        List<Vertex> vertices = this.graph.traversal().V()
-                                    .has(COMMUNITY, community).toList();
-        for (Vertex vertex : vertices) {
-            communityWeight += getNodeOutDegree(vertex);
+        Iterator<Vertex> vertices = this.vertices(COMMUNITY, community);
+        while (vertices.hasNext()) {
+            communityWeight += this.getNodeOutDegree(vertices.next());
         }
         return communityWeight;
     }
@@ -320,23 +322,21 @@ public class HugeGraphCoreDatabase extends GraphDatabaseBase<
     public double getNodeCommunityWeight(int nodeCom) {
 
         double nodeCommunityWeight = 0;
-        List<Vertex> vertices = this.graph.traversal().V()
-                                    .has(NODE_COMMUNITY, nodeCom).toList();
-        for (Vertex v : vertices) {
-            nodeCommunityWeight += getNodeOutDegree(v);
+        Iterator<Vertex> vertices = this.vertices(NODE_COMMUNITY, nodeCom);
+        while (vertices.hasNext()) {
+            nodeCommunityWeight += this.getNodeOutDegree(vertices.next());
         }
         return nodeCommunityWeight;
     }
 
     @Override
     public void moveNode(int from, int to) {
-        List<Vertex> vertices = this.graph.traversal().V()
-                                    .has(NODE_COMMUNITY, from).toList();
+        Iterator<Vertex> vertices = this.vertices(NODE_COMMUNITY, from);
         int count = 0;
-        for (Vertex v : vertices) {
-            v.property(COMMUNITY, to);
+        while (vertices.hasNext()) {
+            vertices.next().property(COMMUNITY, to);
             count++;
-            if (count % 500 == 0) {
+            if (count % BATCH_SIZE == 0) {
                 this.graph.tx().commit();
             }
         }
@@ -354,7 +354,9 @@ public class HugeGraphCoreDatabase extends GraphDatabaseBase<
         Map<Integer, Integer> initCommunities = new HashMap<>();
         int communityCounter = 0;
         int count = 0;
-        for (Vertex v : this.graph.traversal().V().hasLabel(NODE).toList()) {
+        Iterator<Vertex> vertices = this.graph.traversal().V();
+        while (vertices.hasNext()) {
+            Vertex v = vertices.next();
             int communityId = (int) v.property(COMMUNITY).value();
             if (!initCommunities.containsKey(communityId)) {
                 initCommunities.put(communityId, communityCounter);
@@ -364,7 +366,7 @@ public class HugeGraphCoreDatabase extends GraphDatabaseBase<
             v.property(COMMUNITY, newCommunityId);
             v.property(NODE_COMMUNITY, newCommunityId);
             count++;
-            if (count % 500 == 0) {
+            if (count % BATCH_SIZE == 0) {
                 this.graph.tx().commit();
             }
         }
@@ -375,23 +377,22 @@ public class HugeGraphCoreDatabase extends GraphDatabaseBase<
 
     @Override
     public int getCommunityFromNode(int nodeId) {
-        Vertex vertex = this.graph.traversal().V(nodeId).next();
+        Vertex vertex = this.graph.vertices(nodeId).next();
         return (int) vertex.property(COMMUNITY).value();
     }
 
     @Override
     public int getCommunity(int nodeCommunity) {
-        Vertex vertex = this.graph.traversal().V()
-                            .has(NODE_COMMUNITY, nodeCommunity).next();
+        Vertex vertex = this.vertices(NODE_COMMUNITY, nodeCommunity).next();
         return (int) vertex.property(COMMUNITY).value();
     }
 
     @Override
     public int getCommunitySize(int community) {
         Set<Integer> nodeCommunities = new HashSet<>();
-        List<Vertex> vertices = this.graph.traversal().V()
-                                    .has(COMMUNITY, community).toList();
-        for (Vertex v : vertices) {
+        Iterator<Vertex> vertices = this.vertices(COMMUNITY, community);
+        while (vertices.hasNext()) {
+            Vertex v = vertices.next();
             int nodeCommunity = (int) v.property(NODE_COMMUNITY).value();
             if (!nodeCommunities.contains(nodeCommunity)) {
                 nodeCommunities.add(nodeCommunity);
@@ -405,10 +406,9 @@ public class HugeGraphCoreDatabase extends GraphDatabaseBase<
         Map<Integer, List<Integer>> communities = new HashMap<>();
         for (int i = 0; i < numberOfCommunities; i++) {
             List<Integer> vs = new ArrayList<>();
-            List<Vertex> vertices = this.graph.traversal().V()
-                                        .has(COMMUNITY, i).toList();
-            for (Vertex v : vertices) {
-                vs.add(((Number) v.id()).intValue());
+            Iterator<Vertex> vertices = this.vertices(COMMUNITY, i);
+            while (vertices.hasNext()) {
+                vs.add(((Number) vertices.next().id()).intValue());
             }
             communities.put(i, vs);
         }
@@ -417,26 +417,30 @@ public class HugeGraphCoreDatabase extends GraphDatabaseBase<
 
     @Override
     public boolean nodeExists(int nodeId) {
-        return this.graph.traversal().V(nodeId).hasNext();
+        return this.graph.vertices(nodeId).hasNext();
     }
 
-    public double getNodeOutDegree(Vertex vertex) {
-        return getNodeDegree(vertex, Direction.OUT);
+    private long getNodeOutDegree(Vertex vertex) {
+        return getNodeDegree(vertex.id(), Direction.OUT);
     }
 
-    public double getNodeDegree(Vertex vertex, Direction direction) {
+    private long getNodeDegree(Object id, Direction direction) {
         switch (direction) {
             case IN:
-                return this.graph.traversal().V(vertex.id()).in(SIMILAR)
+                return this.graph.traversal().V(id).inE(SIMILAR)
                                  .count().next();
             case OUT:
-                return this.graph.traversal().V(vertex.id()).out(SIMILAR)
+                return this.graph.traversal().V(id).outE(SIMILAR)
                                  .count().next();
             case BOTH:
             default:
                 throw new AssertionError(String.format(
                           "Only support IN or OUT, but got: '%s'", direction));
         }
+    }
+
+    private Iterator<Vertex> vertices(String prop, Object value) {
+        return this.graph.traversal().V().has(prop, value);
     }
 
     private static HugeGraph loadGraph(boolean needClear) {
