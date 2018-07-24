@@ -201,7 +201,8 @@ public class HugeGraphCoreDatabase extends GraphDatabaseBase<
         HugeTraverser traverser = new HugeTraverser(this.graph);
         List<Id> path = traverser.shortestPath(fromNode.id(),
                                                IdGenerator.of(node.longValue()),
-                                               Directions.OUT, SIMILAR, 5);
+                                               Directions.OUT, SIMILAR, 5,
+                                               -1, -1);
         LOG.debug(path);
     }
 
