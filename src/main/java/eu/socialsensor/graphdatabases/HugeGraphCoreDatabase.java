@@ -78,7 +78,12 @@ public class HugeGraphCoreDatabase extends GraphDatabaseBase<
     @Override
     public HugeVertex getOtherVertexFromEdge(HugeEdge edge,
                                              HugeVertex oneVertex) {
-        return edge.otherVertex(oneVertex);
+        if (edge.sourceVertex().equals(oneVertex)) {
+            return edge.targetVertex();
+        } else {
+            assert edge.targetVertex().equals(oneVertex);
+            return edge.sourceVertex();
+        }
     }
 
     @Override
