@@ -25,7 +25,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.tinkerpop.gremlin.structure.T;
 
 import com.baidu.hugegraph.HugeGraph;
@@ -38,24 +40,28 @@ import eu.socialsensor.main.GraphDatabaseType;
 
 public class HugeGraphCoreMassiveInsertion extends InsertionBase<Integer> {
 
-    private ExecutorService pool = Executors.newFixedThreadPool(8);
     private static final int EDGE_BATCH_NUMBER = 500;
 
+    private ExecutorService pool = Executors.newFixedThreadPool(8);
+
     private Set<Integer> allVertices = new HashSet<>();
-    private Set<Integer> vertices = new HashSet<>();
 
-    private List<Integer> source = new ArrayList<>(EDGE_BATCH_NUMBER);
-    private List<Integer> target = new ArrayList<>(EDGE_BATCH_NUMBER);
+    private List<Integer> vertices;
+    private List<Pair<Integer, Integer>> edges;
 
-    private static int edgeNumber = 0;
-
-    private HugeGraph graph = null;
-    private VertexLabel vl = null;
+    private final HugeGraph graph;
+    private final VertexLabel vl;
 
     public HugeGraphCoreMassiveInsertion(HugeGraph graph) {
         super(GraphDatabaseType.HUGEGRAPH_CORE, null);
         this.graph = graph;
         this.vl = this.graph.vertexLabel(HugeGraphDatabase.NODE);
+        this.reset();
+    }
+
+    private void reset() {
+        this.vertices = new ArrayList<>();
+        this.edges = new ArrayList<>(EDGE_BATCH_NUMBER);
     }
 
     @Override
@@ -71,33 +77,28 @@ public class HugeGraphCoreMassiveInsertion extends InsertionBase<Integer> {
 
     @Override
     protected void relateNodes(Integer src, Integer dest) {
-        this.source.add(src);
-        this.target.add(dest);
-        if (++edgeNumber == EDGE_BATCH_NUMBER) {
-            batchCommit();
-            edgeNumber = 0;
+        this.edges.add(Pair.of(src, dest));
+        if (this.edges.size() >= EDGE_BATCH_NUMBER) {
+            this.batchCommit();
+            this.reset();
         }
     }
 
     private void batchCommit() {
-        Set<Integer> vertices = this.vertices;
-        this.vertices = new HashSet<>();
-        List<Integer> src = this.source;
-        this.source = new ArrayList<>(500);
-        List<Integer> tgt = this.target;
-        this.target = new ArrayList<>(500);
+        List<Integer> vertices = this.vertices;
+        List<Pair<Integer, Integer>> edges = this.edges;
 
         this.pool.submit(() -> {
-            for (Integer n : vertices) {
-                this.graph.addVertex(T.id, n, T.label, HugeGraphDatabase.NODE);
+            for (Integer v : vertices) {
+                this.graph.addVertex(T.id, v, T.label, HugeGraphDatabase.NODE);
             }
-            for (int i = 0; i < 500; i++) {
-                HugeVertex source = new HugeVertex(this.graph,
-                                                   IdGenerator.of(src.get(i)),
-                                                   this.vl);
-                HugeVertex target = new HugeVertex(this.graph,
-                                                   IdGenerator.of(tgt.get(i)),
-                                                   this.vl);
+            HugeVertex source;
+            HugeVertex target;
+            for (Pair<Integer, Integer> e: edges) {
+                source = new HugeVertex(this.graph,
+                                        IdGenerator.of(e.getLeft()), this.vl);
+                target = new HugeVertex(this.graph,
+                                        IdGenerator.of(e.getRight()), this.vl);
                 source.addEdge(HugeGraphDatabase.SIMILAR, target);
             }
             this.graph.tx().commit();
@@ -106,6 +107,11 @@ public class HugeGraphCoreMassiveInsertion extends InsertionBase<Integer> {
 
     @Override
     protected void post() {
-        this.graph.tx().commit();
+        this.pool.shutdown();
+        try {
+            this.pool.awaitTermination(60 * 5, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
