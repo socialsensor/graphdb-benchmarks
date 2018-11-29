@@ -4,6 +4,8 @@ CQLSH=/home/cassandra/cassandra/bin/cqlsh
 CASSANDRA_HOST=127.0.0.1
 CASSANDRA_PORT=8042
 DROP='DROP KEYSPACE IF EXISTS titan;'
+CASSANDRA_CONNECT_TIMEOUT=30
+CASSANDRA_REQUEST_TIMEOUT=60
 
 ROOT_DIR=.
 CONF_FILE=$ROOT_DIR/src/test/resources/META-INF/input.properties
@@ -79,7 +81,8 @@ run() {
         rm -fr $ROOT_DIR/storage
     fi
     # clear data of titan in cassandra
-    $CQLSH $CASSANDRA_HOST $CASSANDRA_PORT -e "$DROP"
+    $CQLSH $CASSANDRA_HOST $CASSANDRA_PORT -e "$DROP" --connect-timeout=$CASSANDRA_CONNECT_TIMEOUT --request-timeout=$CASSANDRA_REQUEST_TIMEOUT
+
     # clear results
     if [ -d $ROOT_DIR/results/$prefix ]; then
         rm -fr $ROOT_DIR/results/$prefix
