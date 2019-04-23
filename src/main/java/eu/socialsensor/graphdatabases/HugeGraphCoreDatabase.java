@@ -45,11 +45,10 @@ import com.baidu.hugegraph.dist.RegisterUtil;
 import com.baidu.hugegraph.schema.SchemaManager;
 import com.baidu.hugegraph.structure.HugeEdge;
 import com.baidu.hugegraph.structure.HugeVertex;
-import com.baidu.hugegraph.traversal.optimize.HugeTraverser;
+import com.baidu.hugegraph.traversal.algorithm.ShortestPathTraverser;
 import com.baidu.hugegraph.type.HugeType;
 import com.baidu.hugegraph.type.define.Directions;
 
-import eu.socialsensor.graphdatabases.GraphDatabaseBase;
 import eu.socialsensor.insert.HugeGraphCoreMassiveInsertion;
 import eu.socialsensor.insert.HugeGraphCoreSingleInsertion;
 import eu.socialsensor.main.BenchmarkConfiguration;
@@ -223,11 +222,11 @@ public class HugeGraphCoreDatabase extends GraphDatabaseBase<
         LOG.debug("shortest path {} round, (from node: {}, to node: {})",
                   counter, fromNode.id(), node);
         counter++;
-        HugeTraverser traverser = new HugeTraverser(this.graph);
+        ShortestPathTraverser traverser = new ShortestPathTraverser(this.graph);
         List<Id> path = traverser.shortestPath(fromNode.id(),
                                                IdGenerator.of(node.longValue()),
                                                Directions.OUT, SIMILAR, 5,
-                                               -1, -1);
+                                               -1, 0, -1);
         LOG.debug("{}", path);
     }
 

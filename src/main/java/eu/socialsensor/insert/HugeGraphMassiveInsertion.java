@@ -71,9 +71,9 @@ public class HugeGraphMassiveInsertion extends InsertionBase<Integer> {
     @Override
     protected void relateNodes(Integer src, Integer dest) {
         Edge edge = new Edge(HugeGraphDatabase.SIMILAR);
-        edge.source(src);
+        edge.sourceId(src);
         edge.sourceLabel(HugeGraphDatabase.NODE);
-        edge.target(dest);
+        edge.targetId(dest);
         edge.targetLabel(HugeGraphDatabase.NODE);
 
         this.edgeList.add(edge);

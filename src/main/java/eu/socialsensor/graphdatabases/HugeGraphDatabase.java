@@ -276,7 +276,7 @@ public class HugeGraphDatabase extends GraphDatabaseBase<
         List<Edge> edges = this.hugeClient.graph().getEdges(nodeId,
                                                             Direction.OUT);
         for (Edge e : edges) {
-            neighbors.add((Integer) e.target());
+            neighbors.add((Integer) e.targetId());
         }
         return neighbors;
     }
