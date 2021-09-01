@@ -54,7 +54,7 @@
         <orientdb.version>2.2.5</orientdb.version>
         <titan.version>0.5.4</titan.version>
         <hbase.version>0.98.8-hadoop2</hbase.version>
-        <neo4j.version>2.0.1</neo4j.version>
+        <neo4j.version>3.5.0</neo4j.version>
         <dynamodb.titan.version>1.0.0</dynamodb.titan.version>
         <log4j2.version>2.1</log4j2.version>
         <maven.surefire.version>2.18.1</maven.surefire.version>
