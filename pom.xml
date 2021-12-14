@@ -56,7 +56,7 @@
         <hbase.version>0.98.8-hadoop2</hbase.version>
         <neo4j.version>2.0.1</neo4j.version>
         <dynamodb.titan.version>1.0.0</dynamodb.titan.version>
-        <log4j2.version>2.1</log4j2.version>
+        <log4j2.version>2.16.0</log4j2.version>
         <maven.surefire.version>2.18.1</maven.surefire.version>
         <jdk.version>1.8</jdk.version>
         <metrics.version>3.0.0-BETA3</metrics.version>
